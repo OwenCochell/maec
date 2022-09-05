@@ -9,6 +9,9 @@
  * 
  */
 
+#pragma once
+
+
 /**
  * @brief Represents a module
  * 
@@ -27,7 +30,7 @@
  * 
  * Each module has a state it can be in:
  * 
- * Created -> Started -> Running -> Finishing -> Stopped
+ * Created -> Started -> Running -> Finishing -> Finished -> Stopped
  * 
  *  - Created - Module has been created 
  *  - Started - Module has been started, and will start working with data
@@ -49,11 +52,11 @@ class BaseModule {
 
         /// The types of states we can be:
 
-        enum class Type {Created, Started, Running, Finishing, Stopped};
+        enum class State {Created, Started, Running, Finishing, Finished, Stopped};
 
         /// The state type of this module:
 
-        Type state_type =Type::Created;
+        State state_type =State::Created;
 
     public:
 
@@ -67,10 +70,56 @@ class BaseModule {
          * You can put any module specific stop code in here,
          * but be sure to call the parent version of this method!
          */
-        void stop();
 
-        void start();  /// Method called when this module is started
-        void finish();  // Method called when this module is requested to stop
-        void done();  /// Method called when this module is
+        virtual void stop();
+
+        /**
+         * @brief Method called when this module is started
+         * 
+         * When this module is started,
+         * this method will be called.
+         * 
+         * Be default, we alter the state to the 'Started' value.
+         * You can put any module specific stop code in here,
+         * but be sure to call the parent version of this method!
+         */
+
+        virtual void start();
+
+        /**
+         * @brief Method called when this module is requested to stop
+         * 
+         * When this module is requested to stop,
+         * this method will be called.
+         * 
+         * By default, we alter the state to the 'Finishing' value.
+         * You can put any module specific finish code in here,
+         * but be sure to call the parent version of this method!
+         * 
+         * In most cases, when modules are requested to stop,
+         * it is appropriate to mark them as done immediately.
+         * This is the default operation.
+         * However, some modules may do things after the chain is asked to be stopped,
+         * such as fade out in the case of an ADSR envelope.
+         */
+
+        virtual void finish();
+
+        /**
+         * @brief Method called when this module is done
+         * 
+         * When this module is done and ready to be stopped,
+         * this method will be called.
+         * 
+         * By default, we alter the state to the 'Stopped' value.
+         * You can put any module specific done code in here,
+         * but be sure to call the parent version of this method!
+         * 
+         * It is very important to call this method once we are done!
+         * This tells the collection using this module that we are ready to be stopped.
+         * If all modules are not marked as done, then the module chain will not stop!
+         */
+
+        virtual void done();
 
 };
