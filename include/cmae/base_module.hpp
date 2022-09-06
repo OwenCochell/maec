@@ -45,7 +45,6 @@
  * checkout 'start()', 'stop()', 'finish()', ect. for more info.
  * 
  */
-
 class BaseModule {
 
     private:
@@ -70,7 +69,6 @@ class BaseModule {
          * You can put any module specific stop code in here,
          * but be sure to call the parent version of this method!
          */
-
         virtual void stop();
 
         /**
@@ -83,7 +81,6 @@ class BaseModule {
          * You can put any module specific stop code in here,
          * but be sure to call the parent version of this method!
          */
-
         virtual void start();
 
         /**
@@ -101,8 +98,12 @@ class BaseModule {
          * This is the default operation.
          * However, some modules may do things after the chain is asked to be stopped,
          * such as fade out in the case of an ADSR envelope.
+         * 
+         * Do note, that this method may not be called!
+         * If this module is stopped without being asked nicely,
+         * (stop() method is called without a call to finish()),
+         * then it should do so and not cause trouble.
          */
-
         virtual void finish();
 
         /**
@@ -119,7 +120,6 @@ class BaseModule {
          * This tells the collection using this module that we are ready to be stopped.
          * If all modules are not marked as done, then the module chain will not stop!
          */
-
         virtual void done();
 
 };

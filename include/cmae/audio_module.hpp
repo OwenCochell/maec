@@ -80,5 +80,5 @@ class AudioModule : public BaseModule {
          * 
          * @return long double* 
          */
-        (long double)* get_buffer();
+        long double* get_buffer();
 };
