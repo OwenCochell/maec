@@ -43,6 +43,8 @@ struct audio_info {
  * 
  * Audio modules are share a pointer to an 'audio_info' struct,
  * which will be used to share information between modules.
+ * 
+ * All audio modules must inherit this class!
  */
 class AudioModule : public BaseModule {
 
@@ -69,6 +71,19 @@ class AudioModule : public BaseModule {
          * to taking audio data from previous modules and working with it.
          */
         virtual void process();
+
+        /**
+         * @brief Meta process method
+         * 
+         * This method contains all the meta code such as routing 
+         * audio data to the next module in the chain,
+         * and ensuring our state is valid (?).
+         * 
+         * Most users will not need to alter the code in this module,
+         * but some advanced modules will need to, such as the audio mixers.
+         * 
+         */
+        virtual void meta_process();
 
         /**
          * @brief Get the buffer object
