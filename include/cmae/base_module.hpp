@@ -122,4 +122,13 @@ class BaseModule {
          */
         virtual void done();
 
+        /**
+         * @brief Get the state of this module
+         * 
+         * We return the state of this module.
+         * 
+         * @return State An integer representing the state
+         */
+        State get_state() {return this->state_type;}
+
 };

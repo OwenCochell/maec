@@ -22,8 +22,8 @@ target_include_directories(cmae
 
 # Set compile options:
 
-target_compile_options(ojae PRIVATE -Wall -Wextra)
-target_compile_features(ojae PRIVATE cxx_std_17)
+target_compile_options(cmae PRIVATE -Wall -Wextra)
+target_compile_features(cmae PRIVATE cxx_std_17)
 
 # Add binaries in 'test':
 
