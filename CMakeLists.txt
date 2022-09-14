@@ -24,8 +24,13 @@ target_include_directories(${PROJECT_NAME}
 
 # Set compile options:
 
-target_compile_options(cmae PRIVATE -Wall -Wextra)
-target_compile_features(cmae PRIVATE cxx_std_17)
+if(MSVC)
+  target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+else()
+  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
+
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 # Add binaries in 'test':
 

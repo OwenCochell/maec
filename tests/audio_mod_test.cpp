@@ -9,4 +9,18 @@
  * 
  */
 
+#include <gtest/gtest.h>
 #include "audio_module.hpp"
+
+/**
+ * @brief Construct a new AudioModule object
+ * 
+ * Tests if the audio module constructs correctly.
+ */
+TEST(AudioModuleTest, Construct) {
+
+    // Create the AUdioModule:
+
+    AudioModule mod;
+
+}
