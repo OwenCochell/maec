@@ -12,6 +12,8 @@
 #pragma once
 
 #include <array>
+#include <memory>
+#include <vector>
 #include "base_module.hpp"
 
 
@@ -32,6 +34,8 @@ struct audio_info {
     int buff_size = 440;  /// The size of the audio buffer
 
     bool running;  // Value determining if we are running
+
+    std::vector<std::unique_ptr<long double*>> points;
 
 };
 
@@ -60,10 +64,6 @@ class AudioModule : public BaseModule {
 
         audio_info* info;
 
-        /// Pointer to the audio buffer we are working with
-
-        std::array<long double, 0>* buff;
-
         /// Pointer to the audio module we are attached to
 
         AudioModule* forward;
@@ -71,6 +71,14 @@ class AudioModule : public BaseModule {
         /// Pointer to the audio module that is attached to us
 
         AudioModule* backward;
+
+    protected:
+
+        /// Pointer to the audio buffer we are working with
+        // TODO: Figure out a better way to do this!
+        // We are using raw C arrays, I would like to use C++ std::array (s) instead!
+
+        std::unique_ptr<long double> buff;
 
     public:
 
@@ -114,7 +122,7 @@ class AudioModule : public BaseModule {
          * 
          * @param inbuff Pointer to an audio buffer
          */
-        virtual void set_buffer(long double* inbuff);
+        virtual void set_buffer(std::unique_ptr<long double> inbuff);
 
         /**
          * @brief Binds another module to us
@@ -139,12 +147,17 @@ class AudioModule : public BaseModule {
         virtual void set_forward(AudioModule* mod);
 
         /**
-         * @brief Get the buffer object
+         * @brief Create a buffer object
          * 
-         * This method samples the attached modules for an audio buffer.
-         * We return a pointer to the array of audio data.
+         * Creates a buffer object and 
+         * returns the result.
+         * The resulting pointer should be unique,
+         * and have ownership of the buffer.
+         * TODO: TEST THIS FO SURE!
+         * Not 100% sure that compilers will allow this...
          * 
-         * @return long double* The buffer to be used
+         * @return long* 
          */
-        long double* get_buffer();
+        std::unique_ptr<long double> create_buffer();
+
 };

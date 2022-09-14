@@ -23,14 +23,14 @@ void AudioModule::meta_process() {
 
     // Finally, send our buffer to the module we are attached to:
 
-    this->forward->set_buffer(this->buff);
+    this->forward->set_buffer(std::move(this->buff));
 }
 
-void AudioModule::set_buffer(long double* inbuff) {
+void AudioModule::set_buffer(std::unique_ptr<long double> inbuff) {
 
     // Set our buffer:
 
-    this->buff = inbuff;
+    this->buff = std::move(inbuff);
 }
 
 void AudioModule::bind(AudioModule* mod) {
@@ -44,9 +44,9 @@ void AudioModule::bind(AudioModule* mod) {
     mod->set_forward(this);
 }
 
-long double* AudioModule::get_buffer() {
+std::unique_ptr<long double> AudioModule::create_buffer() {
 
-    // Return the pointer to our audio buffer:
+    // Allocate the new buffer with our buffsize:
 
-    return this->buff;
+    return std::unique_ptr<long double> (new long double[this->info->buff_size]);
 }
