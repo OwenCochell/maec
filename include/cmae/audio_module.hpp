@@ -83,6 +83,24 @@ class AudioModule : public BaseModule {
     public:
 
         /**
+         * @brief Construct a new Audio Module object
+         * 
+         */
+        AudioModule() {
+
+            // Set the dummy audio module:
+            // TODO: Use smart pointers here
+
+            this->backward = new DummyAudioModule();
+        }
+
+        /**
+         * @brief Destroy the Audio Module object
+         * 
+         */
+        ~AudioModule() =default;
+
+        /**
          * @brief Function called when processing is necessary.
          * 
          * This is where the magic happens!
@@ -92,7 +110,7 @@ class AudioModule : public BaseModule {
          * This can do anything from generating audio data,
          * to taking audio data from previous modules and working with it.
          */
-        virtual void process();
+        virtual void process() {}
 
         /**
          * @brief Meta process method
@@ -159,5 +177,28 @@ class AudioModule : public BaseModule {
          * @return long* 
          */
         std::unique_ptr<long double> create_buffer();
+
+};
+
+
+/**
+ * @brief A dummy audio module that does nothing
+ * 
+ * We use this module to end the chain of audio modules.
+ * The 'meta_process()' method does nothing,
+ * so we don't have to worry about invalid backwards pointers.
+ * 
+ * Every AudioModule starts with this module bound to it by default.
+ * 
+ */
+class DummyAudioModule : public AudioModule {
+
+    public:
+
+        DummyAudioModule() {}
+
+        ~DummyAudioModule() =default;
+
+        void meta_process() override {};
 
 };

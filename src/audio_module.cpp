@@ -11,6 +11,7 @@
 
 #include "audio_module.hpp"
 
+
 void AudioModule::meta_process() {
 
     // Call the module behind us:
@@ -31,6 +32,13 @@ void AudioModule::set_buffer(std::unique_ptr<long double> inbuff) {
     // Set our buffer:
 
     this->buff = std::move(inbuff);
+}
+
+void AudioModule::set_forward(AudioModule* mod) {
+
+    // Set the forward module:
+
+    this->forward = mod;
 }
 
 void AudioModule::bind(AudioModule* mod) {

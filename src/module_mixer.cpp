@@ -32,4 +32,3 @@ void ModuleMixUp::set_forward(AudioModule* mod) {
 
     this->out.push_back(mod);
 }
-
