@@ -19,7 +19,7 @@ void ModuleMixDown::bind(AudioModule* mod) {
     this->in.push_back(mod);
 }
 
-void ModuleMixDown::set_buffer(std::unique_ptr<long double> inbuff) {
+void ModuleMixDown::set_buffer(AudioBuffer inbuff) {
 
     // Add the incoming buffer to our vector:
 

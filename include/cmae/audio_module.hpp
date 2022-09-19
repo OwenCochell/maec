@@ -17,13 +17,16 @@
 #include "base_module.hpp"
 
 
+typedef std::unique_ptr<std::vector<long double>> AudioBuffer;
+
+
 /**
  * @brief Structure for holding audio info
  * 
  * We contain various info to be shared among modules
  * that are linked together.
  */
-struct audio_info {
+struct AudioInfo {
 
     double freq;  /// The frequency of the audio data, if applicable
     double sample_rate;  /// The sample rate of the audio data, if applicable
@@ -62,7 +65,7 @@ class AudioModule : public BaseModule {
 
         /// Pointer to the audio info
 
-        audio_info* info;
+        AudioInfo* info;
 
         /// Pointer to the audio module we are attached to
 
@@ -78,7 +81,7 @@ class AudioModule : public BaseModule {
         // TODO: Figure out a better way to do this!
         // We are using raw C arrays, I would like to use C++ std::array (s) instead!
 
-        std::unique_ptr<long double> buff;
+        AudioBuffer buff;
 
     public:
 
@@ -88,17 +91,14 @@ class AudioModule : public BaseModule {
          */
         AudioModule() {
 
-            // Set the dummy audio module:
-            // TODO: Use smart pointers here
-
-            this->backward = new DummyAudioModule();
+            this->info = new AudioInfo();
         }
 
         /**
          * @brief Destroy the Audio Module object
          * 
          */
-        ~AudioModule() =default;
+        virtual ~AudioModule() =default;
 
         /**
          * @brief Function called when processing is necessary.
@@ -129,10 +129,7 @@ class AudioModule : public BaseModule {
          * 
          * This method is called when modules are attempting to set the buffer
          * for this audio module.
-         * 
-         * This is usually done as audio data works it's way up the chain,
-         * but it can be done by any component at any time.
-         * 
+         *
          * This method can be overridden if necessary,
          * but most of the time it is not.
          * Advanced components such as the audio mixers
@@ -140,7 +137,25 @@ class AudioModule : public BaseModule {
          * 
          * @param inbuff Pointer to an audio buffer
          */
-        virtual void set_buffer(std::unique_ptr<long double> inbuff);
+        virtual void set_buffer(AudioBuffer inbuff);
+
+        /**
+         * @brief Get the buffer object
+         * 
+         * This method is called by modules that are attempting to get the buffer
+         * of the backward modules attached to them.
+         * This function will move the ownership of the buffer to the caller,
+         * so this should only be called by forward modules after processing is complete!
+         * 
+         * One other application for this is when the user defined process method
+         * gets access to the buffer of the current module.
+         * Keep in mind, the process method would then have to re-set the current
+         * buffer using the set_buffer() method.
+         * Therefore, it is recommended that you use the protected 'buff' pointer instead.
+         * 
+         * @return std::unique_ptr<long double> 
+         */
+        virtual AudioBuffer get_buffer();
 
         /**
          * @brief Binds another module to us
@@ -176,29 +191,39 @@ class AudioModule : public BaseModule {
          * 
          * @return long* 
          */
-        std::unique_ptr<long double> create_buffer();
+        AudioBuffer create_buffer();
 
-};
+        /**
+         * @brief Get the forward object
+         * 
+         * We simply return the pointer to the forward module.
+         * 
+         * @return AudioModule* Pointer to the forward module
+         */
+        AudioModule* get_forward() { return this->forward; }
 
+        /**
+         * @brief Get the backward object
+         * 
+         * We simply return the pointer to the backward module.
+         * 
+         * @return AudioModule* Pointer to the backward module
+         */
+        AudioModule* get_backward() { return this->backward; }
 
-/**
- * @brief A dummy audio module that does nothing
- * 
- * We use this module to end the chain of audio modules.
- * The 'meta_process()' method does nothing,
- * so we don't have to worry about invalid backwards pointers.
- * 
- * Every AudioModule starts with this module bound to it by default.
- * 
- */
-class DummyAudioModule : public AudioModule {
+        /**
+         * @brief Get the info object
+         * 
+         * @return AudioInfo* 
+         */
+        AudioInfo* get_info() { return this->info; }
 
-    public:
-
-        DummyAudioModule() {}
-
-        ~DummyAudioModule() =default;
-
-        void meta_process() override {};
+        /**
+         * @brief Set the info object
+         * 
+         * @param info Audio info struct
+         *
+         */
+        void set_info(AudioInfo* info) { this->info = info; }
 
 };

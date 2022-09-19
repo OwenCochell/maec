@@ -11,11 +11,12 @@
 
 #include <gtest/gtest.h>
 #include "audio_module.hpp"
+#include "meta_audio.hpp"
 
 
 TEST(AudioModuleTest, Construct) {
 
-    // Create the AUdioModule:
+    // Create the AudioModule:
 
     AudioModule mod;
 
@@ -85,19 +86,53 @@ TEST(AudioModuleTest, Bind) {
 
 }
 
+TEST(AudioModuleTest, GetInfo) {
+
+    // Create the AudioModule:
+
+    AudioModule mod;
+
+    // Get the info:
+
+    auto info = mod.get_info();
+
+    // Check the info:
+
+    ASSERT_NE(info, nullptr);
+
+}
+
+TEST(AudioModuleTest, SetInfo) {
+
+    // Create the AudioModule:
+
+    AudioModule mod;
+
+    // Create the info:
+
+    AudioInfo info = AudioInfo();
+
+    // Set the info:
+
+    mod.set_info(&info);
+
+}
+
 TEST(AudioModuleTest, MetaProcess) {
 
     // Create the AudioModule:
 
     AudioModule mod;
 
-    // Create the AudioModule:
+    // Create the DeadEnd, stops backward sampling issues:
 
-    AudioModule mod2;
+    BackStop mod2;
 
     // Bind the modules:
 
     mod.bind(&mod2);
+
+    std::cout << mod.get_backward() << std::endl;
 
     // Call the meta process:
 

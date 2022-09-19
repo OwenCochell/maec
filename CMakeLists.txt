@@ -11,6 +11,8 @@ add_library(${PROJECT_NAME}
     src/base_module.cpp
     src/audio_module.cpp
     src/module_mixer.cpp
+    src/meta_audio.cpp
+    src/base_oscillator.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -27,7 +29,7 @@ target_include_directories(${PROJECT_NAME}
 if(MSVC)
   target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
 else()
-  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)

@@ -60,9 +60,15 @@ class ModuleMixDown : public AudioModule {
         std::vector<AudioModule*> in;
 
         /// Vector of all input buffers
-        std::vector<std::unique_ptr<long double>> buffs;
+        std::vector<AudioBuffer> buffs;
 
     public:
+
+        /**
+         * @brief Construct a new Module Mix Down object
+         * 
+         */
+        ModuleMixDown() {};
 
         /**
          * @brief Processes the incoming audio data
@@ -84,7 +90,7 @@ class ModuleMixDown : public AudioModule {
          * 
          * @param inbuff Buffer to add to this module
          */
-        void set_buffer(std::unique_ptr<long double> inbuff) override;
+        void set_buffer(AudioBuffer inbuff) override;
 
         /**
          * @brief Binds a module to us
@@ -142,6 +148,12 @@ class ModuleMixUp : public AudioModule {
         std::vector<AudioModule*> out;
 
     public:
+
+        /**
+         * @brief Construct a new Module Mix Up object
+         * 
+         */
+        ModuleMixUp() {};
 
         /**
          * @brief Meta process method
