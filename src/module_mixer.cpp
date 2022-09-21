@@ -29,6 +29,10 @@ void ModuleMixDown::meta_process() {
 
     }
 
+    // Finally, call our processing method:
+
+    this->process();
+
 }
 
 void ModuleMixDown::bind(AudioModule* mod) {
@@ -38,11 +42,36 @@ void ModuleMixDown::bind(AudioModule* mod) {
     this->in.push_back(mod);
 }
 
-void ModuleMixDown::set_buffer(AudioBuffer inbuff) {
+void ModuleMixDown::process() {
 
-    // Add the incoming buffer to our vector:
+    // Create a new buffer:
 
-    this->buffs.push_back(std::move(inbuff));
+    AudioBuffer fbuff = create_buffer();
+
+    // Resize it to the size of the first buffer:
+
+    buff->resize(this->buffs[0]->size());
+
+    // Iterate over each buffer:
+
+    for (auto &b : this->buffs) {
+
+        // Iterate over each value in the buffer:
+
+        for (int i = 0; i < b->size(); i++) {
+
+            // Add the value to the new buffer:
+
+            buff->at(i) += b->at(i);
+
+        }
+
+    }
+
+    // Set our buffer to the new buffer:
+
+    this->set_buffer(std::move(buff));
+
 }
 
 void ModuleMixUp::set_forward(AudioModule* mod) {

@@ -80,19 +80,6 @@ class ModuleMixDown : public AudioModule {
         void process() override;
 
         /**
-         * @brief Set the buffer object
-         * 
-         * We add the incoming buffer to a vector containing
-         * all incoming buffers.
-         * 
-         * We will then use this data in process() which will 
-         * then be mixed together and forwarded to our output module.
-         * 
-         * @param inbuff Buffer to add to this module
-         */
-        void set_buffer(AudioBuffer inbuff) override;
-
-        /**
          * @brief Binds a module to us
          * 
          * We do something a little differently when compared to normal.
@@ -110,6 +97,12 @@ class ModuleMixDown : public AudioModule {
          */
         void meta_process() override;
 
+        /**
+         * @brief Returns the number of input modules attached to this mixer
+         * 
+         * @return int Number of input modules attached to this mixer
+         */
+        int num_inputs() { return in.size(); }
 
 };
 

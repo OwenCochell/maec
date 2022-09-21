@@ -4,8 +4,7 @@ set(TEST_FILES
     gtest_main.cpp
     audio_mod_test.cpp
     constant_oscillator_test.cpp
-    module_mixup_test.cpp
-    module_mixdown_test.cpp
+    module_mixers.cpp
 )
 
 # Get Google Tests
