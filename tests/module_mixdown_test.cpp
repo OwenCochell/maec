@@ -12,10 +12,10 @@
 #include <gtest/gtest.h>
 #include "module_mixer.hpp"
 
-// TEST(ModuleMixDownTest, Construct) {
+TEST(ModuleMixDownTest, Construct) {
 
-//     // Create the mixer:
+    // Create the mixer:
 
-//     ModuleMixDown mix;
+    ModuleMixDown mix;
 
-// }
+}

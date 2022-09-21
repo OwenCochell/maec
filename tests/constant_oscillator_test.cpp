@@ -54,9 +54,13 @@ TEST(ConstantOscillatorTest, SetGetValue) {
 
 TEST(ConstantOscillatorTest, Process) {
 
+    // Specify the value to use:
+
+    long double value = 0.5;
+
     // Create the oscillator:
 
-    ConstantOscillator osc;
+    ConstantOscillator osc(value);
 
     // Process the oscillator:
 
@@ -78,7 +82,7 @@ TEST(ConstantOscillatorTest, Process) {
 
     for (auto& val : *buff) {
 
-        ASSERT_EQ(val, 0.0);
+        ASSERT_EQ(val, value);
 
     }
 

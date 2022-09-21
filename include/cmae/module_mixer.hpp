@@ -101,6 +101,16 @@ class ModuleMixDown : public AudioModule {
          */
         void bind(AudioModule* mod) override;
 
+        /**
+         * @brief Meta process method
+         * 
+         * We are identical to the parent meta process method,
+         * but instead we grab all buffers from the vector of input modules
+         * and save them for future processing.
+         */
+        void meta_process() override;
+
+
 };
 
 
@@ -156,25 +166,29 @@ class ModuleMixUp : public AudioModule {
         ModuleMixUp() {};
 
         /**
-         * @brief Meta process method
-         * 
-         * We are identical to the parent meta process method,
-         * but we instead duplicate and route
-         * the audio buffer we get from input methods
-         * and send it along to output modules.
-         * 
-         */
-        void meta_process() override;
-
-        /**
          * @brief Set the forward object
          * 
          * We are identical to the parent forward method,
          * except that we keep multiple pointers of the modules
          * in front of us.
          * 
-         * @param mod 
+         * @param mod Module to add to our list of output modules
          */
         void set_forward(AudioModule* mod) override;
+
+        /**
+         * @brief Get the buffer object
+         * 
+         * This method is identical to the parent get_buffer method,
+         * but we have a MAJOR difference!
+         * Each time this method is called the current buffer will be copied
+         * into a new buffer and returned.
+         * 
+         * This introduces a performance/memory issue, as we are copying the buffer
+         * each time this method is called.
+         * 
+         * @return AudioBuffer
+         */
+        AudioBuffer get_buffer() override;
 
 };
