@@ -58,7 +58,7 @@ void ModuleMixDown::process() {
 
         // Iterate over each value in the buffer:
 
-        for (int i = 0; i < b->size(); i++) {
+        for (unsigned int i = 0; i < b->size(); i++) {
 
             // Add the value to the new buffer:
 

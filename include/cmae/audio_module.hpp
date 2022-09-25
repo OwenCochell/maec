@@ -224,6 +224,6 @@ class AudioModule : public BaseModule {
          * @param info Audio info struct
          *
          */
-        void set_info(AudioInfo* info) { this->info = info; }
+        void set_info(AudioInfo* in) { this->info = in; }
 
 };

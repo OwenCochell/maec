@@ -184,4 +184,11 @@ class ModuleMixUp : public AudioModule {
          */
         AudioBuffer get_buffer() override;
 
+        /**
+         * @brief Returns the number of output modules
+         * 
+         * @return int Number of output modules bound to us
+         */
+        int num_outputs() { return out.size(); }
+
 };
