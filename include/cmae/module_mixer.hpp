@@ -156,7 +156,7 @@ class ModuleMixUp : public AudioModule {
          * @brief Construct a new Module Mix Up object
          * 
          */
-        ModuleMixUp() {};
+        ModuleMixUp() {}
 
         /**
          * @brief Set the forward object

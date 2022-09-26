@@ -17,8 +17,4 @@ void BackStop::meta_process() {
 
     this->process();
 
-    // Finally, send our buffer to the module we are attached to:
-
-    this->get_forward()->set_buffer(std::move(this->buff));
-
 }

@@ -1,6 +1,6 @@
 /**
  * @file module_mixers.cpp
- * @author Owen Cochell (owen@gmail.com)
+ * @author Owen Cochell (owencochell@gmail.com)
  * @brief Basic tests for module mixers
  * @version 0.1
  * @date 2022-09-18
@@ -141,7 +141,7 @@ TEST(ModuleMixUpTest, Process) {
 
         // Ensure the value is around 0.5:
 
-        ASSERT_DOUBLE_EQ(item, 0.25);
+        ASSERT_DOUBLE_EQ(item, 0.50);
 
     }
 
@@ -151,7 +151,7 @@ TEST(ModuleMixUpTest, Process) {
 
         // Ensure the value is around 0.5:
 
-        ASSERT_DOUBLE_EQ(item, 0.25);
+        ASSERT_DOUBLE_EQ(item, 0.50);
 
     }
 }

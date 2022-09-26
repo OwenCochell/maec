@@ -48,10 +48,6 @@ void ModuleMixDown::process() {
 
     AudioBuffer fbuff = create_buffer();
 
-    // Resize it to the size of the first buffer:
-
-    buff->resize(this->buffs[0]->size());
-
     // Iterate over each buffer:
 
     for (auto &b : this->buffs) {
@@ -62,15 +58,14 @@ void ModuleMixDown::process() {
 
             // Add the value to the new buffer:
 
-            buff->at(i) += b->at(i);
+            fbuff->at(i) += b->at(i);
 
         }
-
     }
 
     // Set our buffer to the new buffer:
 
-    this->set_buffer(std::move(buff));
+    this->set_buffer(std::move(fbuff));
 
 }
 
@@ -86,8 +81,6 @@ AudioBuffer ModuleMixUp::get_buffer() {
     // Get a buffer to work with:
 
     AudioBuffer tbuff = this->create_buffer();
-
-    // Copy the contents:
 
     std::copy(this->buff->begin(), this->buff->end(), tbuff->begin());
 
