@@ -5,6 +5,7 @@ set(TEST_FILES
     audio_mod_test.cpp
     constant_oscillator_test.cpp
     module_mixers.cpp
+    fund_oscillator_test.cpp
 )
 
 # Get Google Tests
