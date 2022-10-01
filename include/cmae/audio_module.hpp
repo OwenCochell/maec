@@ -28,8 +28,8 @@ typedef std::unique_ptr<std::vector<long double>> AudioBuffer;
  */
 struct AudioInfo {
 
-    double freq;  /// The frequency of the audio data, if applicable
-    double sample_rate;  /// The sample rate of the audio data, if applicable
+    long double freq = 0;  /// The frequency of the audio data, if applicable
+    long double sample_rate = 44100;  /// The sample rate of the audio data, if applicable
 
     int done;  /// Number of modules that are finished
     int num;  /// Number of modules present in the chain
