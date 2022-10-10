@@ -9,6 +9,7 @@
  * 
  * Various fundamental oscillators are defined here.
  * These oscillators can be used to create more complex waveforms.
+ * We contain sine, square, saw, triangle, and sawtooth oscillators.
  */
 
 #pragma once
@@ -46,7 +47,7 @@ class SineOscillator : public BaseOscillator {
  * This class implements a square wave.
  * All buffers returned will be valid square waves.
  */
-class SquareOscillator : BaseOscillator {
+class SquareOscillator : public BaseOscillator {
 
     using BaseOscillator::BaseOscillator;
 
@@ -69,7 +70,7 @@ class SquareOscillator : BaseOscillator {
  * This class implements a sawtooth wave.
  * All buffers returned will be valid sawtooth waves.
  */
-class SawtoothOscillator : BaseOscillator {
+class SawtoothOscillator : public BaseOscillator {
 
     using BaseOscillator::BaseOscillator;
 
@@ -92,7 +93,7 @@ class SawtoothOscillator : BaseOscillator {
  * This class implements a triangle wave.
  * All buffers returned will be valid triangle waves.
  */
-class TriangleOscillator : BaseOscillator {
+class TriangleOscillator : public BaseOscillator {
 
     using BaseOscillator::BaseOscillator;
 

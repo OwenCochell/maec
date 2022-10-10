@@ -25,7 +25,7 @@ void SineOscillator::process() {
 
     // Fill the buffer with the sine wave:
 
-    for (auto i = 0; i < this->buff->size(); i++) {
+    for (long unsigned int i = 0; i < this->buff->size(); i++) {
 
         // Calculate the sine wave:
 
@@ -46,16 +46,16 @@ void SquareOscillator::process() {
 
     // Create a placeholder:
 
-    long double placeholder = 0.0;
+    double placeholder = 0.0;
 
     // Fill the buffer with the square wave:
 
-    for (auto i = 0; i < this->buff->size(); i++) {
+    for (long unsigned int i = 0; i < this->buff->size(); i++) {
 
         // Calculate the square wave:
 
         // this->buff->at(i) = (sin(TWO_PI * this->frequency * this->phase / this->sample_rate) > 0.0) ? 1.0 : -1.0;
-        this->buff->at(i) = (modf(this->phase / this->sample_rate, &placeholder) < 0.5) ? 1.0 : -1.0;
+        this->buff->at(i) = (modf(this->frequency * this->phase / this->sample_rate, &placeholder) < 0.5) ? 1.0 : -1.0;
 
         // Increment the phase:
 
@@ -72,15 +72,15 @@ void SawtoothOscillator::process() {
 
     // Create a placeholder:
 
-    long double placeholder = 0.0;
+    double placeholder = 0.0;
 
     // Fill the buffer with the sawtooth wave:
 
-    for (auto i = 0; i < this->buff->size(); i++) {
+    for (long unsigned int i = 0; i < this->buff->size(); i++) {
 
         // Calculate the sawtooth wave:
 
-        this->buff->at(i) = (2.0 * modf(this->phase / this->sample_rate + 0.5, &placeholder)) - 1.0;
+        this->buff->at(i) = (2.0 * modf(this->frequency * this->phase / this->sample_rate + 0.5, &placeholder)) - 1.0;
 
         // Increment the phase:
 
@@ -97,17 +97,17 @@ void TriangleOscillator::process() {
 
     // Create a placeholder:
 
-    long double placeholder = 0.0;
+    double placeholder = 0.0;
 
     // Fill the buffer with the triangle wave:
 
-    for (auto i = 0; i < this->buff->size(); i++) {
+    for (long unsigned int i = 0; i < this->buff->size(); i++) {
 
         // Calculate the triangle wave:
 
         //this->buff->at(i) = (2.0 * fabs(modf(this->phase / this->sample_rate + 0.25, &placeholder) - 0.5)) - 1.0;
 
-        long double temp = modf(this->phase / this->sample_rate, &placeholder);
+        long double temp = modf(this->frequency * this->phase / this->sample_rate, &placeholder);
 
         if (temp < 0.25) {
             temp *= 4.0;

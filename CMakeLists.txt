@@ -14,6 +14,7 @@ add_library(${PROJECT_NAME}
     src/meta_audio.cpp
     src/base_oscillator.cpp
     src/fund_oscillator.cpp
+    src/alsa_output.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

@@ -9,6 +9,8 @@
  * 
  */
 
+#pragma once
+
 #include "meta_audio.hpp"
 
  

@@ -91,6 +91,7 @@ class AudioModule : public BaseModule {
          */
         AudioModule() {
 
+            //TODO: Figure out a better way to do this!
             this->info = new AudioInfo();
         }
 
@@ -165,8 +166,26 @@ class AudioModule : public BaseModule {
          * 
          * Most users can use the default method here with no problem,
          * but some advanced modules may put some custom code here.
+         * 
+         * We also specify if the AudioInfo should be synced between the two modules.
+         * 
+         * We also return the AudioModule we added, allowing for operations like this:
+         * 
+         * mod.bind(mod1.bind(mod2.bind(mod3)));
+         * TODO: ^ This is less ideal, as AudioInfo structs are not synced, elaborate on this
+         * 
+         * or:
+         * 
+         * mod.bind(mod1).bind(mod2).bind(mod3);
+         * 
+         * The result would be this:
+         * 
+         * mod3 -> mod2 -> mod1 -> mod
+         * 
+         * @param mod The module to bind to us
+         * @return AudioModule* The AudioModule we just bound
          */
-        virtual void bind(AudioModule* mod);
+        virtual AudioModule* bind(AudioModule* mod);
 
         /**
          * @brief Set the forward module
