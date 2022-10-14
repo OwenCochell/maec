@@ -14,6 +14,7 @@
 #pragma once
 
 #include <alsa/asoundlib.h>
+#include <string>
 #include "base_output.hpp"
 
 /**
@@ -136,5 +137,13 @@ class AlsaOutput : public BaseOutput {
          */
         void start() override;
 
+        /**
+         * @brief Stops this module.
+         * 
+         * We stop the ALSA components we are using,
+         * and wait for the buffer to empty.
+         * 
+         */
+        void stop() override;
 
 };

@@ -27,13 +27,27 @@ void AlsaOutput::start() {
     // Now configure some options:
     // TODO: Figure out all of this:
 
+    snd_pcm_hw_params_any(pcm, this->params);
+
 	snd_pcm_hw_params_set_access(pcm, this->params, SND_PCM_ACCESS_RW_INTERLEAVED);
 	snd_pcm_hw_params_set_format(pcm, this->params, SND_PCM_FORMAT_S16_LE);
 	snd_pcm_hw_params_set_channels(pcm, this->params, 1);
-	snd_pcm_hw_params_set_rate(pcm, this->params, SAMPLE_RATE, 0);
+	snd_pcm_hw_params_set_rate(pcm, this->params, this->get_info()->sample_rate, 0);
 	snd_pcm_hw_params_set_periods(pcm, this->params, 10, 0);
 	snd_pcm_hw_params_set_period_time(pcm, this->params, 100000, 0); // 0.1 seconds period time
 
-    snd_pcm_hw_params_any(pcm, this->params);
+}
 
+void AlsaOutput::stop() {
+
+    // Close the PCM device:
+
+    snd_pcm_close(this->pcm);
+}
+
+void AlsaOutput::process() {
+
+    // Send our audio to the buffer
+
+    snd_pcm_writei(this->pcm, &this->get_buffer(), this->get_info()->buff_size);
 }
