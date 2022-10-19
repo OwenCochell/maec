@@ -29,11 +29,12 @@ void AlsaOutput::start() {
 
     snd_pcm_hw_params_any(pcm, this->params);
 
-	snd_pcm_hw_params_set_access(pcm, this->params, SND_PCM_ACCESS_RW_INTERLEAVED);
+	snd_pcm_hw_params_set_access(pcm, this->params, SND_PCM_ACCESS_W_INTERLEAVED);
 	snd_pcm_hw_params_set_format(pcm, this->params, SND_PCM_FORMAT_S16_LE);
 	snd_pcm_hw_params_set_channels(pcm, this->params, 1);
 	snd_pcm_hw_params_set_rate(pcm, this->params, this->get_info()->sample_rate, 0);
 	snd_pcm_hw_params_set_periods(pcm, this->params, 10, 0);
+    snd_pcm_hw_params_set_period_size(pcm, this->params, this->get_info()->buff_size, 0);
 	snd_pcm_hw_params_set_period_time(pcm, this->params, 100000, 0); // 0.1 seconds period time
 
 }
