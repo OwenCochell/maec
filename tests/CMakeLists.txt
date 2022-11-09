@@ -23,8 +23,15 @@ FetchContent_MakeAvailable(googletest)
 # Include Google Test directories
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
+# Enable testing for the project
+enable_testing()
+
 # adding the Tests_run target
 add_executable(Tests_run ${TEST_FILES})
 
 # linking Tests_run with the Google Test libraries
 target_link_libraries(Tests_run PUBLIC cmae gtest gtest_main)
+
+# Include Google Test for testing
+include(GoogleTest)
+gtest_discover_tests(Tests_run)
