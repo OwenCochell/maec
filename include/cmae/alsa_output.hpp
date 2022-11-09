@@ -41,8 +41,7 @@ class AlsaOutput : public BaseOutput {
         /// The ALSA PCM hardware parameters
         snd_pcm_hw_params_t *params;
 
-        /// The name of the device to use:
-
+        /// The name of the device to use: 
         std::string device_name = "default";
 
     public:

@@ -25,6 +25,16 @@ typedef std::unique_ptr<std::vector<long double>> AudioBuffer;
  * 
  * We contain various info to be shared among modules
  * that are linked together.
+ * 
+ * THIS INFO IS HOW THE AUDIO DATA WILL BE ONCE IT LEAVES THE CHAIN!
+ * For example, the sample rate can be changed in the middle of the chain if need be.
+ * But, it MUST match the chain sample rate when it leaves the chain,
+ * otherwise we will encounter issues with the audio output modules.
+ * 
+ * TODO: Finalize and really structure this data.
+ * 
+ * Do we really need all values here?
+ * We need to figure out how this data can be altered and changed in the chain...
  */
 struct AudioInfo {
 
@@ -116,9 +126,9 @@ class AudioModule : public BaseModule {
         /**
          * @brief Meta process method
          * 
-         * This method contains all the meta code such as routing 
-         * audio data to the next module in the chain,
-         * and ensuring our state is valid (?).
+         * This method contains all the meta code such as
+         * retrieving the buffer from the previous module,
+         * and calling the necessary processing methods. 
          * 
          * Most users will not need to alter the code in this module,
          * but some advanced modules will need to, such as the audio mixers.
@@ -131,14 +141,9 @@ class AudioModule : public BaseModule {
          * This method is called when modules are attempting to set the buffer
          * for this audio module.
          *
-         * This method can be overridden if necessary,
-         * but most of the time it is not.
-         * Advanced components such as the audio mixers
-         * will use a custom version of this method.
-         * 
          * @param inbuff Pointer to an audio buffer
          */
-        virtual void set_buffer(AudioBuffer inbuff);
+        void set_buffer(AudioBuffer inbuff);
 
         /**
          * @brief Get the buffer object

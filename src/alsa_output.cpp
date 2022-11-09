@@ -29,7 +29,7 @@ void AlsaOutput::start() {
 
     snd_pcm_hw_params_any(pcm, this->params);
 
-	snd_pcm_hw_params_set_access(pcm, this->params, SND_PCM_ACCESS_W_INTERLEAVED);
+	snd_pcm_hw_params_set_access(pcm, this->params, SND_PCM_ACCESS_RW_INTERLEAVED);
 	snd_pcm_hw_params_set_format(pcm, this->params, SND_PCM_FORMAT_S16_LE);
 	snd_pcm_hw_params_set_channels(pcm, this->params, 1);
 	snd_pcm_hw_params_set_rate(pcm, this->params, this->get_info()->sample_rate, 0);
@@ -50,5 +50,12 @@ void AlsaOutput::process() {
 
     // Send our audio to the buffer
 
-    snd_pcm_writei(this->pcm, &this->get_buffer(), this->get_info()->buff_size);
+    // This is really dirty, cleanup later!
+    // TODO: Maybe add this to an AudioBuffer class?
+
+    std::vector<long double>* thing = this->get_buffer().get();
+
+    auto* blah = std::data(*thing);
+
+    snd_pcm_writei(this->pcm, blah, this->get_info()->buff_size);
 }

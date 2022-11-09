@@ -35,11 +35,13 @@ void ModuleMixDown::meta_process() {
 
 }
 
-void ModuleMixDown::bind(AudioModule* mod) {
+AudioModule* ModuleMixDown::bind(AudioModule* mod) {
 
     // Add the incoming module to our collection:
 
     this->in.push_back(mod);
+
+    return mod;
 }
 
 void ModuleMixDown::process() {
@@ -86,5 +88,5 @@ AudioBuffer ModuleMixUp::get_buffer() {
 
     // Finally, return the buffer:
 
-    return std::move(tbuff);
+    return tbuff;
 }

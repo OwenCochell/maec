@@ -37,6 +37,7 @@
  * Each input module will be sampled and their outputs will be added together.
  * If the input modules are sufficiently complex, 
  * then their will be overhead while waiting for the output to be computed.
+ * Hopefully, this will be somewhat corrected when utilizing concurency modules.
  * This will be an issue the more modules you add.
  * Adding together the outputs is minimal, but again,
  * the more modules that are added the more complex this gets.
@@ -52,7 +53,7 @@
  * like any conventional audio module.
  * The only processing we do on the given buffer(s) is to add them together.
  */
-class ModuleMixDown : public AudioModule {
+class ModuleMixDown : virtual public AudioModule {
 
     private:
 
@@ -86,7 +87,7 @@ class ModuleMixDown : public AudioModule {
          * Instead of setting one pointer for one input,
          * we contain a vector of pointers for each module bound to us.
          */
-        void bind(AudioModule* mod) override;
+        AudioModule* bind(AudioModule* mod) override;
 
         /**
          * @brief Meta process method
@@ -143,7 +144,7 @@ class ModuleMixDown : public AudioModule {
  * like any conventional audio module.
  * The only processing we do on the given buffer(s) is to add them together.
  */
-class ModuleMixUp : public AudioModule {
+class ModuleMixUp : virtual public AudioModule {
 
     private:
 
@@ -192,3 +193,36 @@ class ModuleMixUp : public AudioModule {
         int num_outputs() { return out.size(); }
 
 };
+
+/**
+ * @brief An audio module that mixes down and up (n:n relationship)
+ * 
+ * This class allows for multiple modules to be mixed up and down into many,
+ * allowing for multiple inputs to be sent to multiple output modules.
+ * 
+ * This relationship is n:n, meaning their is an arbitrary number of inputs, and an arbitrary number of outputs.
+ * This relationship can be represented as:
+ * 
+ * module --+  +--> module
+ *          |  |
+ * module --+--+--> module
+ *          |  |
+ * module --+  +--> module
+ * 
+ * In this case, the backwards modules are sampled and mixed down,
+ * and that result is mixed up and sent to the forwards modules.
+ * 
+ * This module has some performance/memory issues to keep in mind.
+ * All of the caveats from the ModuleMixDown and ModuleMixUp classes apply here.
+ * We have to sample multiple backwards modules, combine their buffers, and then
+ * copy each buffer for the forwards modules.
+ * This can get intensive, so it is recommended to use this class sparingly.
+ * 
+ * Like the other Mixers, the term 'mixing' in this case is not related to conventional
+ * audio mixing, which usually involves combining channels and tracks.
+ * We only proccess the incoming/outgoing buffers.
+ * 
+ * This class is an AudioModule, so it can be manipulated and worked with
+ * like any conventional audio module.
+ */
+class MultiMix: public ModuleMixDown, public ModuleMixUp {};

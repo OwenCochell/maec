@@ -55,7 +55,7 @@ void AudioModule::set_forward(AudioModule* mod) {
     this->forward = mod;
 }
 
-void AudioModule::bind(AudioModule* mod) {
+AudioModule* AudioModule::bind(AudioModule* mod) {
 
     // Simply attach the pointer to ourselves:
 
@@ -64,4 +64,6 @@ void AudioModule::bind(AudioModule* mod) {
     // Set the forward module:
 
     mod->set_forward(this);
+
+    return mod;
 }
