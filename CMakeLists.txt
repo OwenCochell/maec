@@ -5,6 +5,15 @@ project(cmae VERSION 1.0.0 DESCRIPTION "A Modular Audio Engine" HOMEPAGE_URL "ht
 
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
+# Check for some platform-dependent stuff:
+
+if(ALSA_FOUND)
+  message(STATUS "ALSA found")
+  target_compile_definitions(cmae PRIVATE ALSA_F=1)
+else()
+  message(STATUS "ALSA not found")
+endif()
+
 # Define our target and set properties:
 
 add_library(${PROJECT_NAME}

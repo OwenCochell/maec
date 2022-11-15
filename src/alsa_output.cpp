@@ -9,6 +9,8 @@
  * 
  */
 
+#ifdef ALSA_F
+
 #include "alsa_output.hpp"
 
 void AlsaOutput::start() {
@@ -59,3 +61,5 @@ void AlsaOutput::process() {
 
     snd_pcm_writei(this->pcm, blah, this->get_info()->buff_size);
 }
+
+#endif

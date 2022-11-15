@@ -13,6 +13,8 @@
 
 #pragma once
 
+#ifdef ALSA_F
+
 #include <alsa/asoundlib.h>
 #include <string>
 #include "base_output.hpp"
@@ -146,3 +148,5 @@ class AlsaOutput : public BaseOutput {
         void stop() override;
 
 };
+
+#endif
