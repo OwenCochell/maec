@@ -1,7 +1,7 @@
 /**
  * @file alsa_output.cpp
  * @author Owen Cochell (owen@gmail.com)
- * @brief Implementations for ALSA Output tools
+ * @brief Implementations for ALSA Output
  * @version 0.1
  * @date 2022-10-10
  * 
