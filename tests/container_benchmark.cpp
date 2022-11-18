@@ -504,6 +504,9 @@ int main(int argc, char** argv) {
     std::cout << "Array write time is " << vect4_write / vect2_write << " times faster than preallocated vector write time." << std::endl;
     std::cout << "Array read time is " << vect4_read / vect2_read << " times faster than preallocated vector read time." << std::endl;
 
+    std::cout << "Prealloc-Vector write time is " << vect2_write / vect_read << " percent faster than normal vector write time." << std::endl;
+    std::cout << "Prealloc-Vector read time is " << vect2_read / vect_read << " percent faster than normal vector write time." << std::endl;
+
     return 0;
 
 }
