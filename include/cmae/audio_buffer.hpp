@@ -62,8 +62,8 @@ typedef std::vector<long double> AudioChannel;
  * Where 'data' is the audio in split format,
  * i.e the vector of vectors.
  * 
- * Another method of representing audio data is the 'squished' format,
- * where multiple channels are represented as one stream:
+ * Another method of representing audio data is the 'interleaved' format,
+ * where multiple channels are represented (squished) as one stream:
  * 
  * [1,4,7,2,5,8,3,6,9]
  * 
@@ -80,12 +80,12 @@ typedef std::vector<long double> AudioChannel;
  * interleaved format, where the samples that occur at the same index
  * in each channel are grouped together in the order channels are encountered.
  * The example above is in interleaved format.
- * Another popular format is the contiguous format, where the samples
+ * Another popular format is the sequential format, where the samples
  * are separated by channel:
  * 
  * [1,2,3,4,5,6,7,8,9]
  * 
- * This format is popular when outputting audio data,
+ * Squished format is popular when outputting audio data,
  * be it a speaker, file, or other method.
  * However, this method can be difficult to work with,
  * as it is not immediately clear which samples belong to which channel.
@@ -154,7 +154,36 @@ class AudioBuffer {
          * and the order of each channel is important, or if we need the 'pure' audio data
          * without data from other channels mixed in.
          */
-        class seq_value_iterator {
+        class seq_iterator {
+
+        };
+
+        /**
+         * @brief An iterator that iterates over audio data in an interleaved manner
+         * 
+         * This iterator iterates over audio data in an interleaved manner,
+         * meaning that it iterates over each sample in each channel that occurs at the same time
+         * before moving on to the next sample.
+         * 
+         * For example, if we have the following audio data:
+         * 
+         * [1] - 1, 2, 3,
+         * [2] - 4, 5, 6,
+         * [3] - 7, 8, 9,
+         * 
+         * Where [n] represents the nth channel, and the numbers
+         * are the samples in each channel.
+         * 
+         * This iterator will return the following values:
+         * 
+         * 1, 4, 7, 2, 5, 8, 3, 6, 9
+         * 
+         * This iterator is useful if we need to apply the same operation to each channel,
+         * and the order of each channel is not important.
+         * This format is a very popular format for outputting audio data,
+         * as many libraries represent audio data in this format.
+         */
+        class inter_iterator {
 
         };
 
@@ -227,8 +256,6 @@ class AudioBuffer {
          * 
          */
         void shrink();
-
-
 
         /**
          * @brief Gets the start channel iterator of this buffer
