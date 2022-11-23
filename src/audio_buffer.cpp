@@ -17,3 +17,38 @@ AudioBuffer::AudioBuffer(int size) {
 
     this->reserve(size);
 }
+
+long double AudioBuffer::SeqIterator::operator *() const {
+
+    // Get the current value:
+
+    return this->buff->buff.at(this->get_channel()).at(get_position());
+}
+
+int AudioBuffer::SeqIterator::get_channel() const {
+
+    // Get the current channel:
+
+    return int(this->sample / this->buff->buff[0].size());
+}
+
+void AudioBuffer::SeqIterator::set_channel(int channel) {
+
+    // Set the current channel:
+
+    this->sample = channel * this->buff->buff[0].size();
+}
+
+int AudioBuffer::SeqIterator::get_position() const {
+
+    // Get the current position:
+
+    return int(this->sample % this->buff->buff[0].size());
+}
+
+void AudioBuffer::SeqIterator::set_position(int channel, int position) {
+
+    // Sets the position of this iterator:
+
+    this->sample = channel * this->buff->buff[0].size() + position;
+}

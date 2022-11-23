@@ -95,6 +95,10 @@ typedef std::vector<long double> AudioChannel;
  * and splitters (for splitting a single stream into multiple channels).
  * You can find more info on those operations elsewhere in the documentation TODO: Add link once implemented
  * 
+ * By default, we keep our audio data in split format.
+ * The size of the channels MUST be the same!
+ * Otherwise, we will run into lot's of problems.
+ * 
  * Sometimes it is useful to access the raw data
  * without any regard to channels.
  * This class offers some methods for accessing the raw audio data
@@ -119,14 +123,16 @@ class AudioBuffer {
 
     private:
 
-        /// The underlying vector of audio data
-        std::vector<AudioChannel> buff;
-
         /// Sample rate in Hertz
         double sample_rate = 4400;
 
         /// Boolean determining if we are interlaced
         bool interlaced = false;
+
+    protected:
+
+        /// The underlying vector of audio data
+        std::vector<AudioChannel> buff;
 
     public:
 
@@ -139,9 +145,9 @@ class AudioBuffer {
          * 
          * For example, if we have the following audio data:
          * 
-         * [1] - 1, 2, 3,
-         * [2] - 4, 5, 6,
-         * [3] - 7, 8, 9,
+         * [0] - 1, 2, 3,
+         * [1] - 4, 5, 6,
+         * [2] - 7, 8, 9,
          * 
          * Where [n] represents the nth channel, and the numbers
          * are the samples in each channel.
@@ -150,11 +156,163 @@ class AudioBuffer {
          * 
          * 1, 2, 3, 4, 5, 6, 7, 8, 9
          * 
+         * We talk about the index of this iterator in the documentation.
+         * This iterator uses that value to determine which sample to return.
+         * You can think of this as the index of the sample in the final squished vector.
+         * Fro example, if I wanted to get sample '8' in channel 2 index 1,
+         * then I would use index 7 (see squished vector above).
+         * 
+         * This iterator contains some useful helper methods
+         * for determining the index of the iterator,
+         * so you don't have to do the calculations yourself.
+         * 
          * This iterator is useful if we need to apply the same operation to each channel,
          * and the order of each channel is important, or if we need the 'pure' audio data
          * without data from other channels mixed in.
          */
-        class seq_iterator {
+        class SeqIterator {
+
+            public:
+
+                /**
+                 * Constructor
+                 * 
+                 * We need to know the AudioBuffer we are iterating over,
+                 * and the position to start at.
+                 * 
+                 * @param buff The AudioBuffer we are iterating over
+                 * @param pos The index to start at
+                */
+                SeqIterator(AudioBuffer *buff, int pos=0) { this->buff = buff; this->sample = pos; };
+
+                /**
+                 * @brief Returns the current sample
+                 * 
+                 * We do some operations to determine the current sample:
+                 * 
+                 * TODO: Fill this in here
+                 * 
+                 * @return long double The current sample
+                 */
+                long double operator *() const;
+
+                /**
+                 * @brief Increments the iterator
+                 * 
+                 * We increment the iterator by one sample.
+                 * If we are at the end of the current channel,
+                 * we move on to the next channel.
+                 * 
+                 * @return SeqIterator& A reference to the iterator
+                 */
+                const SeqIterator& operator++() {  sample++; return *this; }
+
+                /**
+                 * @brief Get the Channel we are on
+                 * 
+                 * This returns the channel we are on.
+                 * 
+                 * @return int Channel we are on
+                 */
+                int get_channel() const;
+
+                /**
+                 * @brief Set the Channel we are on
+                 * 
+                 * This will alter the index of the iterator
+                 * to the beginning of the specified channel.
+                 * 
+                 * This is bi-directional!
+                 * We can move to any channel in any direction at any time.
+                 * 
+                 * @param channel Channel to move to.
+                 */
+                void set_channel(int channel);
+
+                /**
+                 * @brief Get the current position
+                 * 
+                 * This returns the current index of the iterator,
+                 * which is used to determine the current sample.
+                 * 
+                 * @return int The current position
+                 */
+                int get_index() const { return this->sample; }
+
+                /**
+                 * @brief Set the current index
+                 * 
+                 * This will alter the index of the iterator
+                 * to a new sample.
+                 * 
+                 * Again, please note that the index is in relation to the squished vector!
+                 * You will have to take into account the size and number of channels to determine 
+                 * the sample you want.
+                 * 
+                 * It is recommended to use the helper methods to determine the index
+                 * instead of doing the calculations yourself.
+                 * 
+                 * @param pos 
+                 */
+                void set_index(int pos) { this->sample = pos; }
+
+                /**
+                 * @brief Sets the position of this iterator
+                 * 
+                 * This method will use the given values to set the index
+                 * to the given position.
+                 * The index if the sample in the squished value,
+                 * while the position is the location of the sample in relation
+                 * to the channels and samples within them.
+                 * 
+                 * Using the example above, if our index is 7,
+                 * then our position is channel 2, sample 1.
+                 * 
+                 * This method can set the index to the given position,
+                 * which can be useful if you wish to jump to a specific place
+                 * and don't want to do the calculations yourself.
+                 * 
+                 * Here is the equation for determining the index:
+                 * 
+                 * index = (channel * size) + sample
+                 * 
+                 * Where 'size' is the size of each channel.
+                 * 
+                 * @param channel Channel of the position
+                 * @param sample Index of the position within the given channel
+                 */
+                void set_position(int channel, int sample);
+
+                /**
+                 * @brief Gets the position of this iterator
+                 * 
+                 * As stated above, the position is the location of the sample
+                 * in relation to the channels and samples within them.
+                 * 
+                 * This method will return the position of the iterator 
+                 * in the current channel.
+                 * Using the above example, if your index is 7,
+                 * then this method will return 1, as that is the index
+                 * of the sample in the channel we are working with.
+                 * 
+                 * To get the channel we are working with, use GetChannel().
+                 * This is needed if you want a full understanding of the position!
+                 * 
+                 * TODO: Is this too complicated?
+                 * Maybe return a pair with channel and sample instead?
+                 * Calling another function to get the channel might be too much.
+                 * 
+                 * @return int The position of the iterator in the current channel
+                 */
+                int get_position() const;
+
+            private:
+
+                /// Current sample we are on
+                int sample=0;
+
+                /// Audio Buffer we are iterating over
+                AudioBuffer* buff;
 
         };
 
@@ -178,12 +336,54 @@ class AudioBuffer {
          * 
          * 1, 4, 7, 2, 5, 8, 3, 6, 9
          * 
+         * We talk about the index of this iterator in the documentation.
+         * This iterator uses that value to determine which sample to return.
+         * You can think of this as the index of the sample in the final squished vector.
+         * Fro example, if I wanted to get sample '8' in channel 2 index 1,
+         * then I would use position 5 (see squished vector above).
+         * 
+         * This iterator contains some useful helper methods
+         * for determining the index of the iterator,
+         * so you don't have to do the calculations yourself.
+         * 
          * This iterator is useful if we need to apply the same operation to each channel,
          * and the order of each channel is not important.
          * This format is a very popular format for outputting audio data,
          * as many libraries represent audio data in this format.
          */
-        class inter_iterator {
+        class InterIterator {
+
+            public:
+
+                /**
+                 * @brief Construct a new Inter Iterator object
+                 * 
+                 * We need to know the AudioBuffer to iterate over,
+                 * and the starting position
+                 * 
+                 * @param buff AudioBuffer we are iterating over
+                 * @param pos Starting position
+                 */
+                InterIterator(AudioBuffer *buff, int pos=0) { this->buff=buff; this->sample=pos; }
+
+                /**
+                 * @brief Returns the current sample
+                 * 
+                 * We do some operations to determine the current sample:
+                 * 
+                 * TODO: Fill this in here
+                 * 
+                 * @return long double The current sample
+                 */
+                long double operator *() const;
+
+            private:
+
+                /// The current sample we are on
+                int sample = 0;
+
+                /// Buffer we are iterating over
+                AudioBuffer *buff;
 
         };
 
