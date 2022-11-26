@@ -52,3 +52,10 @@ void AudioBuffer::SeqIterator::set_position(int channel, int position) {
 
     this->sample = channel * this->buff->buff[0].size() + position;
 }
+
+long double AudioBuffer::InterIterator::operator *() const {
+
+    // Get the current value:
+
+    return this->buff->buff.at(this->sample % this->buff->buff.size()).at(int(this->sample / 4));
+}

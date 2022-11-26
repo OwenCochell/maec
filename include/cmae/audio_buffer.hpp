@@ -126,9 +126,6 @@ class AudioBuffer {
         /// Sample rate in Hertz
         double sample_rate = 4400;
 
-        /// Boolean determining if we are interlaced
-        bool interlaced = false;
-
     protected:
 
         /// The underlying vector of audio data
@@ -235,7 +232,7 @@ class AudioBuffer {
                  * This returns the current index of the iterator,
                  * which is used to determine the current sample.
                  * 
-                 * @return int The current position
+                 * @return int The current index
                  */
                 int get_index() const { return this->sample; }
 
@@ -252,7 +249,7 @@ class AudioBuffer {
                  * It is recommended to use the helper methods to determine the index
                  * instead of doing the calculations yourself.
                  * 
-                 * @param pos 
+                 * @param pos Position to set the index to
                  */
                 void set_index(int pos) { this->sample = pos; }
 
@@ -350,6 +347,8 @@ class AudioBuffer {
          * and the order of each channel is not important.
          * This format is a very popular format for outputting audio data,
          * as many libraries represent audio data in this format.
+         * 
+         * TODO: See if we should add extra methods, like in SeqIterator...
          */
         class InterIterator {
 
@@ -376,6 +375,44 @@ class AudioBuffer {
                  * @return long double The current sample
                  */
                 long double operator *() const;
+
+                /**
+                 * @brief Increments the iterator
+                 * 
+                 * We move on to the next sample.
+                 * If we have iterated over each sample
+                 * in each channel that occurs at the same time,
+                 * then we move on to the next sample.
+                 * 
+                 * @return const SeqIterator& 
+                 */
+                const InterIterator& operator++() {  this->sample++; return *this; }
+
+                /**
+                 * @brief Gets the index of this iterator
+                 * 
+                 * This returns the current index of the iterator,
+                 * which is used to retrieve each sample.
+                 * 
+                 * @return int Current index of this iterator
+                 */
+                int get_index() { return this->sample; }
+
+                /**
+                 * @brief Sets the index of this iterator
+                 * 
+                 * Sets the index to the given value.
+                 * 
+                 * Again, please note that the index is in relation to the squished vector!
+                 * You will have to take into account the size and number of channels to determine 
+                 * the sample you want.
+                 * 
+                 * It is recommended to use the helper methods to determine the index
+                 * instead of doing the calculations yourself.
+                 * 
+                 * @param pos Position to set the iterator to
+                 */
+                void set_index(int pos) { this->sample = pos; }
 
             private:
 
@@ -458,6 +495,25 @@ class AudioBuffer {
         void shrink();
 
         /**
+         * @brief Gets a channel in this buffer
+         * 
+         * Returns a channel in this buffer for use.
+         * You can alter and edit this channel as you see fit,
+         * but please remember the size rule!
+         * 
+         * @param pos Channel number to retrieve
+         * @return AudioChannel AudioChannel at the given position
+         */
+        AudioChannel* at(int pos) { return &(this->buff.at(pos)); }
+
+        /**
+         * @brief Returns the number of channels in this buffer
+         * 
+         * @return int Number of channels
+         */
+        int get_channel_count() { return this->buff.size(); }
+
+        /**
          * @brief Gets the start channel iterator of this buffer
          * 
          * Returns the start iterator for proper channel iteration.
@@ -487,5 +543,55 @@ class AudioBuffer {
          * @return std::vector<long double>::iterator 
          */
         std::vector<AudioChannel>::iterator chend() { return this->buff.end(); }
+
+        /**
+         * @brief Gets the start sequential iterator of this buffer
+         * 
+         * Returns the start iterator for proper sequential sample iteration.
+         * We iterate over each sample in each channel sequentially,
+         * meaning that we iterate over each channel in order until we move onto the next.
+         * See the documentation for the SeqIterator class for more info.
+         * 
+         * This iterator is useful for iterating over the raw audio data,
+         * without regard to the underlying channels.
+         * 
+         * @return AudioBuffer::SeqIterator 
+         */
+        AudioBuffer::SeqIterator sbegin() { return AudioBuffer::SeqIterator(this); }
+
+        /**
+         * @brief Gets the end sequential iterator of this buffer
+         * 
+         * Returns the end iterator for sequential iteration.
+         * This is useful for determining when to stop iterating over samples.
+         * 
+         * @return AudioBuffer::SeqIterator 
+         */
+        AudioBuffer::SeqIterator send() { return AudioBuffer::SeqIterator(this, this->buff[0].size() * this->buff.size()); }
+
+        /**
+         * @brief Gets the start interleaved iterator of this buffer
+         * 
+         * Returns the start iterator for proper interleaved sample iteration.
+         * We iterate over each sample in each channel in an interleaved manner,
+         * meaning tht we iterate over each sample that occurs at the same time in order
+         * of channels before moving onto the next sample.
+         * 
+         * This iterator is useful for iterating over the raw audio data,
+         * without regard to the underlying channels.
+         * 
+         * @return AudioBuffer::InterIterator 
+         */
+        AudioBuffer::InterIterator ibegin() { return AudioBuffer::InterIterator(this); }
+
+        /**
+         * @brief Gets the end interleaved iterator of this buffer
+         * 
+         * Returns the end iterator for interleaved iteration.
+         * This is useful for determining when to stop iterating over samples.
+         * 
+         * @return AudioBuffer::InterIterator 
+         */
+        AudioBuffer::InterIterator iend() { return AudioBuffer::InterIterator(this, this->buff[0].size() * this->buff.size()); }
 
 };
