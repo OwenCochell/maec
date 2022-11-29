@@ -18,13 +18,6 @@ AudioBuffer::AudioBuffer(int size) {
     this->reserve(size);
 }
 
-long double AudioBuffer::SeqIterator::operator *() const {
-
-    // Get the current value:
-
-    return this->buff->buff.at(this->get_channel()).at(get_position());
-}
-
 int AudioBuffer::SeqIterator::get_channel() const {
 
     // Get the current channel:
@@ -36,7 +29,7 @@ void AudioBuffer::SeqIterator::set_channel(int channel) {
 
     // Set the current channel:
 
-    this->sample = channel * this->buff->buff[0].size();
+    this->set_index(channel * this->buff->buff[0].size());
 }
 
 int AudioBuffer::SeqIterator::get_position() const {
@@ -50,12 +43,27 @@ void AudioBuffer::SeqIterator::set_position(int channel, int position) {
 
     // Sets the position of this iterator:
 
-    this->sample = channel * this->buff->buff[0].size() + position;
+    this->set_index(channel * this->buff->buff[0].size() + position);
 }
 
-long double AudioBuffer::InterIterator::operator *() const {
+void AudioBuffer::SeqIterator::set_index(int size) {
 
-    // Get the current value:
+    // First, set the index:
 
-    return this->buff->buff.at(this->sample % this->buff->buff.size()).at(int(this->sample / 4));
+    this->sample = size;
+
+    // Now, calculate the pointer:
+
+    this->point = (this->buff->buff.at(this->get_channel()).begin() + get_position()).base();
+};
+
+void AudioBuffer::SeqIterator::set_index(int size) {
+
+    // First, set the index:
+
+    this->sample = size;
+
+    // Now, calculate the pointer:
+
+    this->point = (this->buff->buff.at(this->sample % this->buff->buff.size()).begin() + int(this->sample / 4)).base();
 }
