@@ -28,7 +28,7 @@ typedef std::vector<long double> AudioChannel;
  * This is a framework class!
  * It will not work properly on it's own.
  * 
- * @tparam T 
+ * @tparam T The class that derives from this class.
  */
 template <class T>
 class BaseAudioIterator {
@@ -38,11 +38,75 @@ class BaseAudioIterator {
         /// The current sample we are on
         int sample=0;
 
+        /// Pointer to child class
+        T* child;
+
+    protected:
+
+        /**
+         * @brief Sets the index
+         * 
+         * This will set the index of this iterator.
+         * Nothing special will be done here,
+         * so child iterators should implement 
+         * their own versions of this method to
+         * retrieve the current sample. 
+         * 
+         * This is protected as end users should use the set_index()
+         * defined in the child class.
+         * 
+         * @param index Index to set
+         */
+        void set_index(int index) { this->sample = index; }
+
     public:
 
-        
+        /**
+         * @brief Construct a new Base Audio Iterator object
+         * 
+         * We require the child class for certain operations.
+         * 
+         * @param der child class
+         */
+        BaseAudioIterator(T* der) { this->child = der; }
 
-}
+        /**
+         * @brief Gets the current index
+         * 
+         * Returns the current index of the iterator.
+         * Please keep in mind, the index is in relation
+         * to the squished buffer!
+         * 
+         * @return int Current index
+         */
+        int get_index() const { return this->sample; };
+
+        /**
+         * @brief Pre-increments the iterator
+         * 
+         * @return T& 
+         */
+        T& operator++() { T->set_index(this->get_index()+1); return *(this->child); }
+
+        /**
+         * @brief Post-increments the iterator
+         * 
+         * @return T 
+         */
+        T operator++(int) { T tmp = *child; ++(*child); return tmp; }
+
+        /**
+         * @brief Determines if the two iterators equivalent
+         * 
+         * We check if they are pointing to the same index
+         * 
+         * @param a Iterator A
+         * @param b Iterator B
+         * @return true If the two iterators are equivalent
+         * @return false If the two iterators are not equivalent
+         */
+        bool operator==(const T& a, const T& b) { return a.get_index() == b.get_index(); }
+};
 
 /**
  * @brief Class for holding audio data
