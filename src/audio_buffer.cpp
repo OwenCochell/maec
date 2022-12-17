@@ -11,18 +11,61 @@
 
 #include "audio_buffer.hpp"
 
-AudioBuffer::AudioBuffer(int size) {
 
-    // Pre-allocate the buffer to a given size:
+AudioBuffer::AudioBuffer(int size, int channels) {
+     
+    // Create the underlying vector:
 
-    this->reserve(size);
+    this->buff.reserve(channels);
+
+    // Next, create each channel and append it:
+
+    for(int i = 0; i < channels; i++) {
+
+        // Create an empty vector:
+
+        AudioChannel vect;
+
+        // Reserve the size:
+
+        vect.reserve(size);
+
+        // Finally, append the vector:
+
+        this->buff.push_back(vect);
+    }
+}
+
+AudioBuffer::AudioBuffer(AudioChannel vect) {
+
+    // First, reserve the underlying buffer with a size of 1:
+
+    this->buff.reserve(1);
+
+    // Next, append the given vector to the buffer:
+
+    this->buff.push_back(vect);
+}
+
+AudioBuffer::AudioBuffer(std::vector<AudioChannel> vect) {
+
+    // Just set the underlying vector to the given one
+
+    this->buff = vect;
 }
 
 int AudioBuffer::SeqIterator::get_channel() const {
 
     // Get the current channel:
 
-    return int(this->sample / this->buff->buff[0].size());
+    return int(this->get_index() / this->buff->buff[0].size());
+}
+
+int AudioBuffer::InterIterator::get_channel() const {
+
+    // Get the current channel:
+
+    return this->get_index() % this->buff->buff.size();
 }
 
 void AudioBuffer::SeqIterator::set_channel(int channel) {
@@ -36,7 +79,14 @@ int AudioBuffer::SeqIterator::get_position() const {
 
     // Get the current position:
 
-    return int(this->sample % this->buff->buff[0].size());
+    return int(this->get_index() % this->buff->buff[0].size());
+}
+
+int AudioBuffer::InterIterator::get_sample() const {
+
+    // Get the current position:
+
+    return int(this->get_index() / this->buff->buff.size());
 }
 
 void AudioBuffer::SeqIterator::set_position(int channel, int position) {
@@ -50,20 +100,20 @@ void AudioBuffer::SeqIterator::set_index(int size) {
 
     // First, set the index:
 
-    this->sample = size;
+    BaseAudioIterator::set_index(size);
 
     // Now, calculate the pointer:
 
-    this->point = (this->buff->buff.at(this->get_channel()).begin() + get_position()).base();
-};
+    this->set_pointer((((this->buff->buff.begin() + this->get_channel())->begin()) + this->get_position()).base());
+}
 
-void AudioBuffer::SeqIterator::set_index(int size) {
+void AudioBuffer::InterIterator::set_index(int size) {
 
     // First, set the index:
 
-    this->sample = size;
+    BaseAudioIterator::set_index(size);
 
     // Now, calculate the pointer:
 
-    this->point = (this->buff->buff.at(this->sample % this->buff->buff.size()).begin() + int(this->sample / 4)).base();
+    this->set_pointer((this->buff->buff.at(this->get_channel()).begin() + this->get_sample()).base());
 }

@@ -27,11 +27,25 @@ typedef std::vector<long double> AudioChannel;
  * 
  * This is a framework class!
  * It will not work properly on it's own.
+ * We use upside down inheritance to add this functionality without virtual functions!
+ * 
+ * TODO:
+ * 
+ *  Implement custom type templating?
+ *  Determine if tags can be inherited...
  * 
  * @tparam T The class that derives from this class.
  */
 template <class T>
 class BaseAudioIterator {
+
+    // Tags for identifying this iterator
+
+    using iterator_category = std::random_access_iterator_tag;
+    using difference_type = std::ptrdiff_t;
+    using value_type = long double;
+    using pointer = long double*;
+    using reference = long double&;
 
     private:
 
@@ -40,6 +54,9 @@ class BaseAudioIterator {
 
         /// Pointer to child class
         T* child;
+
+        /// Current pointer we are on
+        long double* point;
 
     protected:
 
@@ -58,6 +75,17 @@ class BaseAudioIterator {
          * @param index Index to set
          */
         void set_index(int index) { this->sample = index; }
+
+        /**
+         * @brief Sets the pointer
+         * 
+         * This will set the pointer to the underlying sample.
+         * This should be called by the child class when they have a pointer 
+         * to work with.
+         * 
+         * @param ptr Pointer to current sample
+         */
+        void set_pointer(long double* ptr) { point = ptr; }
 
     public:
 
@@ -79,14 +107,14 @@ class BaseAudioIterator {
          * 
          * @return int Current index
          */
-        int get_index() const { return this->sample; };
+        int get_index() const { return this->sample; }
 
         /**
          * @brief Pre-increments the iterator
          * 
          * @return T& 
          */
-        T& operator++() { T->set_index(this->get_index()+1); return *(this->child); }
+        T& operator++() { this->child->set_index(this->get_index()+1); return *(this->child); }
 
         /**
          * @brief Post-increments the iterator
@@ -96,16 +124,61 @@ class BaseAudioIterator {
         T operator++(int) { T tmp = *child; ++(*child); return tmp; }
 
         /**
-         * @brief Determines if the two iterators equivalent
+         * @brief Pre-decrements the iterator
          * 
-         * We check if they are pointing to the same index
+         * @return T& 
+         */
+        T& operator--() { this->child->set_index(this->get_index()-1); return *(this->child); }
+
+        /**
+         * @brief Post-decrements the iterator
+         * 
+         * @return T 
+         */
+        T operator--(int) { T tmp = *child; --(*child); return tmp; }
+
+        /**
+         * @brief Determines if the given iterator is equivalent
+         * 
+         * We check if they are pointing to the same index.
          * 
          * @param a Iterator A
-         * @param b Iterator B
          * @return true If the two iterators are equivalent
          * @return false If the two iterators are not equivalent
          */
-        bool operator==(const T& a, const T& b) { return a.get_index() == b.get_index(); }
+        bool operator==(const T& a) { return this->get_index() == a.get_index(); }
+
+        /**
+         * @brief Determines if the given iterator is not equivalent
+         * 
+         * We check if the iterator is pointing to a different index
+         * 
+         * @param a Iterator to check
+         * @return true If the two iterators are not equivalent
+         * @return false If the two iterators are equivalent
+         */
+        bool operator!=(const T& a) { return !(*this == a); }
+
+        /**
+         * @brief Gets the current sample
+         * 
+         * @return long double 
+         */
+        long double operator*() { return *(this->point); }
+
+        /**
+         * @brief Gets the current pointer
+         * 
+         * @return long double* 
+         */
+        long double* operator->() { return this->base(); }
+
+        /**
+         * @brief Gets the pointer to the current sample
+         * 
+         * @return long double* 
+         */
+        long double* base() { return this->point; }
 };
 
 /**
@@ -210,6 +283,12 @@ class BaseAudioIterator {
  * such as sample rate, format (TODO: Figure this out),
  * number of samples, weather we are interlaced, ect.
  * 
+ * TODO:
+ * 
+ * Function names for iterators are kinda weird?
+ * Like why get_position instead of get_sample()?
+ * 
+ * Need to really hash out terminology here.
  */
 class AudioBuffer {
 
@@ -259,13 +338,7 @@ class AudioBuffer {
          * and the order of each channel is important, or if we need the 'pure' audio data
          * without data from other channels mixed in.
          */
-        class SeqIterator {
-
-            using iterator_category = std::random_access_iterator_tag;
-            using diffrence_type = std::ptrdiff_t;
-            using value_type = long double;
-            using pointer = long double*;
-            using reference = long double&;
+        class SeqIterator : public BaseAudioIterator<SeqIterator> {
 
             public:
 
@@ -278,29 +351,7 @@ class AudioBuffer {
                  * @param buff The AudioBuffer we are iterating over
                  * @param pos The index to start at
                 */
-                SeqIterator(AudioBuffer *buff, int pos=0) { this->buff = buff; this->sample = pos; };
-
-                /**
-                 * @brief Returns the current sample
-                 * 
-                 * We do some operations to determine the current sample:
-                 * 
-                 * TODO: Fill this in here
-                 * 
-                 * @return long double The current sample
-                 */
-                long double* operator *() const;
-
-                /**
-                 * @brief Increments the iterator
-                 * 
-                 * We increment the iterator by one sample.
-                 * If we are at the end of the current channel,
-                 * we move on to the next channel.
-                 * 
-                 * @return SeqIterator& A reference to the iterator
-                 */
-                const SeqIterator& operator++() {  sample++; return *this; }
+                SeqIterator(AudioBuffer *buff, int pos=0) : BaseAudioIterator(this) { this->buff = buff; this->set_index(pos); }
 
                 /**
                  * @brief Get the Channel we are on
@@ -323,16 +374,6 @@ class AudioBuffer {
                  * @param channel Channel to move to.
                  */
                 void set_channel(int channel);
-
-                /**
-                 * @brief Get the current position
-                 * 
-                 * This returns the current index of the iterator,
-                 * which is used to determine the current sample.
-                 * 
-                 * @return int The current index
-                 */
-                int get_index() const { return this->sample; }
 
                 /**
                  * @brief Set the current index
@@ -409,9 +450,6 @@ class AudioBuffer {
 
             private:
 
-                /// Current sample we are on
-                int sample=0;
-
                 /// Audio Buffer we are iterating over
                 AudioBuffer* buff;
 
@@ -457,13 +495,7 @@ class AudioBuffer {
          * 
          * TODO: See if we should add extra methods, like in SeqIterator...
          */
-        class InterIterator {
-
-            using iterator_category = std::random_access_iterator_tag;
-            using difference_type = std::ptrdiff_t;
-            using value_type = long double;
-            using pointer = long double*;
-            using reference = long double&;
+        class InterIterator : public BaseAudioIterator<InterIterator> {
 
             public:
 
@@ -476,81 +508,7 @@ class AudioBuffer {
                  * @param buff AudioBuffer we are iterating over
                  * @param pos Starting position
                  */
-                InterIterator(AudioBuffer *buff, int pos=0) { this->buff=buff; this->set_index(pos); }
-
-                /**
-                 * @brief Returns the current sample
-                 * 
-                 * @return long double The current sample
-                 */
-                long double operator *() const { return *(this->point); };
-
-                /**
-                 * @brief Returns the underlying pointer to the current sample
-                 * 
-                 * @return long double * Pointer to the current sample 
-                 */
-                long double* operator->() { return this->point; }
-
-                /**
-                 * @brief Pre-increments the iterator
-                 * 
-                 * @return InterIterator& 
-                 */
-                InterIterator& operator++() { this->set_index(this->sample+1); return *this; }
-
-                /**
-                 * @brief Post increments the iterator
-                 * 
-                 * @return InterIterator 
-                 */
-                InterIterator operator++(int) { InterIterator tmp = *this; this->set_index(this->sample+1); return tmp; }
-
-                /**
-                 * @brief Pre-decrements the iterator
-                 * 
-                 * @return InterIterator& 
-                 */
-                InterIterator& operator--() { this->set_index(this->sample-1); return *this; }
-
-                /**
-                 * @brief Post-decrements the iterator
-                 * 
-                 * @return InterIterator
-                 */
-                InterIterator operator--(int) { InterIterator tmp = *this; this->set_index(this->sample+1); return tmp; }
-
-                /**
-                 * @brief Equality operator
-                 * 
-                 * Determines if the given iterator is on the same position as we are
-                 * 
-                 * @param comp Iterator to compare
-                 * @return true If the iterators are on the same position
-                 * @return false If the iterators are not on the same position
-                 */
-                bool operator==(const InterIterator& comp) { this->get_index() == comp.get_index(); }
-
-                /**
-                 * @brief Inequality operator
-                 * 
-                 * Determines if the given iterator is not on the same position as we are
-                 * 
-                 * @param comp Iterator to compare
-                 * @return true If the iterators are on the same position
-                 * @return false If the iterators are not on the same position
-                 */
-                bool operator!=(const InterIterator& comp) { return !(*this == comp); }
-
-                /**
-                 * @brief Gets the index of this iterator
-                 * 
-                 * This returns the current index of the iterator,
-                 * which is used to retrieve each sample.
-                 * 
-                 * @return int Current index of this iterator
-                 */
-                int get_index() { return this->sample; }
+                InterIterator(AudioBuffer *buff, int pos=0) : BaseAudioIterator(this) { this->buff = buff; this->set_index(pos); }
 
                 /**
                  * @brief Sets the index of this iterator
@@ -568,10 +526,25 @@ class AudioBuffer {
                  */
                 void set_index(int pos);
 
-            private:
+                /**
+                 * @brief Gets the current channel we are on
+                 * 
+                 * Gets the current channel number we are on.
+                 * 
+                 * @return int The current channel
+                 */
+                int get_channel() const;
 
-                /// The current sample we are on
-                int sample = 0;
+                /**
+                 * @brief Get the current sample we are on
+                 * 
+                 * Gets the current sample we are on.
+                 * 
+                 * @return int Current sample
+                 */
+                int get_sample() const;
+
+            private:
 
                 /// Buffer we are iterating over
                 AudioBuffer *buff;
@@ -582,17 +555,49 @@ class AudioBuffer {
         };
 
         /**
-         * @brief Construct a new Audio Buffer object
+         * @brief No default constructor!
+         * 
+         * We require at least the channel number and buffer size be specified
          * 
          */
-        AudioBuffer() {}
+        AudioBuffer()=delete;
 
         /**
-         * @brief Construct a new Audio Buffer object and preallocates it
+         * @brief Construct a new Audio Buffer object
          * 
-         * @param size Size of the buffer
+         * @param size The size of each channel, AKA the number of samples per channel
+         * @param channels The number of channels in this buffer, by default 1
          */
-        AudioBuffer(int size);
+        AudioBuffer(int size, int channels=1);
+
+        /**
+         * @brief Construct a new Audio Buffer object
+         * 
+         * We create an AudioBuffer via the given vector.
+         * This vector is one dimensional, 
+         * so we assume that there is only one channel
+         * 
+         * We automatically determine the size from the given vector,
+         * and assume there is only one channel.
+         * 
+         * @param vect Vector of samples
+         */
+        AudioBuffer(std::vector<long double> vect);
+
+        /**
+         * @brief Construct a new Audio Buffer object
+         * 
+         * We create an AudioBuffer via the given vector.
+         * This vector is two dimensional,
+         * meaning that it is a vector of channels
+         * that contain samples.
+         * 
+         * We automatically determine the channels number and size this
+         * AudioBuffer using the given vector
+         * 
+         * @param vect Vector of channels
+         */
+        AudioBuffer(std::vector<AudioChannel> vect);
 
         /**
          * @brief Set the Sample Rate of this buffer
@@ -603,7 +608,7 @@ class AudioBuffer {
          * to ensure this is accurate!
          * Any component using this buffer will most likely 
          * use this sample rate at face value.
-         * With tha t being said,
+         * With that being said,
          * please only set the sample rate to accurate values.
          * If your component has nothing to do with
          * resampling, then please do not change this value.
@@ -621,7 +626,7 @@ class AudioBuffer {
          * 
          * @return double The current samplerate
          */
-        double get_samplerate() { return this->sample_rate; }
+        double get_samplerate() const { return this->sample_rate; }
 
         /**
          * @brief Pre-allocates the buffer to a certain size
@@ -668,7 +673,7 @@ class AudioBuffer {
          * 
          * @return int Number of channels
          */
-        int get_channel_count() { return this->buff.size(); }
+        int get_channel_count() const { return this->buff.size(); }
 
         /**
          * @brief Gets the start channel iterator of this buffer
