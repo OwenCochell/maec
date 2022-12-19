@@ -10,6 +10,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <algorithm>
 #include "audio_buffer.hpp"
 
 // Dummy data to work with
@@ -28,6 +29,10 @@ TEST(AudioBufferTest, Construct) {
 
     AudioBuffer buff(1,1);
 
+    // Ensure channel count is valid:
+
+    ASSERT_EQ(buff.get_channel_count(), 1);
+
 }
 
 TEST(AudioBufferTest, ConstructSingle)
@@ -39,6 +44,10 @@ TEST(AudioBufferTest, ConstructSingle)
     // Ensure channel number is valid:
 
     ASSERT_EQ(buff.get_channel_count(), 1);
+
+    // Ensure single channel is valid:
+
+    ASSERT_TRUE(std::equal(chan1.begin(), chan1.end(), buff.chbegin()->begin()));
 }
 
 TEST(AudioBufferTest, ConstructMulti)
@@ -50,6 +59,15 @@ TEST(AudioBufferTest, ConstructMulti)
     // Ensure channel number if valid:
 
     ASSERT_EQ(buff.get_channel_count(), data.size());
+
+    // Check stretched format is valid:
+
+    auto iter = buff.chbegin();
+
+    ASSERT_TRUE(std::equal(chan1.begin(), chan1.end(), (iter++)->begin()));
+    ASSERT_TRUE(std::equal(chan2.begin(), chan2.end(), (iter++)->begin()));
+    ASSERT_TRUE(std::equal(chan3.begin(), chan3.end(), (iter++)->begin()));
+
 }
 
 TEST(AudioBufferTest, SampleRate) {
@@ -72,13 +90,13 @@ TEST(AudioBufferTest, SampleRate) {
 
 }
 
-TEST(AudioBufferTest, InterleavedIteration) {
+TEST(AudioBufferTest, InterleavedIterationRead) {
 
     // Create the AudioBuffer:
 
     AudioBuffer buff(data);
 
-    // Iterate over said buffer:
+    // Iterate over said buffer sequentially:
 
     for(auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
@@ -94,9 +112,10 @@ TEST(AudioBufferTest, InterleavedIteration) {
 
         ASSERT_EQ(val, idata.at(iter.get_index()));
     }
+
 }
 
-TEST(AudioBufferTest, SequentialIteration) {
+TEST(AudioBufferTest, SequentialIterationRead) {
 
     // Create the AudioBuffer:
 
@@ -118,4 +137,26 @@ TEST(AudioBufferTest, SequentialIteration) {
 
         ASSERT_EQ(val, sdata.at(iter.get_index()));
     }
+
+}
+
+TEST(AudioBufferTest, InterleavedIterationWrite) {
+
+    // Create empty AudioBuffer:
+
+    AudioBuffer buff(data);
+
+    // Fill the buffer with 2:
+
+    auto done1 = std::fill_n(buff.ibegin(), 10, 999);
+    // Ensure every value is 2:
+
+    auto iter = buff.ibegin();
+
+    for(int i = 0; i < 30; i++) {
+
+        *iter = 2;
+        ++iter;
+    }
+
 }

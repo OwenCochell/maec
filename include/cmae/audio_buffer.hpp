@@ -39,42 +39,15 @@ typedef std::vector<long double> AudioChannel;
 template <class T>
 class BaseAudioIterator {
 
-    // Tags for identifying this iterator
-
-    using iterator_category = std::random_access_iterator_tag;
-    using difference_type = std::ptrdiff_t;
-    using value_type = long double;
-    using pointer = long double*;
-    using reference = long double&;
-
     private:
 
-        /// The current sample we are on
-        int sample=0;
-
-        /// Pointer to child class
-        T* child;
-
         /// Current pointer we are on
-        long double* point;
+        long double* point=nullptr;
+
+        /// The current sample we are on
+        int index=0;
 
     protected:
-
-        /**
-         * @brief Sets the index
-         * 
-         * This will set the index of this iterator.
-         * Nothing special will be done here,
-         * so child iterators should implement 
-         * their own versions of this method to
-         * retrieve the current sample. 
-         * 
-         * This is protected as end users should use the set_index()
-         * defined in the child class.
-         * 
-         * @param index Index to set
-         */
-        void set_index(int index) { this->sample = index; }
 
         /**
          * @brief Sets the pointer
@@ -89,14 +62,41 @@ class BaseAudioIterator {
 
     public:
 
+        // Tags for identifying this iterator
+
+        using iterator_category = std::random_access_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using value_type = long double;
+        using pointer = long double*;
+        using reference = long double&;
+
         /**
-         * @brief Construct a new Base Audio Iterator object
+         * @brief Sets the index to the given value.
          * 
-         * We require the child class for certain operations.
+         * This will set the index to the given value,
+         * and determine the current pointer.
+         * How this is done differs from iterator to iterator.
+         * This is done upon setting the index for performance reasons,
+         * meaning that the pointer is determined once on index change
+         * and is then kept for future use.
          * 
-         * @param der child class
+         * Please remember, this index is the position in relation
+         * to the squished audio data!
+         * The squished format differs between iterators.
+         *
+         * For example, assume the squished audio data is this:
+         * 
+         * 1,2,3,4,5,6,7
+         * 
+         * If you want value '3', then you want index 2.
+         * 
+         * We highly recommend using the helper methods in
+         * the child iterator classes to help with seeking 
+         * so specific values.
+         * 
+         * @param index New index to set
          */
-        BaseAudioIterator(T* der) { this->child = der; }
+        void set_index(int index) { this->index = index; static_cast<T*>(this)->resolve_pointer(); }
 
         /**
          * @brief Gets the current index
@@ -107,35 +107,97 @@ class BaseAudioIterator {
          * 
          * @return int Current index
          */
-        int get_index() const { return this->sample; }
+        int get_index() const { return this->index; }
 
         /**
          * @brief Pre-increments the iterator
          * 
          * @return T& 
          */
-        T& operator++() { this->child->set_index(this->get_index()+1); return *(this->child); }
+        T& operator++() { this->set_index(this->get_index()+1); return static_cast<T&>(*this); }
 
         /**
          * @brief Post-increments the iterator
          * 
          * @return T 
          */
-        T operator++(int) { T tmp = *child; ++(*child); return tmp; }
+        T operator++(int) { T tmp = static_cast<T>(*this); ++(*this); return tmp; }
 
         /**
          * @brief Pre-decrements the iterator
          * 
          * @return T& 
          */
-        T& operator--() { this->child->set_index(this->get_index()-1); return *(this->child); }
+        T& operator--() { this>set_index(this->get_index()-1); return static_cast<T&>(*this); }
 
         /**
          * @brief Post-decrements the iterator
          * 
          * @return T 
          */
-        T operator--(int) { T tmp = *child; --(*child); return tmp; }
+        T operator--(int) { T tmp = static_cast<T>(*this); --(*this); return tmp; }
+
+        /**
+         * @brief Adds the given number to this iterator
+         * 
+         * @param num Number to add to current index
+         * @return T& This iterator
+         */
+        T& operator+=(const int& num) { this->set_index(this->get_index() + num); return static_cast<T&>(*this);}
+
+        /**
+         * @brief Subtracts the given number from this iterator
+         * 
+         * @param num Number to add to the current index
+         * @return T& This iterator
+         */
+        T& operator-=(const int& num) { this->set_index(this->get_index() - num); return static_cast<T&>(*this);}
+
+        /**
+         * @brief Creates a new iterator by adding the given number to our index
+         * 
+         * @param num Number to add to the current index
+         * @return T A new iterator with the new index
+         */
+        T operator+(const int& num) { T tmp = static_cast<T&>(*this); tmp += num; return tmp; }
+
+        /**
+         * @brief Creates a new iterator by adding ourselves to the given iterator
+         * 
+         * We simply take the index of the given iterator
+         * and add it to ours.
+         * 
+         * @param iter Iterator to add
+         * @return T A new iterator with the new index
+         */
+        T operator+(const T& iter) { T tmp = static_cast<T>(*this); tmp += iter.get_index(); return tmp; }
+
+        /**
+         * @brief Creates a new iterator by subtracting the given number from our index
+         * 
+         * @param num Number to subtract our index from
+         * @return T A new iterator with the new index
+         */
+        T operator-(const int& num) { T tmp = static_cast<T>(*this); tmp -= num; return tmp; }
+
+        /**
+         * @brief Creates a new iterator by subtracting the given iterator from ourselves
+         * 
+         * We simply take the index of the given iterator and subtract it from ours.
+         * 
+         * @param iter Iterator to subtract
+         * @return T A new iterator with the new index
+         */
+        T operator-(const T& iter) { T tmp = static_cast<T>(*this); tmp -= iter.get_index(); return tmp; }
+
+        /**
+         * @brief Converts this iterator to an integer
+         * 
+         * We simply return our current index.
+         * 
+         * @return int The current index
+         */
+        operator int() const { return this->get_index(); }
 
         /**
          * @brief Determines if the given iterator is equivalent
@@ -160,25 +222,61 @@ class BaseAudioIterator {
         bool operator!=(const T& a) { return !(*this == a); }
 
         /**
+         * @brief Determines if the we are less than the given iterator
+         * 
+         * @param second Iterator to check
+         * @return true If we are less than the given iterator
+         * @return false If we are equal or greater than the given iterator 
+         */
+        bool operator<(const T& second) { return this->get_index() < second.get_index(); }
+
+        /**
+         * @brief Determines if we are greater than the given iterator 
+         * 
+         * @param second Iterator to check
+         * @return true If we are greater than the given iterator
+         * @return false If we are less than or equal to the given iterator
+         */
+        bool operator>(const T& second) { return this->get_index() > second.get_index(); }
+
+        /**
+         * @brief Determines if we are less than or equal to the given iterator
+         * 
+         * @param second Iterator to check
+         * @return true If we are less than or equal to the given iterator
+         * @return false If we are greater than the given iterator
+         */
+        bool operator<=(const T& second) { return this->get_index() <= second.get_index(); }
+
+        /**
+         * @brief Determines if we are greater than or equal to the given iterator
+         * 
+         * @param second Iterator to check
+         * @return true If we are greater than or equal to the given iterator
+         * @return false If we are less than or equal to the given iterator
+         */
+        bool operator>=(const T& second) { return this->get_index() >= second.get_index(); }
+
+        /**
          * @brief Gets the current sample
          * 
          * @return long double 
          */
-        long double operator*() { return *(this->point); }
+        reference operator*() { return *(this->point); }
 
         /**
          * @brief Gets the current pointer
          * 
          * @return long double* 
          */
-        long double* operator->() { return this->base(); }
+        pointer operator->() { return this->base(); }
 
         /**
          * @brief Gets the pointer to the current sample
          * 
          * @return long double* 
          */
-        long double* base() { return this->point; }
+        pointer base() { return this->point; }
 };
 
 /**
@@ -306,7 +404,7 @@ class AudioBuffer {
 
         /**
          * @brief An iterator that iterates over audio data sequentially
-         * 
+         *  
          * This iterator iterates over the audio data sequentially,
          * meaning that it gets iterates over all audio data in a channel 
          * before moving on to the next channel, in order of channels.
@@ -351,7 +449,7 @@ class AudioBuffer {
                  * @param buff The AudioBuffer we are iterating over
                  * @param pos The index to start at
                 */
-                SeqIterator(AudioBuffer *buff, int pos=0) : BaseAudioIterator(this) { this->buff = buff; this->set_index(pos); }
+                SeqIterator(AudioBuffer *buff, int pos=0) { this->buff = buff; this->set_index(pos); }
 
                 /**
                  * @brief Get the Channel we are on
@@ -375,28 +473,7 @@ class AudioBuffer {
                  */
                 void set_channel(int channel);
 
-                /**
-                 * @brief Set the current index
-                 * 
-                 * This will alter the index of the iterator
-                 * to a new sample.
-                 * 
-                 * Again, please note that the index is in relation to the squished vector!
-                 * You will have to take into account the size and number of channels to determine 
-                 * the sample you want.
-                 * 
-                 * It is recommended to use the helper methods to determine the index
-                 * instead of doing the calculations yourself.
-                 * 
-                 * In addition, we determine the value at this current position
-                 * and save it for future use.
-                 * When the value is requested, we return the pointer calculated in this method.
-                 * This ensures that the value is calculated once, so it can be accessed many times
-                 * without any performance overhead.
-                 * 
-                 * @param pos Position to set the index to
-                 */
-                void set_index(int pos);
+                void resolve_pointer();
 
                 /**
                  * @brief Sets the position of this iterator
@@ -444,6 +521,11 @@ class AudioBuffer {
                  * Maybe return a pair with channel and sample instead?
                  * Calling another function to get the channel might be too much.
                  * 
+                 * ALSO FIGURE OUT NAMING SYSTEM!
+                 * 
+                 * WHat is a position? Sample? Index?
+                 * The only thing I know for sure is channel...
+                 * 
                  * @return int The position of the iterator in the current channel
                  */
                 int get_position() const;
@@ -452,9 +534,6 @@ class AudioBuffer {
 
                 /// Audio Buffer we are iterating over
                 AudioBuffer* buff;
-
-                /// Current pointer we are on
-                long double* point;
 
         };
 
@@ -482,7 +561,7 @@ class AudioBuffer {
          * This iterator uses that value to determine which sample to return.
          * You can think of this as the index of the sample in the final squished vector.
          * Fro example, if I wanted to get sample '8' in channel 2 index 1,
-         * then I would use position 5 (see squished vector above).
+         * then I would use index 5 (see squished vector above).
          * 
          * This iterator contains some useful helper methods
          * for determining the index of the iterator,
@@ -508,23 +587,9 @@ class AudioBuffer {
                  * @param buff AudioBuffer we are iterating over
                  * @param pos Starting position
                  */
-                InterIterator(AudioBuffer *buff, int pos=0) : BaseAudioIterator(this) { this->buff = buff; this->set_index(pos); }
+                InterIterator(AudioBuffer *buff, int pos=0) { this->buff = buff; this->set_index(pos); }
 
-                /**
-                 * @brief Sets the index of this iterator
-                 * 
-                 * Sets the index to the given value.
-                 * 
-                 * Again, please note that the index is in relation to the squished vector!
-                 * You will have to take into account the size and number of channels to determine 
-                 * the sample you want.
-                 * 
-                 * It is recommended to use the helper methods to determine the index
-                 * instead of doing the calculations yourself.
-                 * 
-                 * @param pos Position to set the iterator to
-                 */
-                void set_index(int pos);
+                void resolve_pointer();
 
                 /**
                  * @brief Gets the current channel we are on
@@ -544,14 +609,47 @@ class AudioBuffer {
                  */
                 int get_sample() const;
 
+                /**
+                 * @brief Sets the sample we are on
+                 * 
+                 * This will alter the index to the start of the current sample.
+                 * 
+                 * It is probably easier to show rather than tell.
+                 * Consider this audio data:
+                 * 
+                 * [1]: 1, 2, 3
+                 * [2]: 3, 4, 5
+                 * [3]: 4, 5, 6
+                 * 
+                 * And here is that data in interleaved format:
+                 * 
+                 * 1, 4, 7, 2, 5, 8, 3, 6, 9
+                 * 
+                 * If you wish to seek to sample 2, 
+                 * then we will set the index to 3.
+                 * If you wish to seek to sample 3,
+                 * then we will set the index to 6.
+                 * 
+                 * As you can see, each 'section' is the Nth sample
+                 * of each channel in order.
+                 * So the 2nd section of the interleaved format will be these values:
+                 * 
+                 * 2, 5, 8
+                 * 
+                 * Here is the formula for determining this index:
+                 * 
+                 * index = sample * channels
+                 * 
+                 * Where channels is the number of channels.
+                 * 
+                 * @param sample Sample to set this iterator to
+                 */
+                void set_sample(int sample);
+
             private:
 
                 /// Buffer we are iterating over
                 AudioBuffer *buff;
-
-                /// Current pointer we are on
-                long double* point;
-
         };
 
         /**
