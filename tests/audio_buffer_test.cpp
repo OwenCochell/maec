@@ -106,6 +106,16 @@ TEST(AudioBufferTest, BasicIterOperations) {
 
     ASSERT_EQ(iter1.get_index(), 2);
 
+    // Next, check subscripting operators, forward:
+
+    ASSERT_EQ(iter1[7], idata.at(7));
+    ASSERT_EQ(iter1.get_index(), 7);
+
+    // And backward:
+
+    ASSERT_EQ(iter1[2], idata.at(2));
+    ASSERT_EQ(iter1.get_index(), 2);
+
     // Next, ensure increments work:
 
     iter1++;

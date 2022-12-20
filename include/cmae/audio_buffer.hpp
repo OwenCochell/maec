@@ -28,14 +28,11 @@ typedef std::vector<long double> AudioChannel;
  * This is a framework class!
  * It will not work properly on it's own.
  * We use upside down inheritance to add this functionality without virtual functions!
- * 
- * TODO:
- * 
- *  Implement custom type templating?
- * 
- * @tparam T The class that derives from this class.
+ *  
+ * @tparam C The class that derives from this class.
+ * @tparam T The typename this iterator will iterate over
  */
-template <class T>
+template <class C, typename T>
 class BaseAudioIterator {
 
     private:
@@ -65,9 +62,9 @@ class BaseAudioIterator {
 
         using iterator_category = std::random_access_iterator_tag;
         using difference_type = std::ptrdiff_t;
-        using value_type = long double;
-        using pointer = long double*;
-        using reference = long double&;
+        using value_type = T;
+        using pointer = T*;
+        using reference = T&;
 
         /**
          * @brief Sets the index to the given value.
@@ -95,7 +92,7 @@ class BaseAudioIterator {
          * 
          * @param index New index to set
          */
-        void set_index(int index) { this->index = index; static_cast<T*>(this)->resolve_pointer(); }
+        void set_index(int index) { this->index = index; static_cast<C*>(this)->resolve_pointer(); }
 
         /**
          * @brief Gets the current index
@@ -111,54 +108,54 @@ class BaseAudioIterator {
         /**
          * @brief Pre-increments the iterator
          * 
-         * @return T& 
+         * @return C& 
          */
-        T& operator++() { this->set_index(this->get_index()+1); return static_cast<T&>(*this); }
+        C& operator++() { this->set_index(this->get_index()+1); return static_cast<C&>(*this); }
 
         /**
          * @brief Post-increments the iterator
          * 
-         * @return T 
+         * @return C 
          */
-        T operator++(int) { T tmp = static_cast<T&>(*this); ++(*this); return tmp; }
+        C operator++(int) { C tmp = static_cast<C&>(*this); ++(*this); return tmp; }
 
         /**
          * @brief Pre-decrements the iterator
          * 
-         * @return T& 
+         * @return C& 
          */
-        T& operator--() { this->set_index(this->get_index()-1); return static_cast<T&>(*this); }
+        C& operator--() { this->set_index(this->get_index()-1); return static_cast<C&>(*this); }
 
         /**
          * @brief Post-decrements the iterator
          * 
-         * @return T 
+         * @return C 
          */
-        T operator--(int) { T tmp = static_cast<T&>(*this); --(*this); return tmp; }
+        C operator--(int) { C tmp = static_cast<C&>(*this); --(*this); return tmp; }
 
         /**
          * @brief Adds the given number to this iterator
          * 
          * @param num Number to add to current index
-         * @return T& This iterator
+         * @return C& This iterator
          */
-        T& operator+=(const int& num) { this->set_index(this->get_index() + num); return static_cast<T&>(*this);}
+        C& operator+=(const int& num) { this->set_index(this->get_index() + num); return static_cast<C&>(*this);}
 
         /**
          * @brief Subtracts the given number from this iterator
          * 
          * @param num Number to add to the current index
-         * @return T& This iterator
+         * @return C& This iterator
          */
-        T& operator-=(const int& num) { this->set_index(this->get_index() - num); return static_cast<T&>(*this);}
+        C& operator-=(const int& num) { this->set_index(this->get_index() - num); return static_cast<C&>(*this);}
 
         /**
          * @brief Creates a new iterator by adding the given number to our index
          * 
          * @param num Number to add to the current index
-         * @return T A new iterator with the new index
+         * @return C A new iterator with the new index
          */
-        T operator+(const int& num) { T tmp = static_cast<T&>(*this); tmp += num; return tmp; }
+        C operator+(const int& num) { C tmp = static_cast<C&>(*this); tmp += num; return tmp; }
 
         /**
          * @brief Creates a new iterator by adding ourselves to the given iterator
@@ -167,17 +164,17 @@ class BaseAudioIterator {
          * and add it to ours.
          * 
          * @param iter Iterator to add
-         * @return T A new iterator with the new index
+         * @return C A new iterator with the new index
          */
-        T operator+(const T& iter) { T tmp = static_cast<T&>(*this); tmp += iter.get_index(); return tmp; }
+        C operator+(const C& iter) { C tmp = static_cast<C&>(*this); tmp += iter.get_index(); return tmp; }
 
         /**
          * @brief Creates a new iterator by subtracting the given number from our index
          * 
          * @param num Number to subtract our index from
-         * @return T A new iterator with the new index
+         * @return C A new iterator with the new index
          */
-        T operator-(const int& num) { T tmp = static_cast<T&>(*this); tmp -= num; return tmp; }
+        C operator-(const int& num) { C tmp = static_cast<C&>(*this); tmp -= num; return tmp; }
 
         /**
          * @brief Creates a new iterator by subtracting the given iterator from ourselves
@@ -185,9 +182,9 @@ class BaseAudioIterator {
          * We simply take the index of the given iterator and subtract it from ours.
          * 
          * @param iter Iterator to subtract
-         * @return T A new iterator with the new index
+         * @return C A new iterator with the new index
          */
-        T operator-(const T& iter) { T tmp = static_cast<T&>(*this); tmp -= iter.get_index(); return tmp; }
+        C operator-(const C& iter) { C tmp = static_cast<C&>(*this); tmp -= iter.get_index(); return tmp; }
 
         /**
          * @brief Converts this iterator to an integer
@@ -207,7 +204,7 @@ class BaseAudioIterator {
          * @return true If the two iterators are equivalent
          * @return false If the two iterators are not equivalent
          */
-        bool operator==(const T& a) { return this->get_index() == a.get_index(); }
+        bool operator==(const C& a) { return this->get_index() == a.get_index(); }
 
         /**
          * @brief Determines if the given iterator is not equivalent
@@ -218,7 +215,7 @@ class BaseAudioIterator {
          * @return true If the two iterators are not equivalent
          * @return false If the two iterators are equivalent
          */
-        bool operator!=(const T& a) { return !(*this == a); }
+        bool operator!=(const C& a) { return !(*this == a); }
 
         /**
          * @brief Determines if the we are less than the given iterator
@@ -227,7 +224,7 @@ class BaseAudioIterator {
          * @return true If we are less than the given iterator
          * @return false If we are equal or greater than the given iterator 
          */
-        bool operator<(const T& second) { return this->get_index() < second.get_index(); }
+        bool operator<(const C& second) { return this->get_index() < second.get_index(); }
 
         /**
          * @brief Determines if we are greater than the given iterator 
@@ -236,7 +233,7 @@ class BaseAudioIterator {
          * @return true If we are greater than the given iterator
          * @return false If we are less than or equal to the given iterator
          */
-        bool operator>(const T& second) { return this->get_index() > second.get_index(); }
+        bool operator>(const C& second) { return this->get_index() > second.get_index(); }
 
         /**
          * @brief Determines if we are less than or equal to the given iterator
@@ -245,7 +242,7 @@ class BaseAudioIterator {
          * @return true If we are less than or equal to the given iterator
          * @return false If we are greater than the given iterator
          */
-        bool operator<=(const T& second) { return this->get_index() <= second.get_index(); }
+        bool operator<=(const C& second) { return this->get_index() <= second.get_index(); }
 
         /**
          * @brief Determines if we are greater than or equal to the given iterator
@@ -254,28 +251,39 @@ class BaseAudioIterator {
          * @return true If we are greater than or equal to the given iterator
          * @return false If we are less than or equal to the given iterator
          */
-        bool operator>=(const T& second) { return this->get_index() >= second.get_index(); }
+        bool operator>=(const C& second) { return this->get_index() >= second.get_index(); }
+
+        /**
+         * @brief Subscripting operator
+         * 
+         * We basically just set the index to the given value,
+         * and return the current value.
+         * 
+         * @param val New index to set
+         * @return reference Current value
+         */
+        reference operator[](int val) { this->set_index(val); return *(this->point); }
 
         /**
          * @brief Gets the current sample
          * 
-         * @return long double 
+         * @return reference 
          */
-        reference operator*() { return *(this->point); }
+        reference operator*() const { return *(this->point); }
 
         /**
          * @brief Gets the current pointer
          * 
-         * @return long double* 
+         * @return pointer 
          */
-        pointer operator->() { return this->base(); }
+        pointer operator->() const { return this->base(); }
 
         /**
          * @brief Gets the pointer to the current sample
          * 
-         * @return long double* 
+         * @return pointer 
          */
-        pointer base() { return this->point; }
+        pointer base() const { return this->point; }
 
 };
 
@@ -387,6 +395,10 @@ class BaseAudioIterator {
  * Like why get_position instead of get_sample()?
  * 
  * Need to really hash out terminology here.
+ * 
+ * Also, implement other iterator types,
+ * such as reverse iterators and constant iterators,
+ * We WILL be testing these, but do we need to go as in-depth?
  */
 class AudioBuffer {
 
@@ -436,7 +448,7 @@ class AudioBuffer {
          * and the order of each channel is important, or if we need the 'pure' audio data
          * without data from other channels mixed in.
          */
-        class SeqIterator : public BaseAudioIterator<SeqIterator> {
+        class SeqIterator : public BaseAudioIterator<SeqIterator, long double> {
 
             public:
 
@@ -591,7 +603,7 @@ class AudioBuffer {
          * 
          * TODO: See if we should add extra methods, like in SeqIterator...
          */
-        class InterIterator : public BaseAudioIterator<InterIterator> {
+        class InterIterator : public BaseAudioIterator<InterIterator, long double> {
 
             public:
 
