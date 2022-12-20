@@ -32,7 +32,6 @@ typedef std::vector<long double> AudioChannel;
  * TODO:
  * 
  *  Implement custom type templating?
- *  Determine if tags can be inherited...
  * 
  * @tparam T The class that derives from this class.
  */
@@ -121,21 +120,21 @@ class BaseAudioIterator {
          * 
          * @return T 
          */
-        T operator++(int) { T tmp = static_cast<T>(*this); ++(*this); return tmp; }
+        T operator++(int) { T tmp = static_cast<T&>(*this); ++(*this); return tmp; }
 
         /**
          * @brief Pre-decrements the iterator
          * 
          * @return T& 
          */
-        T& operator--() { this>set_index(this->get_index()-1); return static_cast<T&>(*this); }
+        T& operator--() { this->set_index(this->get_index()-1); return static_cast<T&>(*this); }
 
         /**
          * @brief Post-decrements the iterator
          * 
          * @return T 
          */
-        T operator--(int) { T tmp = static_cast<T>(*this); --(*this); return tmp; }
+        T operator--(int) { T tmp = static_cast<T&>(*this); --(*this); return tmp; }
 
         /**
          * @brief Adds the given number to this iterator
@@ -170,7 +169,7 @@ class BaseAudioIterator {
          * @param iter Iterator to add
          * @return T A new iterator with the new index
          */
-        T operator+(const T& iter) { T tmp = static_cast<T>(*this); tmp += iter.get_index(); return tmp; }
+        T operator+(const T& iter) { T tmp = static_cast<T&>(*this); tmp += iter.get_index(); return tmp; }
 
         /**
          * @brief Creates a new iterator by subtracting the given number from our index
@@ -178,7 +177,7 @@ class BaseAudioIterator {
          * @param num Number to subtract our index from
          * @return T A new iterator with the new index
          */
-        T operator-(const int& num) { T tmp = static_cast<T>(*this); tmp -= num; return tmp; }
+        T operator-(const int& num) { T tmp = static_cast<T&>(*this); tmp -= num; return tmp; }
 
         /**
          * @brief Creates a new iterator by subtracting the given iterator from ourselves
@@ -188,7 +187,7 @@ class BaseAudioIterator {
          * @param iter Iterator to subtract
          * @return T A new iterator with the new index
          */
-        T operator-(const T& iter) { T tmp = static_cast<T>(*this); tmp -= iter.get_index(); return tmp; }
+        T operator-(const T& iter) { T tmp = static_cast<T&>(*this); tmp -= iter.get_index(); return tmp; }
 
         /**
          * @brief Converts this iterator to an integer
@@ -277,6 +276,7 @@ class BaseAudioIterator {
          * @return long double* 
          */
         pointer base() { return this->point; }
+
 };
 
 /**
@@ -473,6 +473,23 @@ class AudioBuffer {
                  */
                 void set_channel(int channel);
 
+                /**
+                 * @brief Determines the pointer for this iterator
+                 * 
+                 * This method will automatically determine the correct pointer
+                 * for this iterator at the current index.
+                 * 
+                 * This method is automatically called where appropriate,
+                 * but you can call this method anytime if you wish
+                 * to re-determine the underlying pointer in use by this iterator.
+                 * 
+                 * This method keeps the pointer for future use.
+                 * When the value is requested,
+                 * we simply return this value.
+                 * This allows us to determine this value once upon index change
+                 * and return it many times.
+                 * 
+                 */
                 void resolve_pointer();
 
                 /**
@@ -589,6 +606,23 @@ class AudioBuffer {
                  */
                 InterIterator(AudioBuffer *buff, int pos=0) { this->buff = buff; this->set_index(pos); }
 
+                /**
+                 * @brief Determines the pointer for this iterator
+                 * 
+                 * This method will automatically determine the correct pointer
+                 * for this iterator at the current index.
+                 * 
+                 * This method is automatically called where appropriate,
+                 * but you can call this method anytime if you wish
+                 * to re-determine the underlying pointer in use by this iterator.
+                 * 
+                 * This method keeps the pointer for future use.
+                 * When the value is requested,
+                 * we simply return this value.
+                 * This allows us to determine this value once upon index change
+                 * and return it many times.
+                 * 
+                 */
                 void resolve_pointer();
 
                 /**
@@ -618,8 +652,8 @@ class AudioBuffer {
                  * Consider this audio data:
                  * 
                  * [1]: 1, 2, 3
-                 * [2]: 3, 4, 5
-                 * [3]: 4, 5, 6
+                 * [2]: 4, 5, 6
+                 * [3]: 7, 8, 9
                  * 
                  * And here is that data in interleaved format:
                  * 
@@ -645,6 +679,32 @@ class AudioBuffer {
                  * @param sample Sample to set this iterator to
                  */
                 void set_sample(int sample);
+
+                /**
+                 * @brief Sets the position of this iterator
+                 * 
+                 * This method will use the given value to determine
+                 * the position of this iterator.
+                 * If the index is the location in the squished data,
+                 * then the position is the location in relation to
+                 * the channels and the samples within them.
+                 * 
+                 * You can use this method to seek to any channel and sample
+                 * in the squished data if you don't want to do the calculations yourself.
+                 * 
+                 * For example, if we seek to channel 2 sample 2,
+                 * we will end up at index 4, with value '5'.
+                 * 
+                 * Here is the formula for determining the index:
+                 * 
+                 * index = sample * channels + channel
+                 * 
+                 * Where channels are the number of channels.
+                 * 
+                 * @param channel Channel to seek to
+                 * @param sample Sample to seek to
+                 */
+                void set_position(int channel, int sample);
 
             private:
 

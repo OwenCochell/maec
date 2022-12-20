@@ -99,11 +99,18 @@ int AudioBuffer::InterIterator::get_sample() const {
 
 }
 
-void AudioBuffer::SeqIterator::set_position(int channel, int position) {
+void AudioBuffer::SeqIterator::set_position(int channel, int sample) {
 
     // Sets the position of this iterator:
 
-    this->set_index(channel * this->buff->buff[0].size() + position);
+    this->set_index(channel * this->buff->buff[0].size() + sample);
+}
+
+void AudioBuffer::InterIterator::set_position(int channel, int sample) {
+
+    // Set the index
+
+    this->set_index(this->buff->get_channel_count() * sample + channel);
 }
 
 void AudioBuffer::SeqIterator::resolve_pointer() {

@@ -20,8 +20,8 @@ AudioChannel chan3 = {20,21,22,23,24,25,26,27,28,29};
 
 std::vector<AudioChannel> data = {chan1, chan2, chan3};
 
-AudioChannel idata = {0.0,10.0,20.0,1.0,11.0,21.0,2,12.0,22.0,3.0,13.0,23.0,4.0,14.0,24.0,5.0,15.0,25.0,6.0,16.0,26.0,7.0,17.0,27.0,8.0,18.0,28.0,9.0,19.0,29.0};
-AudioChannel sdata = {0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,18.0,19.0,20.0,21.0,22.0,23.0,24.0,25.0,26.0,27.0,28.0,29.0};
+AudioChannel idata = {0,10,20,1,11,21,2,12,22,3,13,23,4,14,24,5,15,25,6,16,26,7,17,27,8,18,28,9,19,29};
+AudioChannel sdata = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29};
 
 TEST(AudioBufferTest, Construct) {
 
@@ -35,8 +35,8 @@ TEST(AudioBufferTest, Construct) {
 
 }
 
-TEST(AudioBufferTest, ConstructSingle)
-{
+TEST(AudioBufferTest, ConstructSingle) {
+
     // Create an AudioBuffer with a single channel:
 
     AudioBuffer buff(chan1);
@@ -50,8 +50,8 @@ TEST(AudioBufferTest, ConstructSingle)
     ASSERT_TRUE(std::equal(chan1.begin(), chan1.end(), buff.chbegin()->begin()));
 }
 
-TEST(AudioBufferTest, ConstructMulti)
-{
+TEST(AudioBufferTest, ConstructMulti) {
+
     // Create an AudioBuffer with multiple channels:
 
     AudioBuffer buff(data);
@@ -60,7 +60,7 @@ TEST(AudioBufferTest, ConstructMulti)
 
     ASSERT_EQ(buff.get_channel_count(), data.size());
 
-    // Check stretched format is valid:
+    // Check split format is valid:
 
     auto iter = buff.chbegin();
 
@@ -90,7 +90,117 @@ TEST(AudioBufferTest, SampleRate) {
 
 }
 
-TEST(AudioBufferTest, InterleavedIterationRead) {
+TEST(AudioBufferTest, BasicIterOperations) {
+
+    // Create an audio buffer:
+
+    AudioBuffer buff(data);
+
+    // Create an iterator to work with:
+
+    auto iter1 = buff.ibegin();
+
+    // First, ensure default index methods work:
+
+    iter1.set_index(2);
+
+    ASSERT_EQ(iter1.get_index(), 2);
+
+    // Next, ensure increments work:
+
+    iter1++;
+    ASSERT_EQ(iter1.get_index(), 3);
+
+    ++iter1;
+    ASSERT_EQ(iter1.get_index(), 4);
+
+    // Ensure decrements work:
+    // (Also test iterator to int conversion going forward)
+
+    iter1--;
+    ASSERT_EQ(iter1, 3);
+
+    --iter1;
+    ASSERT_EQ(iter1, 2);
+
+    // Now, alter index via operators:
+
+    iter1 = iter1 + 5;
+    ASSERT_EQ(iter1, 7);
+
+    iter1 = iter1 - 5;
+    ASSERT_EQ(iter1, 2);
+
+    iter1 += 6;
+    ASSERT_EQ(iter1, 8);
+
+    iter1 -= 6;
+    ASSERT_EQ(iter1, 2);
+
+    // Finally, do the same as above but with iterators:
+
+    auto iter2 = buff.ibegin() + 3;
+
+    iter1 = iter1 + iter2;
+    ASSERT_EQ(iter1, 5);
+
+    iter1 = iter1 - iter2;
+    ASSERT_EQ(iter1, 2);
+
+    iter1 += iter2;
+    ASSERT_EQ(iter1, 5);
+
+    iter1 -= iter2;
+    ASSERT_EQ(iter1, 2);
+
+}
+
+TEST(AudioBufferTest, BasicIterComparison) {
+
+    // Create an audio buffer:
+
+    AudioBuffer buff(data);
+
+    // Get two iterators
+    // (Type should be irrelevant, both share the same features)
+
+    auto iter1 = buff.ibegin();
+    auto iter2 = buff.ibegin() + 5;
+
+    // Checks when iter1 < iter2
+
+    ASSERT_TRUE(iter1 < iter2);
+    ASSERT_FALSE(iter1 > iter2);
+    ASSERT_TRUE(iter1 <= iter2);
+    ASSERT_FALSE(iter1 >= iter2);
+    ASSERT_FALSE(iter1 == iter2);
+    ASSERT_TRUE(iter1 != iter2);
+
+    // Checks when iter1 > iter2
+
+    iter1 = iter1 + 10;
+
+    ASSERT_FALSE(iter1 < iter2);
+    ASSERT_TRUE(iter1 > iter2);
+    ASSERT_FALSE(iter1 <= iter2);
+    ASSERT_TRUE(iter1 >= iter2);
+    ASSERT_FALSE(iter1 == iter2);
+    ASSERT_TRUE(iter1 != iter2);
+
+    // Checks when iter1 == iter2
+
+    iter2 = iter2 + 5;
+
+    ASSERT_FALSE(iter1 < iter2);
+    ASSERT_FALSE(iter1 > iter2);
+    ASSERT_TRUE(iter1 <= iter2);
+    ASSERT_TRUE(iter1 >= iter2);
+    ASSERT_TRUE(iter1 == iter2);
+    ASSERT_FALSE(iter1 != iter2);
+
+}
+
+TEST(AudioBufferTest, InterleavedIterRead) {
 
     // Create the AudioBuffer:
 
@@ -112,10 +222,9 @@ TEST(AudioBufferTest, InterleavedIterationRead) {
 
         ASSERT_EQ(val, idata.at(iter.get_index()));
     }
-
 }
 
-TEST(AudioBufferTest, SequentialIterationRead) {
+TEST(AudioBufferTest, SequentialIterRead) {
 
     // Create the AudioBuffer:
 
@@ -137,26 +246,118 @@ TEST(AudioBufferTest, SequentialIterationRead) {
 
         ASSERT_EQ(val, sdata.at(iter.get_index()));
     }
-
 }
 
-TEST(AudioBufferTest, InterleavedIterationWrite) {
+TEST(AudioBufferTest, InterleavedIterWrite) {
 
-    // Create empty AudioBuffer:
+    // Create a buffer with dummy data:
 
     AudioBuffer buff(data);
 
-    // Fill the buffer with 2:
+    // Iterate over interleaved data:
 
-    auto done1 = std::fill_n(buff.ibegin(), 10, 999);
-    // Ensure every value is 2:
+    for(auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
+
+        // Change the current value:
+
+        *iter = 99;
+
+        // Ensure that the value is 99:
+
+        ASSERT_TRUE(buff.at(iter.get_channel())->at(iter.get_sample()) == 99);
+    }
+
+    // Now, use an algorithm method:
+
+    std::fill(buff.ibegin(), buff.iend(), 454);
+
+    // Finally, ensure that all values are 454
+
+    std::all_of(buff.ibegin(), buff.iend(), [](long double num){ return num == 454.0; });
+
+}
+
+TEST(AudioBufferTest, SequentialIterWrite) {
+
+    // Create a buffer with dummy data:
+
+    AudioBuffer buff(data);
+
+    // Iterate over interleaved data:
+
+    for(auto iter = buff.sbegin(); iter != buff.send(); ++iter) {
+
+        // Change the current value:
+
+        *iter = 99;
+
+        // Ensure that the value is 99:
+
+        ASSERT_TRUE(buff.at(iter.get_channel())->at(iter.get_position()) == 99);
+    }
+
+    // Now, use an algorithm method:
+
+    std::fill(buff.sbegin(), buff.send(), 454);
+
+    // Finally, ensure that all values are 454
+
+    std::all_of(buff.sbegin(), buff.send(), [](long double num){ return num == 454.0; });
+
+}
+
+TEST(AudioBufferTest, InterleavedIterSeek) {
+
+    // Create an audio buffer:
+
+    AudioBuffer buff(data);
+
+    // Get an iterator:
 
     auto iter = buff.ibegin();
 
-    for(int i = 0; i < 30; i++) {
+    // Seek to a specific sample:
 
-        *iter = 2;
-        ++iter;
-    }
+    iter.set_sample(3);
+
+    // Ensure the index is correct:
+
+    ASSERT_EQ(iter.get_index(), 9);
+
+    // Next, seek to a specific position:
+
+    iter.set_position(1, 4);
+
+    // Finally, ensure this position is correct:
+
+    ASSERT_EQ(iter.get_index(), 13);
+
+}
+
+TEST(AudioBufferTest, SequentialIterSeek) {
+
+    // Create an audio buffer:
+
+    AudioBuffer buff(data);
+
+    // Get an iterator:
+
+    auto iter = buff.sbegin();
+
+    // Seek to a specific channel:
+
+    iter.set_channel(1);
+
+    // Ensure the index is correct:
+
+    ASSERT_EQ(iter.get_index(), 10);
+
+    // Next, seek to a specific position:
+
+    iter.set_position(1, 4);
+
+    // Finally, ensure this position is correct:
+
+    ASSERT_EQ(iter.get_index(), 14);
 
 }
