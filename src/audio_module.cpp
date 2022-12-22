@@ -27,25 +27,25 @@ void AudioModule::meta_process() {
     this->process();
 }
 
-void AudioModule::set_buffer(AudioBuffer inbuff) {
+void AudioModule::set_buffer(std::unique_ptr<AudioBuffer> inbuff) {
 
     // Set our buffer:
 
     this->buff = std::move(inbuff);
 }
 
-AudioBuffer AudioModule::get_buffer() {
+std::unique_ptr<AudioBuffer> AudioModule::get_buffer() {
 
     // Return our buffer:
 
     return std::move(this->buff);
 }
 
-AudioBuffer AudioModule::create_buffer() {
+std::unique_ptr<AudioBuffer> AudioModule::create_buffer(int channels) {
 
     // Allocate the new buffer:
 
-    return std::make_unique<std::vector<long double>>(this->info->buff_size);
+    return std::make_unique<AudioBuffer>(this->info->buff_size, channels);
 }
 
 void AudioModule::set_forward(AudioModule* mod) {

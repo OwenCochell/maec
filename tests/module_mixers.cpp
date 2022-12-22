@@ -134,7 +134,7 @@ TEST(ModuleMixDownTest, Process) {
 
     // Get the buffer:
 
-    AudioBuffer buff = mix.get_buffer();
+    std::unique_ptr<AudioBuffer> buff = mix.get_buffer();
 
     // Iterate over the buffer:
 
@@ -167,8 +167,8 @@ TEST(ModuleMixUpTest, Process) {
 
     // Get the buffers:
 
-    AudioBuffer buff = mix.get_buffer();
-    AudioBuffer buff1 = mix.get_buffer();
+    std::unique_ptr<AudioBuffer> buff = mix.get_buffer();
+    std::unique_ptr<AudioBuffer> buff1 = mix.get_buffer();
 
     // Ensure they are not the same memory location:
 
@@ -217,8 +217,8 @@ TEST(ModuleMixMultiTest, Process) {
 
     // Get the buffers:
 
-    AudioBuffer buff = mix.get_buffer();
-    AudioBuffer buff1 = mix.get_buffer();
+    std::unique_ptr<AudioBuffer> buff = mix.get_buffer();
+    std::unique_ptr<AudioBuffer> buff1 = mix.get_buffer();
 
     // Ensure they are not the same memory location:
 

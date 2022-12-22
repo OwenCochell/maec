@@ -110,11 +110,11 @@ TEST(AudioModuleTest, SetInfo) {
 
     // Create the info:
 
-    AudioInfo info = AudioInfo();
+    std::shared_ptr<AudioInfo> info = std::shared_ptr<AudioInfo>();
 
     // Set the info:
 
-    mod.set_info(&info);
+    mod.set_info(info);
 
 }
 
@@ -131,8 +131,6 @@ TEST(AudioModuleTest, MetaProcess) {
     // Bind the modules:
 
     mod.bind(&mod2);
-
-    std::cout << mod.get_backward() << std::endl;
 
     // Call the meta process:
 

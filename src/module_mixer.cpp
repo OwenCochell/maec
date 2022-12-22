@@ -48,7 +48,7 @@ void ModuleMixDown::process() {
 
     // Create a new buffer:
 
-    AudioBuffer fbuff = create_buffer();
+    std::unique_ptr<AudioBuffer> fbuff = create_buffer();
 
     // Iterate over each buffer:
 
@@ -56,12 +56,9 @@ void ModuleMixDown::process() {
 
         // Iterate over each value in the buffer:
 
-        for (unsigned int i = 0; i < b->size(); i++) {
+        for(auto iter = b->sbegin(); (unsigned int)iter.get_index() < b->size(); ++iter) {
 
-            // Add the value to the new buffer:
-
-            fbuff->at(i) += b->at(i);
-
+            *(fbuff->sbegin()+iter) += *iter;
         }
     }
 
@@ -78,13 +75,13 @@ void ModuleMixUp::set_forward(AudioModule* mod) {
     this->out.push_back(mod);
 }
 
-AudioBuffer ModuleMixUp::get_buffer() {
+std::unique_ptr<AudioBuffer> ModuleMixUp::get_buffer() {
 
     // Get a buffer to work with:
 
-    AudioBuffer tbuff = this->create_buffer();
+    std::unique_ptr<AudioBuffer> tbuff = this->create_buffer();
 
-    std::copy(this->buff->begin(), this->buff->end(), tbuff->begin());
+    std::copy(this->buff->sbegin(), this->buff->send(), tbuff->sbegin());
 
     // Finally, return the buffer:
 

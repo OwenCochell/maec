@@ -21,6 +21,6 @@ void ConstantOscillator::process() {
 
     // Fill the buffer with the value:
 
-    std::fill(this->buff->begin(), this->buff->end(), this->value);
+    std::fill(this->buff->sbegin(), this->buff->send(), this->value);
 
 }

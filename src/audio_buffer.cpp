@@ -24,7 +24,7 @@ AudioBuffer::AudioBuffer(int size, int channels) {
 
         // Create an empty vector:
 
-        AudioChannel vect;
+        AudioChannel vect(size);
 
         // Reserve the size:
 

@@ -405,7 +405,7 @@ class AudioBuffer {
     private:
 
         /// Sample rate in Hertz
-        double sample_rate = 4400;
+        double sample_rate = 44100;
 
     protected:
 
@@ -829,6 +829,16 @@ class AudioBuffer {
         void shrink();
 
         /**
+         * @brief Gets the size of this buffer.
+         * 
+         * We report the size of the individual channels,
+         * not the number of channels.
+         * 
+         * @return int Size of each channel
+         */
+        unsigned int size() { return this->buff.at(0).size(); }
+
+        /**
          * @brief Gets a channel in this buffer
          * 
          * Returns a channel in this buffer for use.
@@ -1017,4 +1027,21 @@ class AudioBuffer {
          */
         AudioBuffer::InterIterator<const long double> icend() { return AudioBuffer::InterIterator<const long double>(this, this->buff[0].size() * this->buff.size()); }
 
+        /**
+         * @brief Default start iterator
+         * 
+         * We simply return the start sequential iterator.
+         * 
+         * @return AudioBuffer::SeqIterator<long double> 
+         */
+        AudioBuffer::SeqIterator<long double> begin() { return this->sbegin(); }
+
+        /**
+         * @brief Default stop iterator
+         * 
+         * We simply return the stop sequential iterator
+         * 
+         * @return AudioBuffer::SeqIterator<long double> 
+         */
+        AudioBuffer::SeqIterator<long double> end() { return this->send(); }
 };

@@ -46,6 +46,9 @@ class AlsaOutput : public BaseOutput {
         /// The name of the device to use: 
         std::string device_name = "default";
 
+        /// Number of periods per cycle
+        int periods = 1;
+
     public:
 
         /**
@@ -53,7 +56,7 @@ class AlsaOutput : public BaseOutput {
          * 
          * We utilize create and utilize a default AudioInfo struct.
          */
-        AlsaOutput();
+        AlsaOutput() =default;
 
         /**
          * @brief Construct a new AlsaOutput object
@@ -128,6 +131,35 @@ class AlsaOutput : public BaseOutput {
          * @return int The sample rate
          */
         int get_sample_rate();
+
+        /**
+         * @brief Gets a device index via it's name
+         * 
+         * We return the index of a device given it's name.
+         * 
+         * @param name Name of the device 
+         * @return int Index of the device
+         */
+        int get_device_index(std::string name);
+
+        /**
+         * @brief Gets a device name via it's index
+         * 
+         * We return the name of a device given it's index
+         * 
+         * @param index Index of the device
+         * @return std::string Name of the device
+         */
+        std::string get_device_name(int index);
+
+        /**
+         * @brief Gets the number of devices we have to work with
+         * 
+         * We return the number of devices available for use 
+         * 
+         * @return int Number of devices available for use
+         */
+        int get_device_count();
 
         /**
          * @brief Starts this module.

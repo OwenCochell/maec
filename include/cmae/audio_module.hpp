@@ -15,10 +15,7 @@
 #include <memory>
 #include <vector>
 #include "base_module.hpp"
-
-
-typedef std::unique_ptr<std::vector<long double>> AudioBuffer;
-
+#include "audio_buffer.hpp"
 
 /**
  * @brief Structure for holding audio info
@@ -75,35 +72,31 @@ class AudioModule : public BaseModule {
 
         /// Pointer to the audio info
 
-        AudioInfo* info;
+        std::shared_ptr<AudioInfo> info=nullptr;
 
         /// Pointer to the audio module we are attached to
 
-        AudioModule* forward;
+        AudioModule* forward=nullptr;
 
         /// Pointer to the audio module that is attached to us
 
-        AudioModule* backward;
+        AudioModule* backward=nullptr;
 
     protected:
 
         /// Pointer to the audio buffer we are working with
-        // TODO: Figure out a better way to do this!
-        // We are using raw C arrays, I would like to use C++ std::array (s) instead!
 
-        AudioBuffer buff;
+        std::unique_ptr<AudioBuffer> buff=nullptr;
 
     public:
 
         /**
          * @brief Construct a new Audio Module object
          * 
+         * We also create a AudioInfo struct for use
+         * 
          */
-        AudioModule() {
-
-            //TODO: Figure out a better way to do this!
-            this->info = new AudioInfo();
-        }
+        AudioModule() { this->info = std::make_shared<AudioInfo>(); }
 
         /**
          * @brief Destroy the Audio Module object
@@ -143,7 +136,7 @@ class AudioModule : public BaseModule {
          *
          * @param inbuff Pointer to an audio buffer
          */
-        void set_buffer(AudioBuffer inbuff);
+        void set_buffer(std::unique_ptr<AudioBuffer> inbuff);
 
         /**
          * @brief Get the buffer object
@@ -159,9 +152,9 @@ class AudioModule : public BaseModule {
          * buffer using the set_buffer() method.
          * Therefore, it is recommended that you use the protected 'buff' pointer instead.
          * 
-         * @return std::unique_ptr<long double> 
+         * @return std::unique_ptr<AudioBuffer>
          */
-        virtual AudioBuffer get_buffer();
+        virtual std::unique_ptr<AudioBuffer> get_buffer();
 
         /**
          * @brief Binds another module to us
@@ -199,7 +192,7 @@ class AudioModule : public BaseModule {
          * This method is usually called by the module we
          * are binding to.
          * 
-         * @param mod 
+         * @param mod The module to set as forward
          */
         virtual void set_forward(AudioModule* mod);
 
@@ -210,12 +203,18 @@ class AudioModule : public BaseModule {
          * returns the result.
          * The resulting pointer should be unique,
          * and have ownership of the buffer.
+         * 
+         * We will automatically create a buffer with using
+         * the size from the AudioInfo struct.
+         * You can also specify the default number of channels,
+         * but by default this will be 1.
+         * 
          * TODO: TEST THIS FO SURE!
          * Not 100% sure that compilers will allow this...
          * 
-         * @return long* 
+         * @return The newly created buffer
          */
-        AudioBuffer create_buffer();
+        std::unique_ptr<AudioBuffer> create_buffer(int channels=1);
 
         /**
          * @brief Get the forward object
@@ -238,16 +237,16 @@ class AudioModule : public BaseModule {
         /**
          * @brief Get the info object
          * 
-         * @return AudioInfo* 
+         * @return std::shared_ptr<AudioInfo> The audio info in use by this module
          */
-        AudioInfo* get_info() { return this->info; }
+        std::shared_ptr<AudioInfo> get_info() { return this->info; }
 
         /**
          * @brief Set the info object
          * 
-         * @param info Audio info struct
+         * @param in Audio info struct
          *
          */
-        void set_info(AudioInfo* in) { this->info = in; }
+        void set_info(std::shared_ptr<AudioInfo> in) { this->info = in; }
 
 };

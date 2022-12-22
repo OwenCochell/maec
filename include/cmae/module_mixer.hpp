@@ -61,7 +61,7 @@ class ModuleMixDown : virtual public AudioModule {
         std::vector<AudioModule*> in;
 
         /// Vector of all input buffers
-        std::vector<AudioBuffer> buffs;
+        std::vector<std::shared_ptr<AudioBuffer>> buffs;
 
     public:
 
@@ -69,7 +69,7 @@ class ModuleMixDown : virtual public AudioModule {
          * @brief Construct a new Module Mix Down object
          * 
          */
-        ModuleMixDown() {};
+        ModuleMixDown() =default;
 
         /**
          * @brief Processes the incoming audio data
@@ -183,7 +183,7 @@ class ModuleMixUp : virtual public AudioModule {
          * 
          * @return AudioBuffer
          */
-        AudioBuffer get_buffer() override;
+        std::unique_ptr<AudioBuffer> get_buffer() override;
 
         /**
          * @brief Returns the number of output modules

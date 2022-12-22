@@ -78,7 +78,7 @@ TEST(AudioBufferTest, SampleRate) {
 
     // Ensure default sample rate is valid:
 
-    ASSERT_EQ(buff.get_samplerate(), 4400);
+    ASSERT_EQ(buff.get_samplerate(), 44100);
 
     // Set the sample rate:
 
@@ -87,6 +87,24 @@ TEST(AudioBufferTest, SampleRate) {
     // Check the sample rate:
 
     ASSERT_EQ(buff.get_samplerate(), 123456);
+
+}
+
+TEST(AudioBufferTest, Size) {
+
+    // Create the AudioBuffer:
+
+    AudioBuffer buff(1,1);
+
+    // Ensure the size is valid:
+
+    ASSERT_EQ(buff.size(), 1);
+
+    // Do some other constructor stuff:
+
+    AudioBuffer buff2(data);
+
+    ASSERT_EQ(buff2.size(), 10);
 
 }
 

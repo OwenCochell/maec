@@ -37,7 +37,7 @@ void CompareBuffer(BaseOscillator* osc, std::vector<long double>* expected) {
 
     // Get the buffer:
 
-    AudioBuffer buff = osc->get_buffer();
+    std::unique_ptr<AudioBuffer> buff = osc->get_buffer();
 
     // Ensure the number of samples is correct:
 
@@ -45,10 +45,10 @@ void CompareBuffer(BaseOscillator* osc, std::vector<long double>* expected) {
 
     // Ensure each value is close:
 
-    for (auto i = 0; i < buff->size(); i++) {
+    for (auto iter = buff->sbegin(); (unsigned int)iter.get_index() < buff->size(); ++iter) {
 
         // Use assert near, prime sine is not as accurate as long double:
-        ASSERT_NEAR(buff->at(i), expected->at(i), 0.0001);
+        ASSERT_NEAR(*iter, expected->at(iter.get_index()), 0.0001);
 
     }
 }

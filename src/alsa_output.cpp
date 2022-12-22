@@ -13,6 +13,36 @@
 
 #include "alsa_output.hpp"
 
+int AlsaOutput::get_device_index(std::string name) {
+
+    // Get the index via the name:
+
+    return snd_card_get_index((name.c_str()));
+}
+
+std::string AlsaOutput::get_device_name(int index) {
+
+    // Create a dummy char value:
+
+    char* val;
+
+    // Call the appropriate method:
+
+    snd_card_get_name(index, &val);
+
+    // Convert char to string:
+
+    std::string name(val);
+
+    // Free the val:
+
+    free(val);
+
+    // Finally, return the name:
+
+    return name;
+}
+
 void AlsaOutput::start() {
 
     // TODO: Implement error checking and correction!
@@ -50,16 +80,23 @@ void AlsaOutput::stop() {
 
 void AlsaOutput::process() {
 
-    // Send our audio to the buffer
+    // Create a dummy buffer:
 
-    // This is really dirty, cleanup later!
-    // TODO: Maybe add this to an AudioBuffer class?
+    std::vector<long double> temp(this->get_buffer()->size() * this->periods);
 
-    std::vector<long double>* thing = this->get_buffer().get();
+    // Generate a number of periods:
 
-    auto* blah = std::data(*thing);
+    for(int i = 0; i < this->periods; ++i) {
 
-    snd_pcm_writei(this->pcm, blah, this->get_info()->buff_size);
+        // Copy this value to the buffer:
+
+        std::copy(this->get_buffer()->ibegin(), this->get_buffer()->iend(), temp.begin() + (i * this->get_buffer()->size()));
+    }
+
+    // Finally, output the audio data:
+
+    snd_pcm_writei(this->pcm, std::data(temp), this->get_info()->buff_size);
+
 }
 
 #endif
