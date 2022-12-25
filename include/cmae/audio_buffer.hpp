@@ -25,6 +25,11 @@ typedef std::vector<long double> AudioChannel;
  * We implement random access iterators,
  * so all of the operators are implemented and working.
  * 
+ * Any iterators using this class are STL compatable!
+ * You can pass any iterators to STL methods that expect them.
+ * One useful application of this is the algorithms library,
+ * which defines many operations that are useful for working with arrays and sequences.
+ * 
  * This is a framework class!
  * It will not work properly on it's own.
  * We use upside down inheritance to add this functionality without virtual functions!

@@ -7,6 +7,8 @@ set(TEST_FILES
     module_mixers.cpp
     fund_oscillator_test.cpp
     audio_buffer_test.cpp
+    sink_module_test.cpp
+    alsa_base_test.cpp
 )
 
 # Get Google Tests

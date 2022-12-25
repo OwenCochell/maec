@@ -13,43 +13,185 @@
 
 #include "alsa_output.hpp"
 
-int AlsaOutput::get_device_index(std::string name) {
+void DeviceInfo::create_device(void** hint, int id) {
 
-    // Get the index via the name:
+    // Extract the necessary info:
 
-    return snd_card_get_index((name.c_str()));
+    char* n = snd_device_name_get_hint(*hint, "NAME");
+	char* descr = snd_device_name_get_hint(*hint, "DESC");
+	char* io = snd_device_name_get_hint(*hint, "IOID");
+
+    // Set name and description:
+
+    this->name = std::string(n);
+    this->description = std::string(descr);
+
+    // Determine the IO type:
+
+    if (io == NULL) {
+
+        // We are both input and output:
+
+        this->input = true;
+        this->output = true;
+    }
+
+    else {
+
+        // Not null, convert to string and compare:
+
+        std::string temp(io);
+
+        if (temp == "Output") {
+
+            this->output = true;
+        }
+
+        else if (temp == "Input")
+        {
+            this->input = true;
+        }
+    }
+
+    // Do some freeing:
+
+    free(n);
+    free(descr);
+    free(io);
+
+    // Finally, set our id:
+
+    this->id = id;
+
 }
 
-std::string AlsaOutput::get_device_name(int index) {
+int ALSABase::get_device_count() {
 
-    // Create a dummy char value:
+    // Define some values:
 
-    char* val;
+    void** hints;
+    void** n;
 
-    // Call the appropriate method:
+    // Get array of all devices:
 
-    snd_card_get_name(index, &val);
+    int err = snd_device_name_hint(-1, "pcm", &hints);
 
-    // Convert char to string:
+    n = hints;
 
-    std::string name(val);
+    // Iterate until we reach the end:
 
-    // Free the val:
+    int num = 0;
 
-    free(val);
+    for (; *n != nullptr; ++n) {
 
-    // Finally, return the name:
+        ++num;
 
-    return name;
+    }
+
+    // Free the hints, as they are not needed:
+
+    snd_device_name_free_hint(hints);
+
+    // Finally, return the number of devices:
+
+    return num;
+
 }
 
-void AlsaOutput::start() {
+DeviceInfo ALSABase::get_device_by_id(int index) {
+
+    // Define some values:
+
+    void** hints;
+    void** n;
+
+    // Get specific device:
+
+    int err = snd_device_name_hint(-1, "pcm", &hints);
+
+    // Ensure the given index is within our count:
+    // Note: Using get_device_count() ensures we aren't repeating ourselves.
+    // but is it the most efficient? Probably not...
+ 
+    if (index >= this->get_device_count()) {
+        // TODO: DO SOMETHING!
+        // NOT DOING SOMETHING WILL RESULT IN A SEG FAULT!!!!
+    }
+
+    // Otherwise, seek n to the proper value:
+
+    n = hints + index;
+
+    // Create struct and initialize it:
+
+    DeviceInfo info(n, index);
+
+    // Free the hint:
+
+    snd_device_name_free_hint(hints);
+
+    // Finally, return the device info:
+
+    return info;
+
+}
+
+DeviceInfo ALSABase::get_device_by_name(std::string name) {
+
+    // Define some values:
+
+    void** hints;
+    void** n;
+
+    // Get all devices:
+
+    int err = snd_device_name_hint(-1, "pcm", &hints);
+
+    n = hints;
+
+    // Iterate over each device:
+
+    int id = 0;
+    DeviceInfo info;
+
+    for (; *n != NULL; ++n) {
+
+        // Create a DeviceInfo class:
+
+        info = DeviceInfo(n, id);
+
+        // Determine if the name is matching:
+
+        if (name == info.name) {
+
+            // Found it, break
+            // TODO: Implement some kind of error correction
+            // For now we assume all provided names are valid which is DANGEROUS!
+
+            break;
+        }
+
+        // Increment our index
+
+        ++id;
+    }
+
+    // Free the hints:
+
+    snd_device_name_free_hint(hints);
+
+    // Finally, return the device:
+
+    return info;
+}
+
+void ALSABase::start(int sample_rate, int buffer_size) {
 
     // TODO: Implement error checking and correction!
 
     // Create the PCM device:
 
-    int err = snd_pcm_open(&this->pcm, this->device_name.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
+    int err = snd_pcm_open(&this->pcm, this->device.name.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
 
     // Set the options:
     // TODO: Figure out how we sample the AudioInfo struct!
@@ -61,41 +203,47 @@ void AlsaOutput::start() {
 
     snd_pcm_hw_params_any(pcm, this->params);
 
-	snd_pcm_hw_params_set_access(pcm, this->params, SND_PCM_ACCESS_RW_INTERLEAVED);
+    // TODO: Figure out if wrong access will mess things up...
+
+    snd_pcm_hw_params_set_access(pcm, this->params, SND_PCM_ACCESS_RW_INTERLEAVED);
 	snd_pcm_hw_params_set_format(pcm, this->params, SND_PCM_FORMAT_S16_LE);
 	snd_pcm_hw_params_set_channels(pcm, this->params, 1);
-	snd_pcm_hw_params_set_rate(pcm, this->params, this->get_info()->sample_rate, 0);
-	snd_pcm_hw_params_set_periods(pcm, this->params, 10, 0);
-    snd_pcm_hw_params_set_period_size(pcm, this->params, this->get_info()->buff_size, 0);
+	snd_pcm_hw_params_set_rate(pcm, this->params, sample_rate, 0);
+	snd_pcm_hw_params_set_periods(pcm, this->params, 1, 0);
+    snd_pcm_hw_params_set_period_size(pcm, this->params, buffer_size, 0);
 	snd_pcm_hw_params_set_period_time(pcm, this->params, 100000, 0); // 0.1 seconds period time
 
 }
 
-void AlsaOutput::stop() {
+void ALSABase::stop() {
 
     // Close the PCM device:
 
     snd_pcm_close(this->pcm);
+
+    // Free the params:
+
+    snd_pcm_hw_params_free(this->params);
+
 }
 
-void AlsaOutput::process() {
+void ALSASink::process() {
 
-    // Create a dummy buffer:
+    // Output the audio data:
 
-    std::vector<long double> temp(this->get_buffer()->size() * this->periods);
+    snd_pcm_writei(this->pcm, this->buff.get(), AudioModule::get_info()->buff_size);
 
-    // Generate a number of periods:
+}
 
-    for(int i = 0; i < this->periods; ++i) {
+void ALSASink::start() {
 
-        // Copy this value to the buffer:
+    // First, upcall:
 
-        std::copy(this->get_buffer()->ibegin(), this->get_buffer()->iend(), temp.begin() + (i * this->get_buffer()->size()));
-    }
+    ALSABase::start(this->get_info()->sample_rate, this->get_info()->buff_size);
 
-    // Finally, output the audio data:
+    // Next, set the new period number:
 
-    snd_pcm_writei(this->pcm, std::data(temp), this->get_info()->buff_size);
+    snd_pcm_hw_params_set_periods(pcm, this->params, this->get_period(), 0);
 
 }
 

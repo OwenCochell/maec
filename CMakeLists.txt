@@ -16,6 +16,7 @@ add_library(${PROJECT_NAME}
     src/fund_oscillator.cpp
     src/alsa_output.cpp
     src/audio_buffer.cpp
+    src/sink_module.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -32,10 +33,18 @@ target_include_directories(${PROJECT_NAME}
 find_package(ALSA)
 
 if(ALSA_FOUND)
-  target_compile_definitions(cmae PRIVATE ALSA_F=1)
+
+  # Specify that we have found ALSA:
+
+  target_compile_definitions(cmae PUBLIC ALSA_F=1)
+
+  # Include ALSA for linking:
+
+  include_directories(${ALSA_INCLUDE_DIRS})
+  target_link_libraries(cmae ${ALSA_LIBRARIES})
 else()
   message(STATUS "ALSA not found")
-endif()
+endif(ALSA_FOUND)
 
 # Set compile options:
 
