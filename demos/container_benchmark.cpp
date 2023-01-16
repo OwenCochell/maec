@@ -103,6 +103,11 @@ int main(int argc, char** argv) {
 
     for (int i = 0; i < iterations; i++) {
             
+            // First, clear and shrink:
+
+            vec.clear();
+            vec.shrink_to_fit();
+
             // Start the clock:
     
             auto start = std::chrono::high_resolution_clock::now();

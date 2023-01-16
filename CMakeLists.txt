@@ -14,7 +14,7 @@ add_library(${PROJECT_NAME}
     src/meta_audio.cpp
     src/base_oscillator.cpp
     src/fund_oscillator.cpp
-    src/alsa_output.cpp
+    src/alsa_module.cpp
     src/audio_buffer.cpp
     src/sink_module.cpp
 )
@@ -55,6 +55,10 @@ else()
 endif()
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+
+# Add binaries in 'demos'
+
+add_subdirectory(demos)
 
 # Add binaries in 'test':
 

@@ -12,7 +12,8 @@
 #ifdef ALSA_F
 
 #include <gtest/gtest.h>
-#include "alsa_output.hpp"
+#include "alsa_module.hpp"
+#include "base_oscillator.hpp"
 
 TEST(ALSABaseTest, Construct) {
 
@@ -75,6 +76,60 @@ TEST(ALSABaseTest, DeviceChangers) {
     ASSERT_EQ(alsa.get_device().name, temp.name);
     ASSERT_EQ(alsa.get_device().id, temp.id);
     ASSERT_EQ(alsa.get_device().description, temp.description);
+
+}
+
+TEST(ALSABaseTest, Start) {
+
+    // Create an ALSABase class:
+
+    ALSABase alsa;
+
+    // See if the start method works:
+
+    alsa.alsa_start(44100, 440);
+
+}
+
+TEST(ALSASinkTest, Construct) {
+
+    // Create an ALSASink class:
+
+    ALSASink sink;
+}
+
+TEST(ALSASinkTest, Start) {
+
+    // Create an ALSASink class:
+
+    ALSASink sink;
+
+    // Call the start method:
+
+    sink.start();
+}
+
+TEST(ALSASinkTest, Output) {
+
+    // Create an ALSASink class:
+
+    ALSASink sink;
+
+    // Set the device to the 'null' device:
+
+    sink.set_device("null");
+
+    // Create a ConstantOscillator:
+
+    ConstantOscillator oconst(0.5);
+
+    // Bind the modules together:
+
+    sink.bind(&oconst);
+
+    // Now, meta process the module:
+
+    sink.meta_process();
 
 }
 

@@ -16,15 +16,33 @@
 
 #pragma once
 
+#include <functional>
 #include "audio_module.hpp"
 
 /**
  * @brief Sink module, base class for outputting audio data
  * 
+ * A sink is a component that consumes audio data.
+ * How it goes about consuming audio data varies greatly,
+ * but can include sending audio to a sound card, file,
+ * network stream, ect.
+ * These components are usually the last modules in the chain, 
+ * also know as right most or forward most modules.
+ * 
+ * Sink modules usually have the functionality to manage the entire
+ * module chain, sampling each module and outputting it
+ * for you, so the user does not have to. 
+ * 
  * We offer some helper methods for outputting audio data to
  * various backends.
  * 
- * TODO: Elaborate on this
+ * The most common functionality is the concept of periods.
+ * A 'period' is a chunk of audio.
+ * Some backends utilize periods to split up their output buffers,
+ * so instead of generating one large chunk of audio,
+ * we generate many smaller chunks of audio that are then outputted.
+ * We offer methods to change the period,
+ * and we automatically handle it for you.
  * 
  * We should also figure out how to handle the issue of specifying
  * differing sample rates, channel numbers, ect.
@@ -35,8 +53,18 @@ class SinkModule : public AudioModule {
 
         /// The number of periods
         int periods = 1;
-
+ 
     public:
+
+        /**
+         * @brief Construct a new Sink Module object
+         * 
+         * Default constructor.
+         * We simply set the default squishier to squish_null
+         */
+        // SinkModule() =default;
+
+        SinkModule() {}
 
         /**
          * @brief Gets the periods for this sink module

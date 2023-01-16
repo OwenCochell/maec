@@ -1,5 +1,7 @@
 project(Tests)
 
+# Unit tests managed by GTest
+
 set(TEST_FILES
     gtest_main.cpp
     audio_mod_test.cpp
@@ -8,7 +10,7 @@ set(TEST_FILES
     fund_oscillator_test.cpp
     audio_buffer_test.cpp
     sink_module_test.cpp
-    alsa_base_test.cpp
+    alsa_module_test.cpp
 )
 
 # Get Google Tests

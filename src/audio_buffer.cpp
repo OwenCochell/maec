@@ -9,6 +9,7 @@
  * 
  */
 
+#include <algorithm>
 #include "audio_buffer.hpp"
 
 
@@ -46,3 +47,19 @@ AudioBuffer::AudioBuffer(AudioChannel vect) {
 
     this->buff.push_back(vect);
 }
+
+template <typename It, typename Func>
+void squish_seq(AudioBuffer* buff, It iter, Func op) {
+
+    // Copy the content over:
+
+    std::transform(buff->ibegin(), buff->send(), iter, op);
+
+}
+
+template<typename It, typename Func>
+void squish_null(AudioBuffer* buff, const It& iter, Func op) {}
+
+float mf_float(long double val) { return float(val); }
+
+long double mf_null(long double val) { return val; }

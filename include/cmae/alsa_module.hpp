@@ -1,19 +1,21 @@
 /**
- * @file alsa_output.hpp
+ * @file alsa_module.hpp
  * @author Owen Cochell (owen@gmail.com)
- * @brief Components for outputting audio to an ALSA device
+ * @brief Components for working with ALSA
  * @version 0.1
  * @date 2022-10-08
  * 
  * @copyright Copyright (c) 2022
  * 
- * Here, we define the AlsaOutput class,
- * which allows incoming audio data to be outputted to an ALSA device.
+ * Here we define various classes and modules that work 
+ * with ALSA
  */
 
 #pragma once
 
 #ifdef ALSA_F
+
+#define ALSA_PCM_NEW_HW_PARAMS_API
 
 #include <alsa/asoundlib.h>
 #include <string>
@@ -26,14 +28,32 @@
  * 
  * We contain:
  * 
- * - The device index
- * - The device name
- * - The device description
- * - The device IO type, be it Input or Output
+ * - Device index
+ * - Device name
+ * - Device description
+ * - Device IO type, be it Input or Output
+ * - Maximum number of channels this device supports
+ * - Minimum channels this device supports
+ * - Current number of channels on this device
+ * - Maximum period size
+ * - Minimum period size
+ * - Current period size
+ * - Maximum number of periods
+ * - Minimum number of periods
+ * - Number of periods
  *  
  * We are used by the ALSA modules to represent these devices.
  * You can use these structs to work with and understand these devices,
  * as well as tell the ALSA module which device to utilize.
+ * 
+ * When returned by the ALSA class,
+ * this struct will contain all default values for this specific device.
+ * If you wish to change settings, simply change the values specified here
+ * and pass it along to the ALSA module.
+ * It will use the values specified here.
+ * 
+ * If any of these values are -1, then the ALSA module
+ * will use the default recommended value from ALSA.
  * 
  */
 struct DeviceInfo {
@@ -48,10 +68,46 @@ struct DeviceInfo {
     std::string description;
 
     /// The IO type determining if we are an input device
-    bool input=false;
+    bool input = false;
 
     /// The IO type determining if we are an output device
-    bool output=false;
+    bool output = false;
+
+    /// Maximum number of periods this device supports
+    unsigned int period_max = 0;
+
+    /// Minimum number of periods this device supports
+    unsigned int period_min = 0;
+
+    /// Number of periods for this device
+    unsigned int period = -1;
+
+    /// Maximum period size for this device
+    unsigned long period_size_max = 0;
+
+    /// Minimum period size for this device
+    unsigned long period_size_min = 0;
+
+    /// Period size for this device
+    unsigned long period_size = -1;
+
+    /// Number of channels for this device
+    unsigned int channels = 1;
+
+    /// The maximum number of channels this device supports
+    unsigned int channels_max = 0;
+
+    /// The minimum number of channels this device supports
+    unsigned int channels_min = 0;
+
+    /// Max period time
+    unsigned int period_time_max = 0;
+
+    /// Min period time
+    unsigned int period_time_min = 0;
+
+    /// Period time
+    unsigned int period_time = -1;
 
     DeviceInfo() =default;
 
@@ -82,17 +138,6 @@ struct DeviceInfo {
      * @param hint The current device to extract hints from
      */
     void create_device(void** hint, int id);
-
-    /**
-     * @brief Compares this info struct to another
-     * 
-     * We simply ensure that the values in each struct are equal
-     * 
-     * @param comp Struct to compare
-     * @return true If we match the other struct
-     * @return false If we don't match the other struct
-     */
-    bool operator==(const DeviceInfo& comp) { return (comp.name == this->name && comp.description == this->description && comp.id == this->id); }
 
 };
 
@@ -239,16 +284,16 @@ class ALSABase {
          * @param sample_rate The sample of the device to open
          * @param buffer_size The buffer size of the device to open
          */
-        void start(int sample_rate, int buffer_size);
+        void alsa_start(int sample_rate, int buffer_size);
 
         /**
-         * @brief Stops this module.
+         * @brief Stops the underlying ALSA components
          * 
          * We stop the ALSA components we are using,
          * and wait for the buffer to empty.
          * 
          */
-        void stop();
+        void alsa_stop();
 
 };
 
@@ -263,6 +308,14 @@ class ALSABase {
 class ALSASink : public ALSABase, public SinkModule {
 
     public:
+
+        /**
+         * @brief Construct a new ALSASink object
+         * 
+         * Default constructor
+         * 
+         */
+        // ALSASink() : SinkModule(&squish_inter) {}
 
         /**
          * @brief Sends audio data to the selected ALSA device
@@ -284,6 +337,11 @@ class ALSASink : public ALSABase, public SinkModule {
          */
         void start() override;
 
+        void stop() override { this->alsa_stop(); }
+
+        /// TODO: DELETE THIS!
+
+        static float cast_float(long double val) { return float(val); }
 };
 
 #endif
