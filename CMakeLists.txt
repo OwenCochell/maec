@@ -42,8 +42,6 @@ if(ALSA_FOUND)
 
   include_directories(${ALSA_INCLUDE_DIRS})
   target_link_libraries(cmae ${ALSA_LIBRARIES})
-else()
-  message(STATUS "ALSA not found")
 endif(ALSA_FOUND)
 
 # Set compile options:

@@ -515,7 +515,8 @@ class AudioBuffer {
                  * and return it many times.
                  * 
                  */
-                void resolve_pointer() { this->set_pointer((((this->buff->buff.begin() + this->get_channel())->begin()) + this->get_position()).base()); }
+                // void resolve_pointer() { this->set_pointer((((this->buff->buff.begin() + this->get_channel())->begin()) + this->get_position()).base()); }
+                void resolve_pointer() { this->set_pointer(&(*(((this->buff->buff.begin() + this->get_channel())->begin()) + this->get_position()))); }
 
                 /**
                  * @brief Sets the position of this iterator
@@ -649,7 +650,8 @@ class AudioBuffer {
                  * and return it many times.
                  * 
                  */
-                void resolve_pointer() { this->set_pointer((this->buff->buff.at(this->get_channel()).begin() + this->get_sample()).base()); }
+                // void resolve_pointer() { this->set_pointer((this->buff->buff.at(this->get_channel()).begin() + this->get_sample()).base()); }
+                void resolve_pointer() { this->set_pointer(&(*(this->buff->buff.at(this->get_channel()).begin() + this->get_sample()))); }
 
                 /**
                  * @brief Gets the current channel we are on
@@ -935,7 +937,7 @@ class AudioBuffer {
          * 
          * @return std::reverse_iterator<AudioBuffer::SeqIterator<long double>> 
          */
-        std::reverse_iterator<AudioBuffer::SeqIterator<long double>> srbegin() { return std::reverse_iterator(AudioBuffer::SeqIterator<long double>(this, (this->buff[0].size() * this->buff.size())-1)); }
+        std::reverse_iterator<AudioBuffer::SeqIterator<long double>> srbegin() { return std::reverse_iterator<AudioBuffer::SeqIterator<long double>>(AudioBuffer::SeqIterator<long double>(this, (this->buff[0].size() * this->buff.size())-1)); }
 
         /**
          * @brief Gets the end reverse iterator for this buffer
@@ -945,7 +947,7 @@ class AudioBuffer {
          * 
          * @return std::reverse_iterator<AudioBuffer::SeqIterator<long double>> 
          */
-        std::reverse_iterator<AudioBuffer::SeqIterator<long double>> srend() { return std::reverse_iterator(AudioBuffer::SeqIterator<long double>(this)); }
+        std::reverse_iterator<AudioBuffer::SeqIterator<long double>> srend() { return std::reverse_iterator<AudioBuffer::SeqIterator<long double>>(AudioBuffer::SeqIterator<long double>(this)); }
 
         /**
          * @brief Gets the constant start sequential iterator for this buffer
@@ -1004,7 +1006,7 @@ class AudioBuffer {
          * 
          * @return std::reverse_iterator<AudioBuffer::SeqIterator<long double>> 
          */
-        std::reverse_iterator<AudioBuffer::InterIterator<long double>> irbegin() { return std::reverse_iterator(AudioBuffer::InterIterator<long double>(this, (this->buff[0].size() * this->buff.size())-1)); }
+        std::reverse_iterator<AudioBuffer::InterIterator<long double>> irbegin() { return std::reverse_iterator<AudioBuffer::InterIterator<long double>>(AudioBuffer::InterIterator<long double>(this, (this->buff[0].size() * this->buff.size())-1)); }
 
         /**
          * @brief Gets the end interleaved reverse iterator for this buffer
@@ -1014,7 +1016,7 @@ class AudioBuffer {
          * 
          * @return std::reverse_iterator<AudioBuffer::SeqIterator<long double>> 
          */
-        std::reverse_iterator<AudioBuffer::InterIterator<long double>> irend() { return std::reverse_iterator(AudioBuffer::InterIterator<long double>(this)); }
+        std::reverse_iterator<AudioBuffer::InterIterator<long double>> irend() { return std::reverse_iterator<AudioBuffer::InterIterator<long double>>(AudioBuffer::InterIterator<long double>(this)); }
 
         /**
          * @brief Gets the constant start interleaved iterator for this buffer
