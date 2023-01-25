@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
 
     std::cout << "Creating saw oscillator ..." << std::endl;
 
-    SawtoothOscillator saw(440.0);
+    SineOscillator saw(440.0);
 
     // Bind the modules:
 

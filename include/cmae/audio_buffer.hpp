@@ -66,7 +66,7 @@ class BaseAudioIterator {
          * 
          * @param ptr Pointer to current sample
          */
-        void set_pointer(long double* ptr) { point = ptr; }
+        void set_pointer(T* ptr) { point = ptr; }
 
     public:
 
@@ -515,8 +515,7 @@ class AudioBuffer {
                  * and return it many times.
                  * 
                  */
-                // void resolve_pointer() { this->set_pointer((((this->buff->buff.begin() + this->get_channel())->begin()) + this->get_position()).base()); }
-                void resolve_pointer() { this->set_pointer(&(*(((this->buff->buff.begin() + this->get_channel())->begin()) + this->get_position()))); }
+                void resolve_pointer() { this->set_pointer((((this->buff->buff.begin() + this->get_channel())->data()) + this->get_position())); }
 
                 /**
                  * @brief Sets the position of this iterator
@@ -650,8 +649,7 @@ class AudioBuffer {
                  * and return it many times.
                  * 
                  */
-                // void resolve_pointer() { this->set_pointer((this->buff->buff.at(this->get_channel()).begin() + this->get_sample()).base()); }
-                void resolve_pointer() { this->set_pointer(&(*(this->buff->buff.at(this->get_channel()).begin() + this->get_sample()))); }
+                void resolve_pointer() { this->set_pointer((this->buff->buff.at(this->get_channel()).data() + this->get_sample())); }
 
                 /**
                  * @brief Gets the current channel we are on
