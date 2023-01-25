@@ -11,6 +11,7 @@ set(TEST_FILES
     audio_buffer_test.cpp
     sink_module_test.cpp
     alsa_module_test.cpp
+    meta_module_test.cpp
 )
 
 # Get Google Tests

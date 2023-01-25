@@ -18,3 +18,14 @@ void BackStop::meta_process() {
     this->process();
 
 }
+
+void Counter::process() {
+
+    // Increment the processed value:
+
+    this->m_processed++;
+
+    // Increment the number of samples encountered:
+
+    this->m_samples += this->buff->size() * this->buff->get_channel_count();
+}

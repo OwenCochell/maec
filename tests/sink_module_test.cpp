@@ -12,6 +12,7 @@
 #include <gtest/gtest.h>
 #include "sink_module.hpp"
 #include "base_oscillator.hpp"
+#include "meta_audio.hpp"
 
 TEST(SinkModuleTest, Construct) {
 
@@ -47,17 +48,17 @@ TEST(SinkModuleTest, MetaProcess) {
 
     ConstantOscillator oconst(5);
 
+    // Create a count module:
+
+    Counter count;
+
     // Bind the two modules together:
 
-    sink.bind(&oconst);
+    sink.bind(&count)->bind(&oconst);
 
     // Meta process the sink:
 
     sink.meta_process();
-
-    // Get the buffer:
-
-    std::unique_ptr<AudioBuffer> buff = sink.get_buffer();
 
     // Get the audio info:
 
@@ -65,23 +66,22 @@ TEST(SinkModuleTest, MetaProcess) {
 
     // Ensure the size is correct:
 
-    ASSERT_EQ(buff->size(), info->buff_size * sink.get_period());
+    ASSERT_EQ(count.samples(), info->buff_size * sink.get_period());
+    ASSERT_EQ(count.processed(), sink.get_period());
 
     // Now, test with different period:
 
     int period = 5;
     sink.set_period(period);
+    count.reset();
 
     // Again, meta process the sink:
 
     sink.meta_process();
 
-    // Get the buffer:
-
-    buff = sink.get_buffer();
-
     // Finally, ensure size is correct:
 
-    ASSERT_EQ(buff->size(), info->buff_size * sink.get_period());
+    ASSERT_EQ(count.samples(), info->buff_size * sink.get_period());
+    ASSERT_EQ(count.processed(), sink.get_period());
 
 }
