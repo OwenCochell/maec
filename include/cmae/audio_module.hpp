@@ -11,9 +11,8 @@
 
 #pragma once
 
-#include <array>
 #include <memory>
-#include <vector>
+
 #include "base_module.hpp"
 #include "audio_buffer.hpp"
 

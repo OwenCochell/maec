@@ -12,6 +12,7 @@ set(TEST_FILES
     sink_module_test.cpp
     alsa_module_test.cpp
     meta_module_test.cpp
+    amp_module_test.cpp
 )
 
 # Get Google Tests

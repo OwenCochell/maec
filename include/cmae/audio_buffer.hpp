@@ -16,10 +16,7 @@
 
 #include <vector>
 #include <iterator>
-
-// TODO: Delete this (probably)
-#include <functional>
-#include <memory>
+#include <algorithm>
 
 /// A Typedef representing a buffer of audio samples.
 typedef std::vector<long double> AudioChannel;
