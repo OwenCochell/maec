@@ -14,6 +14,7 @@ add_library(${PROJECT_NAME}
     src/audio_buffer.cpp
     src/sink_module.cpp
     src/amp_module.cpp
+    src/module_param.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

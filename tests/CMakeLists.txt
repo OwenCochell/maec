@@ -13,6 +13,7 @@ set(TEST_FILES
     alsa_module_test.cpp
     meta_module_test.cpp
     amp_module_test.cpp
+    parameter_test.cpp
 )
 
 # Get Google Tests
