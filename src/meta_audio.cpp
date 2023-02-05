@@ -21,3 +21,14 @@ void Counter::process() {
 
     this->m_samples += this->buff->size() * this->buff->get_channel_count();
 }
+
+void BufferModule::process() {
+
+    // First, create a buffer to use:
+
+    this->set_buffer(this->create_buffer());
+
+    // Next, fill it using the contents of our old buffer:
+
+    std::copy(this->gbuff->ibegin(), this->gbuff->iend(), this->buff->ibegin());
+}

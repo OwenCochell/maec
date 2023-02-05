@@ -16,11 +16,8 @@
 #include "module_param.hpp"
 #include "base_oscillator.hpp"
 #include "fund_oscillator.hpp"
-#include "source_module.hpp"
+#include "meta_audio.hpp"
 
-// Dummy data for testing:
-
-std::vector<long double> data = {1,2,3,4,5,6,7,8,9,10};
 
 TEST(ParamTest, Construct) {
 
@@ -51,6 +48,10 @@ TEST(ParamTest, Constant) {
 
 TEST(ParamTest, Module) {
 
+    // Dummy data to utilize
+
+    std::vector<long double> data = {1,2,3,4,5,6,7,8,9,10};
+
     // Create a module to use:
 
     ConstantOscillator osc(3.0);
@@ -69,13 +70,13 @@ TEST(ParamTest, Module) {
 
     // Create a dummy module:
 
-    SourceModule src;
+    BufferModule src;
 
     // Bind dummy data buffer:
 
-    std::unique_ptr<AudioBuffer> buff = std::make_unique<AudioBuffer>(data);
+    AudioBuffer buff(data);
 
-    src.set_buffer(std::move(buff));
+    src.set_rbuffer(&buff);
 
     // Set the source module
 

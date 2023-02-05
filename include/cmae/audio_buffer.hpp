@@ -503,7 +503,7 @@ class AudioBuffer {
                         // MSVC release mode and all other compilers don't have an issue with this line
                         return int(this->get_index() / this->buff->buff[0].size()) % this->buff->get_channel_count();
                     #else
-                        return int(this->get_index() / this->buff->buff[0].size())
+                        return int(this->get_index() / this->buff->buff[0].size());
                     #endif
                 }
 

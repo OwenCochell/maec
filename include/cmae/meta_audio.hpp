@@ -7,14 +7,15 @@
  * 
  * @copyright Copyright (c) 2022
  * 
- * These modules are included for testing purposes only!
- * They are not needed to generate proper audio.
+ * This file contains various 'meta modules'
+ * that can be useful, particularly for debugging,
+ * but are not strictly necessary for generating audio.
  * 
  */
 
 #pragma once
 
-#include "audio_module.hpp"
+#include "source_module.hpp"
 
 
 /**
@@ -71,4 +72,51 @@ class Counter : public AudioModule {
          * 
          */
         void process() override;
+};
+
+/**
+ * @brief Repeats a buffer for output
+ * 
+ * This module will save a buffer, and repeat it forever.
+ * We do this by copying an internal buffer to a new one when processed.
+ * Please keep this performance issue in mind when using this module.
+ * 
+ * We also set the size of the chain to match the size of this buffer.
+ * TODO: Is this a good idea?
+ */
+class BufferModule : public SourceModule {
+
+    private:
+
+        /// The 'good' copy to repeat
+        AudioBuffer* gbuff = nullptr;
+
+    public:
+
+        BufferModule() =default;
+
+        BufferModule(AudioBuffer* ibuff) { this->set_rbuffer(ibuff); }
+
+        /**
+         * @brief Sets the buffer to repeat
+         * 
+         * @param ibuff Buffer to repeat
+         */
+        void set_rbuffer(AudioBuffer* ibuff) { this->gbuff = ibuff; this->get_info()->buff_size = ibuff->size(); }
+
+        /**
+         * @brief Gets the buffer being repeated
+         * 
+         * @return AudioBuffer* Buffer being repeated
+         */
+        AudioBuffer* get_rbuffer() const { return this->gbuff; }
+
+        /**
+         * @brief Copys the initial buffer into a new one
+         * 
+         * We create a new buffer to be returned, 
+         * and copy the old contents into the new one.
+         * 
+         */
+        void process();
 };
