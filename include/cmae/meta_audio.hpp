@@ -18,34 +18,6 @@
 
 
 /**
- * @brief This module does not sample any backwards modules!
- * 
- * This module will NEVER sample any backwards modules.
- * A good use for this is a module that is at the start of a chain
- * and does not sample any other modules.
- *
- * For example, all oscillators inherit this class,
- * as they produce audio data, not alter it.
- * 
- * TODO: REPLACE THIS WITH SOURCE MODULE!
- * 
- */
-class BackStop : public AudioModule {
-
-    public:
-
-        /**
-         * @brief BackStop meta process method
-         * 
-         * We do the same thing as the AudioModule class,
-         * except that we don't call the meta_process() 
-         * method on backwards modules!
-         * 
-         */
-        void meta_process() override;
-};
-
-/**
  * @brief Counts the number of samples this module encounters, and how many times it has been processed
  * 
  * This module counts the size of the buffer from back modules,

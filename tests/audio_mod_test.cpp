@@ -11,7 +11,7 @@
 
 #include <gtest/gtest.h>
 #include "audio_module.hpp"
-#include "meta_audio.hpp"
+#include "source_module.hpp"
 
 
 TEST(AudioModuleTest, Construct) {
@@ -126,7 +126,7 @@ TEST(AudioModuleTest, MetaProcess) {
 
     // Create the DeadEnd, stops backward sampling issues:
 
-    BackStop mod2;
+    SourceModule mod2;
 
     // Bind the modules:
 

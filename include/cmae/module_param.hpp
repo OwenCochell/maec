@@ -17,11 +17,6 @@
 
 #include "audio_module.hpp"
 
-class ModuleParameter;
-
-// Type alias representing a value function
-using value_func = std::function<long double(ModuleParameter*)>;
-
 /**
  * @brief A component that represents a parameter
  * 
@@ -49,6 +44,8 @@ using value_func = std::function<long double(ModuleParameter*)>;
  */
 class ModuleParameter {
 
+    using value_func = std::function<long double(ModuleParameter*)>;
+
     private:
 
         /// Function to retrieve values
@@ -64,7 +61,10 @@ class ModuleParameter {
         AudioModule* mod = nullptr;
 
         /// The current iterator:
-        AudioBuffer::InterIterator<long double> iter = nullptr;
+        AudioBuffer::InterIterator<long double> siter;
+
+        /// The current end iterator:
+        AudioBuffer::InterIterator<long double> eiter;
 
         /**
          * @brief A friend function to get constant value
@@ -90,7 +90,7 @@ class ModuleParameter {
 
     public:
 
-        ModuleParameter() =default;
+        ModuleParameter() {}
 
         /**
          * @brief Construct a parameter, and configures for constant values
@@ -102,6 +102,16 @@ class ModuleParameter {
          * @param val Constant value to set
          */
         ModuleParameter(long double val) { this->set_constant(val); }
+
+        /**
+         * @brief Construct a parameter, and configures for constant values
+         * 
+         * Creates a ModuleParameter, and configures it for returning
+         * values sampled from a module.
+         * 
+         * @param imod Module to track
+         */
+        ModuleParameter(AudioModule* imod) { this->set_module(imod); }
 
         /**
          * @brief Gets the current value
@@ -119,17 +129,30 @@ class ModuleParameter {
          * This sets the function to be used
          * for getting values.
          * 
-         * @param fn 
+         * @param fn Value function to utilize
          */
-        void set_function(value_func fn) { this->func = fn; }
+        void set_function(ModuleParameter::value_func fn) { this->func = fn; }
 
         /**
          * @brief Configures this parameter for constant values.
          * 
          * This sets the underlying constant value to the one provided,
-         * and sets the value function to the 'get_constant();' method.
+         * and sets the value function to the 'get_constant()' method.
          * 
          * @param val Value to set
          */
         void set_constant(long double val);
+
+        /**
+         * @brief Configures this parameter for module sampling
+         * 
+         * This sets the module we are tracking to the one provided,
+         * and sets the value function to the 'get_module()' method.
+         * 
+         * @param imod Module to set
+         */
+        void set_module(AudioModule* imod);
 };
+
+// Type alias representing a value function
+using value_func = std::function<long double(ModuleParameter*)>;

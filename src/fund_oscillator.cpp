@@ -13,6 +13,7 @@
 
 #include <cmath>
 #include <vector>
+
 #include "fund_oscillator.hpp"
 
 const long double TWO_PI = 2.0 * M_PI;
@@ -55,7 +56,7 @@ void SquareOscillator::process() {
         // Calculate the square wave:
 
         // this->buff->at(i) = (sin(TWO_PI * this->frequency * this->phase / this->sample_rate) > 0.0) ? 1.0 : -1.0;
-        *iter = (modf(this->frequency * this->phase / this->sample_rate, &placeholder) < 0.5) ? 1.0 : -1.0;
+        *iter = (modf(double(this->frequency * this->phase / this->sample_rate), &placeholder) < 0.5) ? 1.0 : -1.0;
 
         // Increment the phase:
 
@@ -80,7 +81,7 @@ void SawtoothOscillator::process() {
 
         // Calculate the sawtooth wave:
 
-        *iter = (2.0 * modf(this->frequency * this->phase / this->sample_rate + 0.5, &placeholder)) - 1.0;
+        *iter = (2.0 * modf(double(this->frequency * this->phase / this->sample_rate + 0.5), &placeholder)) - 1.0;
 
         // Increment the phase:
 
@@ -107,7 +108,7 @@ void TriangleOscillator::process() {
 
         //this->buff->at(i) = (2.0 * fabs(modf(this->phase / this->sample_rate + 0.25, &placeholder) - 0.5)) - 1.0;
 
-        long double temp = modf(this->frequency * this->phase / this->sample_rate, &placeholder);
+        long double temp = modf(double(this->frequency * this->phase / this->sample_rate), &placeholder);
 
         if (temp < 0.25) {
             temp *= 4.0;

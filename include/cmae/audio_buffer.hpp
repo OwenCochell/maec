@@ -101,7 +101,7 @@ class BaseAudioIterator {
          * 
          * @param index New index to set
          */
-        void set_index(int index) { this->index = index; static_cast<C*>(this)->resolve_pointer(); }
+        void set_index(int iindex) { this->index = iindex; static_cast<C*>(this)->resolve_pointer(); }
 
         /**
          * @brief Gets the current index
@@ -405,7 +405,6 @@ class BaseAudioIterator {
  * 
  * Need to really hash out terminology here.
  * 
- * Hash out reverse iterators!
  * Also implement reverse constant iterators?
  * 
  */
@@ -463,6 +462,21 @@ class AudioBuffer {
             public:
 
                 /**
+                 * @brief Default constructor for this iterator
+                 * 
+                 * ! WARNING !
+                 * 
+                 * Using this method will create an iterator 
+                 * with an invalid configuration!
+                 * THIS WILL LEAD TO BREAKAGE!
+                 * 
+                 * It is only recommended to use this if you 
+                 * want to create a dummy iterator TO BE OVERRIDEN LATER!
+                 * 
+                 */
+                SeqIterator() =default;
+
+                /**
                  * Constructor
                  * 
                  * We need to know the AudioBuffer we are iterating over,
@@ -480,7 +494,18 @@ class AudioBuffer {
                  * 
                  * @return int Channel we are on
                  */
-                int get_channel() const { return int(this->get_index() / this->buff->buff[0].size()); }
+                int get_channel() const {
+
+                    #ifdef _DEBUG
+                        // This section is specific to MSVC debug mode,
+                        // as without the modulo we get safe iterator errors,
+                        // causing broken functionality.
+                        // MSVC release mode and all other compilers don't have an issue with this line
+                        return int(this->get_index() / this->buff->buff[0].size()) % this->buff->get_channel_count();
+                    #else
+                        return int(this->get_index() / this->buff->buff[0].size())
+                    #endif
+                }
 
                 /**
                  * @brief Set the Channel we are on
@@ -617,6 +642,21 @@ class AudioBuffer {
         class InterIterator : public BaseAudioIterator<InterIterator<T>, T> {
 
             public:
+
+                /**
+                 * @brief Default constructor for this iterator
+                 * 
+                 * ! WARNING !
+                 * 
+                 * Using this method will create an iterator 
+                 * with an invalid configuration!
+                 * THIS WILL LEAD TO BREAKAGE!
+                 * 
+                 * It is only recommended to use this if you 
+                 * want to create a dummy iterator TO BE OVERRIDEN LATER!
+                 * 
+                 */
+                InterIterator() =default;
 
                 /**
                  * @brief Construct a new Inter Iterator object

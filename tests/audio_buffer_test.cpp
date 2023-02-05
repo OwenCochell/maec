@@ -11,6 +11,7 @@
 
 #include <gtest/gtest.h>
 #include <algorithm>
+
 #include "audio_buffer.hpp"
 
 // Dummy data to work with
@@ -301,7 +302,7 @@ TEST(AudioBufferTest, InterleavedIterWrite) {
 
     // Finally, ensure that all values are 454
 
-    std::all_of(buff.ibegin(), buff.iend(), [](long double num){ return num == 454.0; });
+    ASSERT_TRUE(std::all_of(buff.ibegin(), buff.iend(), [](long double num){ return num == 454.0; }));
 
 }
 
@@ -330,7 +331,7 @@ TEST(AudioBufferTest, SequentialIterWrite) {
 
     // Finally, ensure that all values are 454
 
-    std::all_of(buff.sbegin(), buff.send(), [](long double num){ return num == 454.0; });
+    ASSERT_TRUE(std::all_of(buff.sbegin(), buff.send(), [](long double num){ return num == 454.0; }));
 
 }
 

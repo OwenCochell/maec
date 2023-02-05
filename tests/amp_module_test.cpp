@@ -40,7 +40,6 @@ TEST(BaseAmplitudeTest, Value) {
     ASSERT_DOUBLE_EQ(amp.get_value(), 0.25);
 }
 
-
 TEST(AmplitudeScaleTest, Construct) {
 
     // Test constructor:

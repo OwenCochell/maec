@@ -15,6 +15,7 @@ add_library(${PROJECT_NAME}
     src/sink_module.cpp
     src/amp_module.cpp
     src/module_param.cpp
+    src/source_module.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

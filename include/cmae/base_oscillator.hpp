@@ -11,9 +11,9 @@
 
 #pragma once
 
-#include "meta_audio.hpp"
+#include "source_module.hpp"
 
- 
+
 /**
  * @brief A base class for all oscillators
  * 
@@ -35,7 +35,7 @@
  * So, for example, you can set the index to 10 instead of starting at 0.
  * We determine the index at a given time by dividing by the sampling rate.
  */
-class BaseOscillator : public BackStop {
+class BaseOscillator : public SourceModule {
 
     protected:
 

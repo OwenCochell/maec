@@ -11,14 +11,6 @@
 
 #include "meta_audio.hpp"
 
-void BackStop::meta_process() {
-
-    // Call the processing module of our own:
-
-    this->process();
-
-}
-
 void Counter::process() {
 
     // Increment the processed value:
