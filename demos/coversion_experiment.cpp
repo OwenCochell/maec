@@ -15,13 +15,13 @@
  * but we will see for sure here.
  */
 
+#define _USE_MATH_DEFINES
+
 #include <vector>
 #include <iostream>
 #include <chrono>
 #include <algorithm>
 #include <cmath>
-
-#define _USE_MATH_DEFINES
 
 const long double TWO_PI = 2.0 * M_PI;
 

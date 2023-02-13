@@ -9,6 +9,8 @@
  * 
  */
 
+#ifdef ALSA_F
+
 #include <iostream>
 #include "alsa_module.hpp"
 #include "fund_oscillator.hpp"
@@ -60,3 +62,5 @@ int main(int argc, char** argv) {
     saw.stop();
 
 }
+
+#endif
