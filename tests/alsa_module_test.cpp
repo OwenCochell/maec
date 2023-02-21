@@ -25,7 +25,7 @@ TEST(ALSABaseTest, DeviceSelection) {
     // Unfortunately, all assertions may not be reached
     // on all systems if there are no ALSA devices.
 
-    // Create an TODO: PUT NAME!!!!
+    // Create an ALSABase
 
     ALSABase alsa;
 
@@ -107,6 +107,21 @@ TEST(ALSASinkTest, Start) {
     // Call the start method:
 
     sink.start();
+}
+
+TEST(ALSASinkTest, Stop) {
+
+    // Create an ALSASink class:
+
+    ALSASink sink;
+
+    // Call the start method:
+
+    sink.start();
+
+    // Call the stop method:
+
+    sink.stop();
 }
 
 TEST(ALSASinkTest, Output) {

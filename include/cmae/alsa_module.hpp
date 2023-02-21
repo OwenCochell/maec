@@ -41,6 +41,7 @@
  * - Maximum number of periods
  * - Minimum number of periods
  * - Number of periods
+ * - Value determining if we failed to load
  *  
  * We are used by the ALSA modules to represent these devices.
  * You can use these structs to work with and understand these devices,
@@ -54,6 +55,14 @@
  * 
  * If any of these values are -1, then the ALSA module
  * will use the default recommended value from ALSA.
+ * 
+ * Sometimes, when attempting to load extra device information,
+ * we fail to load for whatever reason.
+ * If this occurs, then the ALSABase will not continue to load device info,
+ * and the values will remain as default.
+ * You can determine if a device failed to load extra info 
+ * if load_fail is 'true'.
+ * If this value is 'true', then it is not recommended to use this device.
  * 
  */
 struct DeviceInfo {
@@ -108,6 +117,9 @@ struct DeviceInfo {
 
     /// Period time
     unsigned int period_time = -1;
+
+    /// Boolean determining if we failed to load
+    bool load_fail = false;
 
     DeviceInfo() =default;
 
@@ -339,9 +351,6 @@ class ALSASink : public ALSABase, public SinkModule {
 
         void stop() override { this->alsa_stop(); }
 
-        /// TODO: DELETE THIS!
-
-        static float cast_float(long double val) { return float(val); }
 };
 
 #endif

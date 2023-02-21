@@ -14,6 +14,7 @@ set(TEST_FILES
     meta_module_test.cpp
     amp_module_test.cpp
     parameter_test.cpp
+    chrono_test.cpp
 )
 
 # Get Google Tests

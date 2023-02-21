@@ -16,6 +16,8 @@
 #pragma once
 
 #include "source_module.hpp"
+#include "chrono.hpp"
+
 
 
 /**
@@ -72,6 +74,188 @@ class Counter : public AudioModule {
          * 
          */
         void process() override;
+};
+
+/**
+ * @brief Measures various timing statistics for determining latency.
+ * 
+ * Time information will be stored about each operation.
+ * An operation is defined as the meta process of back modules.
+ * So, if we time an operation, it will be the time it took
+ * for back modules to process.
+ * 
+ * We measure the following values:
+ * 
+ * - total time elapsed since start
+ * - expected time since start
+ * - time of last operation
+ * - latency of last operation
+ * - average time of each operation
+ * - average latency of each operation
+ * 
+ * We utilize a chain timer that allows us to determine
+ * the idea time.
+ * We also inherit from the Counter to aid with the process
+ * of counting samples and times processed.
+ * We do our timekeeping in nanoseconds.
+ */
+class LatencyModule : public Counter {
+
+    private:
+
+        /// Time we started on
+        int64_t start_time = 0;
+
+        /// Time of the last operation
+        int64_t operation_time = 0;
+
+        /// Latency of the last operation
+        int64_t operation_latency = 0;
+
+        /// Sum of all operation times
+        int64_t total_operation_time = 0;
+
+        /// Sum of all latency times
+        int64_t total_operation_latency = 0;
+
+        /// Chain timer for idea timekeeping
+        ChainTimer timer;
+
+    public:
+
+        LatencyModule() =default;
+
+        /**
+         * @brief Resets this module
+         * 
+         * We simply clear all variables associated with this class,
+         * as well as set the start time to now.
+         * 
+         */
+        void reset();
+
+        /**
+         * @brief Gets the start time for this module
+         * 
+         * This value does not always correlate to anything!
+         * We simply use it to determine time deltas down the line.
+         * 
+         * @return int Start time in nanoseconds
+         */
+        int64_t get_start_time() const { return this->start_time; }
+
+        /**
+         * @brief Gets the total elapsed time in nanoseconds
+         * 
+         * We utilize the start time to determine the total elapsed time.
+         * This value does not take into account the processing time!
+         * Any dead time spent doing nothing will be included here,
+         * so it is recommended to use something more accurate,
+         * such as the operation or latency time.
+         * 
+         * @return int Total time elapsed since start in nanoseconds
+         */
+        int64_t elapsed() const { return get_time() - this->start_time; }
+
+        /**
+         * @brief Gets the expected time in nanoseconds
+         * 
+         * We utilize the ChainTimer to get the time we expect to have elapsed
+         * since the start of processing.
+         * 
+         * @return int Expected elapsed time in nanoseconds
+         */
+        int64_t expected() const { return this->timer.get_time(); }
+
+        /**
+         * @brief Gets the time of the last operation in nanoseconds
+         * 
+         * The operation time is the total time spend meta processing
+         * all back modules.
+         * 
+         * @return int Elapsed operation time in nanoseconds
+         */
+        int64_t time() const { return this->operation_time; }
+
+        /**
+         * @brief Gets the total operation time in nanoseconds
+         * 
+         * We sum the time elapsed after each operation.
+         * 
+         * @return int Total operation time in nanoseconds
+         */
+        int64_t total_time() const { return this->total_operation_time; }
+
+        /**
+         * @brief Gets the latency of the last operation in nanoseconds
+         * 
+         * We determine the latency by subtracting the total time by the expected time.
+         * Please note, a negative latency is possible!
+         * This can happen if we are processing audio data way faster than the expected sample rate!
+         * A negative latency value is good!
+         * 
+         * @return int Latency of last operation in nanoseconds
+         */
+        int64_t latency() const { return this->operation_latency; }
+
+        /**
+         * @brief Gets the total latency in nanoseconds
+         * 
+         * We sum the latency of each operation.
+         * 
+         * @return int Total latency in nanoseconds.
+         */
+        int64_t total_latency() const { return this->total_operation_latency; }
+
+        /**
+         * @brief Gets the average operation time in nanoseconds
+         * 
+         * We compute the average operation time 
+         * by using the total operation time and the number of times processed.
+         * 
+         * @return int Average operation time in nanoseconds
+         */
+        int64_t average_time() const { return this->total_operation_time / this->processed(); }
+
+        /**
+         * @brief Gets the average operation latency in nanoseconds
+         * 
+         * We compute the average operation latency
+         * by using the total operation latency and the number of times processed
+         * 
+         * @return int Average operation latency in nanoseconds
+         */
+        int64_t average_latency() const { return this->total_operation_latency / this->processed(); }
+
+        /**
+         * @brief Starts this latency module
+         * 
+         * We simply set the start time for later use.
+         * 
+         */
+        void start() override { this->start_time = get_time(); }
+
+        /**
+         * @brief Meta process this module
+         * 
+         * We do some timekeeping operations
+         * and save them for future use.
+         * 
+         */
+        void meta_process() override;
+
+        /**
+         * @brief Dummy process method
+         * 
+         * We simply do nothing.
+         * This allows any subclassed modules
+         * to put custom stuff here,
+         * and prevents the count module from being
+         * processed twice.
+         * 
+         */
+        void process() override {}
+
 };
 
 /**

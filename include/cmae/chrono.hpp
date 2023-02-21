@@ -89,11 +89,19 @@ class ChainTimer {
         int sample = 0;
 
         /// Nanoseconds per frame
-        long double nano_frame = 0;
+        int64_t nano_frame = 0;
 
     public:
 
         ChainTimer() =default;
+
+        /**
+         * @brief Resets this timer to a starting state
+         * 
+         * We reset all variables to their default values.
+         * 
+         */
+        void reset();
 
         /**
          * @brief Sets the samplerate to the given value
@@ -164,7 +172,7 @@ class ChainTimer {
          * 
          * @return long double Current time in nanoseconds
          */
-        long double get_time() const { return (this->sample / this->channels) * this->nano_frame; }
+        int64_t get_time() const { return int64_t((this->sample / this->channels) * this->nano_frame); }
 
         /**
          * @brief Sets the sample to the given value
@@ -187,6 +195,16 @@ class ChainTimer {
          * 
          */
         void inc_sample() { ++(this->sample); }
+
+        /**
+         * @brief Adds the given value to the current sample count
+         * 
+         * This is useful if we wish to update the sample number
+         * in chunks instead of one at a time.
+         * 
+         * @param val Value to add to sample number
+         */
+        void add_sample(int val) { this->sample += val; }
 
         /**
          * @brief Gets the current sample

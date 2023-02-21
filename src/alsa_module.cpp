@@ -15,6 +15,10 @@
 
 void DeviceInfo::create_device(void** hint, int id) {
 
+    // First, set our id:
+
+    this->id = id;
+
     // Extract the necessary info:
 
     char* n = snd_device_name_get_hint(*hint, "NAME");
@@ -61,10 +65,18 @@ void DeviceInfo::create_device(void** hint, int id) {
 
     // Now, get our device:
 
-    int dir;
     snd_pcm_t *pcm;
 
     int err = snd_pcm_open(&pcm, this->name.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
+
+    if (err != 0) {
+
+        // We have encountered an error, DO NOT CONTINUE!
+
+        this->load_fail = true;
+
+        return;
+    }
 
     // Allocate the hardware parameters:
 
@@ -93,13 +105,8 @@ void DeviceInfo::create_device(void** hint, int id) {
 
     // Do some freeing:
 
-    //snd_pcm_close(pcm);
-    //snd_pcm_hw_params_free(params);
+    snd_pcm_close(pcm);
     snd_pcm_hw_free(pcm);
-
-    // Finally, set our id:
-
-    this->id = id;
 
 }
 
@@ -194,17 +201,19 @@ DeviceInfo ALSABase::get_device_by_name(std::string name) {
 
     for (; *n != NULL; ++n) {
 
-        // Create a DeviceInfo class:
+        // Get the name from the hint:
 
-        info = DeviceInfo(n, id);
+        std::string hname (snd_device_name_get_hint(*n, "NAME"));
 
-        // Determine if the name is matching:
+        // Determine if the name is our target:
 
-        if (name == info.name) {
+        if (hname == name) {
 
             // Found it, break
             // TODO: Implement some kind of error correction
             // For now we assume all provided names are valid which is DANGEROUS!
+
+            info = DeviceInfo(n, id);
 
             break;
         }
@@ -258,8 +267,6 @@ void ALSABase::alsa_start(int sample_rate, int buffer_size) {
 	int e = snd_pcm_hw_params_set_periods(pcm, this->params, this->device.period, 0); // THIS FAILS
     //int f = snd_pcm_hw_params_set_period_size(pcm, this->params, buffer_size, 0);
 
-    unsigned int pt = (262144 / 4100) * 1000000;
-
 	// int g = snd_pcm_hw_params_set_period_time(pcm, this->params, pt, 0); // 0.1 seconds period time
 
     // int meh = snd_pcm_set_params(pcm, SND_PCM_FORMAT_FLOAT, SND_PCM_ACCESS_RW_INTERLEAVED, this->device.channels, 44100, 1, this->device.period_time);
@@ -309,10 +316,6 @@ void ALSABase::alsa_stop() {
 
     snd_pcm_close(this->pcm);
 
-    // Free the params:
-
-    snd_pcm_hw_params_free(this->params);
-
     // Free the hardware:
 
     snd_pcm_hw_free(this->pcm);
@@ -348,8 +351,6 @@ void ALSASink::start() {
     // Next, upcall:
 
     ALSABase::alsa_start(this->get_info()->sample_rate, this->get_info()->buff_size);
-
-    // Now, determine if this device supports output:
 
     // Next, set the new period number:
 

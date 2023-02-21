@@ -17,3 +17,12 @@ int64_t get_time() {
 
     return std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()).time_since_epoch().count();
 }
+
+void ChainTimer::reset() {
+
+    // Reset variables:
+
+    this->channels = 1;
+    this->sample = 0;
+    this->nano_frame = 0;
+}
