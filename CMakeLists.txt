@@ -16,6 +16,7 @@ add_library(${PROJECT_NAME}
     src/amp_module.cpp
     src/module_param.cpp
     src/source_module.cpp
+    src/chrono.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
