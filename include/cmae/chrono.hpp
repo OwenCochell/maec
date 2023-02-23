@@ -27,7 +27,7 @@
 #include <ctime>
 
 /// Nanoseconds per second
-const int nano = 1000000000;
+const int64_t nano = 1000000000;
 
 /**
  * @brief Gets the current time value
@@ -116,7 +116,7 @@ class ChainTimer {
          * 
          * @param samplerate Number of samples per second
          */
-        void set_samplerate(long double samplerate) { this->nano_frame = nano / samplerate; }
+        void set_samplerate(int samplerate) { this->nano_frame = nano / samplerate; }
 
         /**
          * @brief Gets the samplerate of this timer
@@ -125,7 +125,7 @@ class ChainTimer {
          * 
          * @return long double Current approximate samplerate
          */
-        long double get_samplerate() const { return nano / this->nano_frame; }
+        int get_samplerate() const { return static_cast<int>(nano / this->nano_frame); }
 
         /**
          * @brief Sets the Nano Seconds Per Frame (NPF)
@@ -136,7 +136,7 @@ class ChainTimer {
          * 
          * @param npf Nano Seconds Per Frame
          */
-        void set_npf(long double npf) { this->nano_frame = npf; }
+        void set_npf(int64_t npf) { this->nano_frame = npf; }
 
         /**
          * @brief Gets the Nano Seconds Per Frame (NPF)
@@ -172,7 +172,7 @@ class ChainTimer {
          * 
          * @return long double Current time in nanoseconds
          */
-        int64_t get_time() const { return int64_t((this->sample / this->channels) * this->nano_frame); }
+        int64_t get_time() const { return static_cast<int64_t>((this->sample / this->channels) * this->nano_frame); }
 
         /**
          * @brief Sets the sample to the given value
