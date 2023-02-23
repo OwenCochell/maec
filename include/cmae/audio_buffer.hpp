@@ -213,7 +213,7 @@ class BaseAudioIterator {
          * @return true If the two iterators are equivalent
          * @return false If the two iterators are not equivalent
          */
-        bool operator==(const C& a) { return this->get_index() == a.get_index(); }
+        bool operator==(const C& cmp) { return this->get_index() == cmp.get_index(); }
 
         /**
          * @brief Determines if the given iterator is not equivalent
@@ -224,7 +224,7 @@ class BaseAudioIterator {
          * @return true If the two iterators are not equivalent
          * @return false If the two iterators are equivalent
          */
-        bool operator!=(const C& a) { return !(*this == a); }
+        bool operator!=(const C& cmp) { return !(*this == cmp); }
 
         /**
          * @brief Determines if the we are less than the given iterator
@@ -501,9 +501,9 @@ class AudioBuffer {
                         // as without the modulo we get safe iterator errors,
                         // causing broken functionality.
                         // MSVC release mode and all other compilers don't have an issue with this line
-                        return int(this->get_index() / this->buff->buff[0].size()) % this->buff->get_channel_count();
+                        return static_cast<int>(this->get_index() / this->buff->buff[0].size()) % this->buff->get_channel_count();
                     #else
-                        return int(this->get_index() / this->buff->buff[0].size());
+                        return static_cast<int>(this->get_index() / this->buff->buff[0].size());
                     #endif
                 }
 
@@ -592,12 +592,12 @@ class AudioBuffer {
                  * 
                  * @return int The position of the iterator in the current channel
                  */
-                int get_position() const { return int(this->get_index() % this->buff->buff[0].size()); }
+                int get_position() const { return static_cast<int>(this->get_index() % this->buff->buff[0].size()); }
 
             private:
 
                 /// Audio Buffer we are iterating over
-                AudioBuffer* buff;
+                AudioBuffer* buff = nullptr;
 
         };
 
@@ -772,7 +772,7 @@ class AudioBuffer {
             private:
 
                 /// Buffer we are iterating over
-                AudioBuffer *buff;
+                AudioBuffer *buff = nullptr;
         };
 
         /**
@@ -1139,7 +1139,7 @@ class AudioBuffer {
  * @param iter Input iterator of the output vector
  */
 template <typename It, typename Func>
-void squish_inter(AudioBuffer* buff, const It& iter, Func op) { std::transform(buff->ibegin(), buff->iend(), iter, op); }
+void squish_inter(AudioBuffer* buff, const It& iter, Func oper) { std::transform(buff->ibegin(), buff->iend(), iter, oper); }
 
 /**
  * @brief Converts a given AudioBuffer into a squished sequential vector
@@ -1154,7 +1154,7 @@ void squish_inter(AudioBuffer* buff, const It& iter, Func op) { std::transform(b
  * @param iter Input iterator of the output vector
  */
 template <typename It, typename Func>
-void squish_seq(AudioBuffer* buff, const It& iter, Func op);
+void squish_seq(AudioBuffer* buff, const It& iter, Func oper);
 
 /**
  * @brief Does nothing!
@@ -1167,7 +1167,7 @@ void squish_seq(AudioBuffer* buff, const It& iter, Func op);
  * @param iter Input iterator to ignore
  */
 template<typename It, typename Func>
-void squish_null(AudioBuffer* buff, const It& iter, Func op);
+void squish_null(AudioBuffer* buff, const It& iter, Func oper);
 
 float mf_float(long double val);
 

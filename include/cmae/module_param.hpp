@@ -90,7 +90,7 @@ class ModuleParameter {
 
     public:
 
-        ModuleParameter() {}
+        ModuleParameter() =default;
 
         /**
          * @brief Construct a parameter, and configures for constant values
@@ -131,7 +131,7 @@ class ModuleParameter {
          * 
          * @param fn Value function to utilize
          */
-        void set_function(ModuleParameter::value_func fn) { this->func = fn; }
+        void set_function(ModuleParameter::value_func fnc) { this->func = fnc; }
 
         /**
          * @brief Configures this parameter for constant values.

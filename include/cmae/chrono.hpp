@@ -143,7 +143,7 @@ class ChainTimer {
          * 
          * @return long double Nano Seconds Per Frame
          */
-        long double get_npf() const { return this->nano_frame; }
+        int64_t get_npf() const { return this->nano_frame; }
 
         /**
          * @brief Sets the number of channels

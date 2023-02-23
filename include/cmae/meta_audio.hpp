@@ -19,7 +19,6 @@
 #include "chrono.hpp"
 
 
-
 /**
  * @brief Counts the number of samples this module encounters, and how many times it has been processed
  * 
@@ -279,7 +278,7 @@ class BufferModule : public SourceModule {
 
         BufferModule() =default;
 
-        BufferModule(AudioBuffer* ibuff) { this->set_rbuffer(ibuff); }
+        explicit BufferModule(AudioBuffer* ibuff) { this->set_rbuffer(ibuff); }
 
         /**
          * @brief Sets the buffer to repeat
@@ -302,5 +301,5 @@ class BufferModule : public SourceModule {
          * and copy the old contents into the new one.
          * 
          */
-        void process();
+        void process() override;
 };

@@ -43,5 +43,5 @@ class SourceModule : public AudioModule {
          * except that we don't process any back modules.
          * 
          */
-        void meta_process();
+        void meta_process() override;
 };

@@ -1,2 +1,4 @@
-Checks: "bugprone-*,clang-diagnostic-*,clang-analyzer-*,modernize-*,performance-*,readability-*,google-*,cppcoreguidelines-*,misc-*,performance-*,portability-*,-modernize-use-trailing-return-type"
+---
+Checks: "bugprone-*,clang-diagnostic-*,clang-analyzer-*,modernize-*,performance-*,readability-*,google-*,cppcoreguidelines-*,misc-*,performance-*,portability-*,
+  -modernize-use-trailing-return-type,-modernize-use-nodiscard,-misc-const-correctness"
 HeaderFilterRegex: '.'

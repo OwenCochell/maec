@@ -37,9 +37,9 @@ struct AudioInfo {
     long double freq = 0;  /// The frequency of the audio data, if applicable
     long double sample_rate = 44100;  /// The sample rate of the audio data, if applicable
 
-    int done;  /// Number of modules that are finished
-    int num;  /// Number of modules present in the chain
-    int velocity;  /// Velocity of the audio data, if applicable
+    int done = 0 ;  /// Number of modules that are finished
+    int num = 0;  /// Number of modules present in the chain
+    int velocity = 0;  /// Velocity of the audio data, if applicable
     int buff_size = 440;  /// The size of the audio buffer
 
     bool running;  // Value determining if we are running
@@ -85,7 +85,7 @@ class AudioModule : public BaseModule {
 
         /// Pointer to the audio buffer we are working with
 
-        std::unique_ptr<AudioBuffer> buff=nullptr;
+        std::unique_ptr<AudioBuffer> buff = nullptr;
 
     public:
 
@@ -246,6 +246,6 @@ class AudioModule : public BaseModule {
          * @param in Audio info struct
          *
          */
-        void set_info(std::shared_ptr<AudioInfo> in) { this->info = in; }
+        void set_info(std::shared_ptr<AudioInfo> inf) { this->info = inf; }
 
 };
