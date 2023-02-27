@@ -42,7 +42,7 @@ class BaseAmplitude : public AudioModule {
          * 
          * @param val Value to scale the input by
          */
-        BaseAmplitude(double val) { this->value = val; }
+        explicit BaseAmplitude(double val) : value(val) {}
 
         /**
          * @brief Gets the current value

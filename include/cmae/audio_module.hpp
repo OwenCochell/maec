@@ -12,7 +12,9 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 
+#include "const.hpp"
 #include "base_module.hpp"
 #include "audio_buffer.hpp"
 
@@ -35,14 +37,14 @@
 struct AudioInfo {
 
     long double freq = 0;  /// The frequency of the audio data, if applicable
-    long double sample_rate = 44100;  /// The sample rate of the audio data, if applicable
+    long double sample_rate = SAMPLE_RATE;  /// The sample rate of the audio data, if applicable
 
     int done = 0 ;  /// Number of modules that are finished
     int num = 0;  /// Number of modules present in the chain
     int velocity = 0;  /// Velocity of the audio data, if applicable
-    int buff_size = 440;  /// The size of the audio buffer
+    int buff_size = BUFF_SIZE;  /// The size of the audio buffer
 
-    bool running;  // Value determining if we are running
+    bool running = false;  // Value determining if we are running
 
     std::vector<std::unique_ptr<long double*>> points;
 
@@ -64,10 +66,6 @@ struct AudioInfo {
 class AudioModule : public BaseModule {
 
     private:
-
-        /// Index of this module
-
-        int index = 0;
 
         /// Pointer to the audio info
 
@@ -102,6 +100,19 @@ class AudioModule : public BaseModule {
          * 
          */
         virtual ~AudioModule() =default;
+
+        /**
+         * @brief Copy constructor
+         * 
+         */
+        AudioModule(const AudioModule&) =delete;
+
+        /**
+         * @brief Copy assignment operator
+         * 
+         * @return AudioModule& 
+         */
+        AudioModule& operator=(const AudioModule&) =delete;
 
         /**
          * @brief Function called when processing is necessary.
@@ -246,6 +257,5 @@ class AudioModule : public BaseModule {
          * @param in Audio info struct
          *
          */
-        void set_info(std::shared_ptr<AudioInfo> inf) { this->info = inf; }
-
+        void set_info(std::shared_ptr<AudioInfo> inf) { this->info = std::move(inf); }
 };

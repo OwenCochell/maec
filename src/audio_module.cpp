@@ -12,7 +12,7 @@
 #include "audio_module.hpp"
 
 
-void AudioModule::meta_process() {
+void AudioModule::meta_process() {  // NOLINT(misc-no-recursion): No recursion cycles present, chain will eventually end
 
     // Call the module behind us:
 
@@ -20,7 +20,7 @@ void AudioModule::meta_process() {
 
     // Grab the buffer from the module behind us:
 
-    this->set_buffer(std::move(this->get_backward()->get_buffer()));
+    this->set_buffer(this->get_backward()->get_buffer());
 
     // Call the processing module of our own:
 

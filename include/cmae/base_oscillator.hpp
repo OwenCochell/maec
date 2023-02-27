@@ -40,13 +40,13 @@ class BaseOscillator : public SourceModule {
     protected:
 
         /// The current phase of the oscillator
-        long double phase;
+        long double phase = 0;
 
         /// The frequency of the oscillator
-        long double frequency;
+        long double frequency = 0;
 
         /// The sample rate of the oscillator
-        long double sample_rate;
+        long double sample_rate = 0;
 
     public:
 
@@ -121,7 +121,7 @@ class BaseOscillator : public SourceModule {
          * 
          * @return long double Frequency in Hertz
          */
-        long double get_frequency() { return this->frequency; }
+        long double get_frequency() const { return this->frequency; }
 
 };
 
@@ -174,7 +174,7 @@ class ConstantOscillator : public BaseOscillator {
          * 
          * @return long double 
          */
-        long double get_value() { return this->value; }
+        long double get_value() const { return this->value; }
 
         /**
          * @brief Override process method

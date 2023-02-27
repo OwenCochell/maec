@@ -17,6 +17,7 @@ add_library(${PROJECT_NAME}
     src/module_param.cpp
     src/source_module.cpp
     src/chrono.cpp
+    src/envelope.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
