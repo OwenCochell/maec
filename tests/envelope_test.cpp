@@ -146,8 +146,8 @@ TEST(ExponentialRampTest, Value) {
     exp.set_start_value(SMALL);
     exp.set_stop_time(5 * nano);
     exp.set_stop_value(1);
-    exp.get_info()->buff_size = SAMPLE_RATE;
-    exp.get_timer()->set_samplerate(SAMPLE_RATE);
+    exp.get_info()->buff_size = 440;
+    exp.get_timer()->set_samplerate(440);
 
     // Iterate:
 
