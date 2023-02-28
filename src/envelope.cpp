@@ -53,12 +53,7 @@ void ExponentialRamp::process() {
 
         // Determine value at current time:
 
-        auto div = this->val_divide();
-
-        auto first = this->get_start_value() * this->val_divide();
-        auto second = (this->get_time_inc() - this->get_start_time()) / this->time_diff();
-
-        *iter = this->get_start_value() * std::pow<long double, long double>(this->val_divide(), static_cast<long double>(this->get_time_inc() - this->get_start_time()) / this->time_diff());
+        *iter = this->get_start_value() * std::pow<long double, long double>(this->val_divide(), static_cast<long double>(this->get_time_inc() - this->get_start_time()) / static_cast<long double>(this->time_diff()));
     }
 
 }
@@ -75,7 +70,7 @@ void LinearRamp::process() {
 
         // Determine value at current time:
 
-        *iter = this->get_start_value() + this->val_divide() * (static_cast<long double>(this->get_time_inc() - this->get_start_time()) / this->time_diff());
+        *iter = this->get_start_value() + this->val_diff() * (static_cast<long double>(this->get_time_inc() - this->get_start_time()) / static_cast<long double>(this->time_diff()));
     }
 
 }

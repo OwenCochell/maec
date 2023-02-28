@@ -141,15 +141,192 @@ TEST(ExponentialRampTest, Value) {
 
     ExponentialRamp exp;
 
+    // Seconds it will take to ramp to value:
+
+    int seconds = 1;
+
+    // Final value to ramp to:
+
+    long double final_value = 1;
+
     // Set some values:
 
     exp.set_start_value(SMALL);
-    exp.set_stop_time(5 * nano);
-    exp.set_stop_value(1);
-    exp.get_info()->buff_size = 440;
-    exp.get_timer()->set_samplerate(440);
+    exp.set_stop_time(nano * seconds);
+    exp.set_stop_value(final_value);
+    exp.get_info()->buff_size = 1000;
+    exp.get_timer()->set_samplerate(1000);
 
-    // Iterate:
+    long double last = -1;
+    long double delta = 0;
 
-    exp.meta_process();
+    for (int i = 0; i < seconds; ++i) {
+
+        // Meta process:
+
+        exp.meta_process();
+
+        // Grab the buffer:
+
+        auto buff = exp.get_buffer();
+
+        // Ensure buffer is accurate
+
+        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+            // Ensure this value is bigger than the last:
+
+            ASSERT_GT(*iter, last);
+
+            if (last != -1) {
+
+                // Ensure delta is correct, should always be bigger:
+                // Not a super great way to ensure this ramp is truly exponential,
+                // but as long as the delta keeps getting higher than it is close enough (for now)
+
+                ASSERT_GT(*iter - last, delta);
+
+                delta = *iter - last;
+            }
+
+            last = *iter;
+
+        }
+    }
+
+    // Finally, ensure last value is very close to final:
+
+    ASSERT_NEAR(last, final_value, 0.05);
+
+}
+
+TEST(ExponentialRampTest, ValueLarge) {
+
+    // Create an envelope:
+
+    ExponentialRamp exp;
+
+    // Seconds it will take to ramp to value:
+
+    int seconds = 120;
+
+    // Final value to ramp to:
+
+    long double final_value = 1;
+
+    // Set some values:
+
+    exp.set_start_value(SMALL);
+    exp.set_stop_time(nano * seconds);
+    exp.set_stop_value(final_value);
+    exp.get_info()->buff_size = 5000;
+    exp.get_timer()->set_samplerate(1000);
+
+    long double last = -1;
+    long double delta = 0;
+
+    for (int i = 0; i < seconds / 5; ++i) {
+
+        // Meta process:
+
+        exp.meta_process();
+
+        // Grab the buffer:
+
+        auto buff = exp.get_buffer();
+
+        // Ensure buffer is accurate
+
+        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+            // Ensure this value is bigger than the last:
+
+            ASSERT_GT(*iter, last);
+
+            if (last != -1) {
+
+                // Ensure delta is correct, should always be bigger:
+                // Not a super great way to ensure this ramp is truly exponential,
+                // but as long as the delta keeps getting higher than it is close enough (for now)
+
+                ASSERT_GT(*iter - last, delta);
+
+                delta = *iter - last;
+            }
+
+            last = *iter;
+
+        }
+    }
+
+    // Finally, ensure last value is very close to final:
+
+    ASSERT_NEAR(last, final_value, 0.05);
+
+}
+
+TEST(LinearRampTest, Construct) {
+
+    LinearRamp lin;
+}
+
+TEST(LinearRampTest, Value) {
+
+    // Create an envelope:
+
+    LinearRamp lin;
+
+    // Seconds it will take to ramp to value:
+
+    int seconds = 120;
+
+    // Final value to ramp to:
+
+    long double final_value = 1;
+
+    // Set some values:
+
+    lin.set_start_value(SMALL);
+    lin.set_stop_time(nano * seconds);
+    lin.set_stop_value(final_value);
+    lin.get_info()->buff_size = 5000;
+    lin.get_timer()->set_samplerate(1000);
+
+    long double last = -1;
+    long double delta = 0;
+
+    for (int i = 0; i < seconds / 5; ++i) {
+
+        // Meta process:
+
+        lin.meta_process();
+
+        // Grab the buffer:
+
+        auto buff = lin.get_buffer();
+
+        // Ensure buffer is accurate
+
+        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+            // Ensure this value is bigger than the last:
+
+            ASSERT_GT(*iter, last);
+
+            if (last != -1) {
+
+                // Ensure the delta is the same
+                // (or very close)
+
+            }
+
+            last = *iter;
+
+        }
+    }
+
+    // Finally, ensure last value is very close to final:
+
+    ASSERT_NEAR(last, final_value, 0.05);
+
 }
