@@ -157,7 +157,7 @@ class ModuleMixUp : virtual public AudioModule {
          * @brief Construct a new Module Mix Up object
          * 
          */
-        ModuleMixUp() {}
+        ModuleMixUp() =default;
 
         /**
          * @brief Set the forward object

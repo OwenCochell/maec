@@ -59,6 +59,10 @@ class BaseModule {
 
     public:
 
+        BaseModule() =default;
+
+        virtual ~BaseModule() =default;
+
         /**
          * @brief Method called then this module is stopped
          * 

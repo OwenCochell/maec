@@ -212,6 +212,28 @@ class ConstantEnvelope : public BaseEnvelope {
 };
 
 /**
+ * @brief Envelope that jumps to a value at the given time
+ * 
+ * We return the start value until we reach the end time.
+ * Once we reach the end time, we return the stop value.
+ * We do not do any ramp operations!
+ * 
+ */
+class SetValue : public BaseEnvelope {
+
+    public:
+
+        SetValue() =default;
+
+        /**
+         * @brief Determine the value to return
+         * 
+         */
+        void process() override;
+
+};
+
+/**
  * @brief Envelope that exponentially ramps to the target
  * 
  * We exponentially ramp to a value over a given time period.
@@ -265,4 +287,67 @@ class LinearRamp : public BaseEnvelope {
          * 
          */
         void process() override;
+};
+
+/**
+ * @brief Manages a collection of envelopes
+ * 
+ * This class handles a collection of envelopes,
+ * switching to each one when necessary.
+ * 
+ * We synchronize all the envelopes using one timer,
+ * allowing for time data to be used amongst the envelopes.
+ * Envelopes should be added in the order they will executed in!
+ * We will only move to the next envelope if the current one is complete.
+ * So, if the start time of the next envelope falls within the interval
+ * of the current envelope, we will not move to the next envelope
+ * until the current envelope finishes.
+ */
+class ChainEnvelope : public BaseEnvelope {
+
+    private:
+
+        /// Collection of envelopes
+        std::vector<BaseEnvelope*> envs;
+
+        /// Current envelope we are working with:
+        BaseEnvelope* current = nullptr;
+
+    public:
+
+        ChainEnvelope() =default;
+
+        /**
+         * @brief Adds the given envelope to this collection
+         * 
+         * We add the given envelope to the collection.
+         * Again, envelopes are executed in the order 
+         * they are added! Please be sure that you 
+         * keep the order in a way that you want.
+         * 
+         * @param env Envelope to add
+         */
+        void add_envelope(BaseEnvelope* env);
+
+        /**
+         * @brief Gets the current envelope
+         * 
+         * @return BaseEnvelope* Current envelope
+         */
+        BaseEnvelope* get_current() const { return this->current; }
+
+        /**
+         * @brief Process this envelope
+         * 
+         * We determine if we need to move onto the next envelope,
+         * and process the current envelope.
+         * 
+         */
+        void process() override;
+
+        /**
+         * @brief Start method
+         * 
+         */
+        void start() override;
 };

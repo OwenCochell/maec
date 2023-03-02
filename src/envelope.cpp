@@ -41,6 +41,34 @@ void ConstantEnvelope::process() {
 
 }
 
+void SetValue::process() {
+
+    // Create a buffer for use:
+
+    this->set_buffer(this->create_buffer());
+
+    // Determine the number of values to be initial:
+
+    auto size = this->buff->size();
+
+    int64_t initial = std::min((this->get_stop_time() - this->get_timer()->get_time()) / this->get_timer()->get_npf(), static_cast<int64_t>(size));
+
+    // Determine the number of values to be final:
+
+    int64_t after = size - initial;
+
+    // Fill in the buffer:
+
+    std::fill_n(this->buff->ibegin(), initial, this->get_start_value());
+
+    std::fill_n(this->buff->ibegin() + initial, after, this->get_stop_value());
+
+    // Set the time:
+
+    this->get_timer()->add_sample(static_cast<int>(size));
+
+}
+
 void ExponentialRamp::process() {
 
     // Create a buffer for use:

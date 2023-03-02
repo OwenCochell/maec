@@ -151,7 +151,17 @@ class BaseAudioIterator {
          * @param num Number to add to current index
          * @return C& This iterator
          */
-        C& operator+=(const int& num) { this->set_index(this->get_index() + num); return static_cast<C&>(*this);}
+        C& operator+=(const int& num) { this->set_index(this->get_index() + num); return static_cast<C&>(*this); }
+
+        /**
+         * @brief Adds the given number to this iterator
+         * 
+         * Set plus operation for long int
+         * 
+         * @param num Number to add to current index
+         * @return C& This iterator
+         */
+        C& operator+=(const long int& num) { this->set_index(this->get_index() + num); return static_cast<C&>(*this); }
 
         /**
          * @brief Subtracts the given number from this iterator
@@ -168,6 +178,16 @@ class BaseAudioIterator {
          * @return C A new iterator with the new index
          */
         C operator+(const int& num) { C tmp = static_cast<C&>(*this); tmp += num; return tmp; }
+
+        /**
+         * @brief Creates a new iterator by adding the given number to our index
+         * 
+         * Plus operation for long int
+         * 
+         * @param num Number to add to the current index
+         * @return C A new iterator with the new index
+         */
+        C operator+(const long int& num) { C tmp = static_cast<C&>(*this); tmp += num; return tmp; }
 
         /**
          * @brief Creates a new iterator by adding ourselves to the given iterator

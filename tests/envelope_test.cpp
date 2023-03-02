@@ -55,7 +55,7 @@ TEST(BaseEnvelopeTest, GetSet) {
 
     ASSERT_EQ(1, env.time_diff());
     ASSERT_EQ(1, env.val_diff());
-    ASSERT_EQ(4 / 3, env.val_divide());
+    ASSERT_DOUBLE_EQ(4.0 / 3.0, env.val_divide());
 
 }
 
@@ -278,6 +278,70 @@ TEST(LinearRampTest, Value) {
 
     // Seconds it will take to ramp to value:
 
+    int seconds = 1;
+
+    // Final value to ramp to:
+
+    long double final_value = 1;
+
+    // Set some values:
+
+    lin.set_start_value(SMALL);
+    lin.set_stop_time(nano * seconds);
+    lin.set_stop_value(final_value);
+    lin.get_info()->buff_size = 1000;
+    lin.get_timer()->set_samplerate(1000);
+
+    long double last = 0;
+    long double delta = 0;
+
+    for (int i = 0; i < seconds; ++i) {
+
+        // Meta process:
+
+        lin.meta_process();
+
+        // Grab the buffer:
+
+        auto buff = lin.get_buffer();
+
+        // Ensure buffer is accurate
+
+        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+            // Ensure this value is bigger than the last:
+
+            ASSERT_GT(*iter, last);
+
+            if (iter.get_index() > 1) {
+
+                // Ensure the delta is the same
+                // (or very close)
+
+                ASSERT_DOUBLE_EQ(*iter - last, delta);
+
+            }
+
+            delta = *iter - last;
+            last = *iter;
+
+        }
+    }
+
+    // Finally, ensure last value is very close to final:
+
+    ASSERT_NEAR(last, final_value, 0.05);
+
+}
+
+TEST(LinearRampTest, ValueLarge) {
+
+    // Create an envelope:
+
+    LinearRamp lin;
+
+    // Seconds it will take to ramp to value:
+
     int seconds = 120;
 
     // Final value to ramp to:
@@ -292,7 +356,7 @@ TEST(LinearRampTest, Value) {
     lin.get_info()->buff_size = 5000;
     lin.get_timer()->set_samplerate(1000);
 
-    long double last = -1;
+    long double last = 0;
     long double delta = 0;
 
     for (int i = 0; i < seconds / 5; ++i) {
@@ -313,13 +377,16 @@ TEST(LinearRampTest, Value) {
 
             ASSERT_GT(*iter, last);
 
-            if (last != -1) {
+            if (iter.get_index() > 1) {
 
                 // Ensure the delta is the same
                 // (or very close)
 
+                ASSERT_NEAR(*iter - last, delta, 0.0001);
+
             }
 
+            delta = *iter - last;
             last = *iter;
 
         }
@@ -328,5 +395,112 @@ TEST(LinearRampTest, Value) {
     // Finally, ensure last value is very close to final:
 
     ASSERT_NEAR(last, final_value, 0.05);
+
+}
+
+TEST(SetValueTest, Construct) {
+
+    SetValue val;
+}
+
+TEST(SetValueTest, Value) {
+
+    // Create an envelope:
+
+    SetValue val;
+
+    // Seconds it will take to ramp to value:
+
+    int seconds = 1;
+
+    // Final value to ramp to:
+
+    long double final_value = 1;
+
+    // Set some values:
+
+    val.set_start_value(0);
+    val.set_stop_time(nano * seconds);
+    val.set_stop_value(final_value);
+    val.get_info()->buff_size = 1000;
+    val.get_timer()->set_samplerate(1000);
+
+    for (int i = 0; i < 2; ++i) {
+
+        // Meta process:
+
+        val.meta_process();
+
+        // Grab the buffer:
+
+        auto buff = val.get_buffer();
+
+        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+            // Determine if we are start or stop:
+
+            if (i == 0) {
+
+                // Ensure we are the start value:
+
+                ASSERT_DOUBLE_EQ(0, *iter);
+            }
+
+            if (i == 1) {
+
+                // Ensure we are the stop value:
+
+                ASSERT_DOUBLE_EQ(final_value, *iter);
+            }
+        }
+    }
+
+}
+
+TEST(SetValueTest, ValueOffset) {
+
+    // Create an envelope:
+
+    SetValue val;
+
+    // Seconds it will take to ramp to value:
+    // (Choose a super weird value here)
+
+    double seconds = 0.3486;
+
+    // Final value to ramp to:
+
+    long double final_value = 1;
+
+    // Set some values:
+
+    val.set_start_value(0);
+    val.set_stop_time(nano * seconds);
+    val.set_stop_value(final_value);
+    val.get_info()->buff_size = 1000;
+    val.get_timer()->set_samplerate(1000);
+
+    // Meta process:
+
+    val.meta_process();
+
+    // Grab the buffer:
+
+    auto buff = val.get_buffer();
+
+    for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+        // Determine the value to check:
+
+        if (iter.get_index() < static_cast<int>(1000 * seconds)) {
+
+            ASSERT_DOUBLE_EQ(*iter, 0);
+        }
+
+        else {
+        
+            ASSERT_DOUBLE_EQ(*iter, 1);
+        }
+    }
 
 }
