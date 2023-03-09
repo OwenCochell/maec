@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "source_module.hpp"
 #include "chrono.hpp"
 
@@ -78,6 +80,15 @@ class BaseEnvelope : public SourceModule {
          * @return ChainTimer* Pointer to chain timer
          */
         ChainTimer* get_timer() { return &(this->timer); }
+
+        /**
+         * @brief Gets the current time in nanoseconds
+         * 
+         * We get the time for our ChainTimer.
+         * 
+         * @return int64_t Current time in nanoseconds
+         */
+        int64_t get_time() const { return this->timer.get_time(); }
 
         /**
          * @brief Gets the current time and increments the sample
@@ -182,6 +193,16 @@ class BaseEnvelope : public SourceModule {
          * @return long double Stop value minus start value
          */
         long double val_diff() const { return this->value_stop - this->value_start; }
+
+        /**
+         * @brief Determines the number of remaining samples
+         * 
+         * THis method determines the number of samples this envelope
+         * has left ot return until it becomes invalid, i.e current time >= strop time
+         * 
+         * @return int 
+         */
+        int64_t remaining_samples() { return (this->get_stop_time() - this->get_timer()->get_time()) / this->get_timer()->get_npf(); }
 
 };
 
@@ -302,13 +323,50 @@ class LinearRamp : public BaseEnvelope {
  * So, if the start time of the next envelope falls within the interval
  * of the current envelope, we will not move to the next envelope
  * until the current envelope finishes.
+ * 
+ * We do utilize the start value and stop time.
+ * If there are no current envelopes at the start of this chain,
+ * then we return the start value until we reach a valid envelope.
+ * Same goes for stop time, if we reach the end of all valid envelopes,
+ * then we keep returning values until stop time.
+ * 
+ * If any envelope has a stop time in the negatives,
+ * then we will NOT move onto the next envelope automatically,
+ * and will sample it forever.
+ * The user can force a move to the next envelope if need be.
  */
 class ChainEnvelope : public BaseEnvelope {
 
     private:
 
+        /**
+         * @brief An internal module to be used by ChainEnvelope
+         * 
+         * This module is used in between other envelopes.
+         * For example, if an envelope ends at one second and the 
+         * next envelope starts at second 2, then we will use this envelope
+         * until we reach the next one.
+         * 
+         * When We reach a time in between envelopes,
+         * we simply return the stop value of the last envelope that we encountered.
+         * 
+         * This envelope is self-destructive!
+         * We will free ourselves once complete.
+         * 
+         */
+        class InternalEnvelope : public ConstantEnvelope {};
+
         /// Collection of envelopes
-        std::vector<BaseEnvelope*> envs;
+        std::vector<BaseEnvelope*> envs {};
+
+        /// Vector of internal envelopes
+        std::vector<std::unique_ptr<InternalEnvelope>> inter {};
+
+        /// Current envelope index we are on:
+        int env_index = -1;
+
+        /// Index of the last module optimized
+        int optimized = 0;
 
         /// Current envelope we are working with:
         BaseEnvelope* current = nullptr;
@@ -316,6 +374,13 @@ class ChainEnvelope : public BaseEnvelope {
     public:
 
         ChainEnvelope() =default;
+
+        /**
+         * @brief Creates an internal envelope
+         * 
+         * TODO: ELABORATE
+         */
+        void create_internal(int index);
 
         /**
          * @brief Adds the given envelope to this collection
@@ -337,6 +402,15 @@ class ChainEnvelope : public BaseEnvelope {
         BaseEnvelope* get_current() const { return this->current; }
 
         /**
+         * @brief Determines the next envelope
+         * 
+         * We find the next envelope in the chain,
+         * TODO: Elaborate
+         * 
+         */
+        void next_envelope();
+
+        /**
          * @brief Process this envelope
          * 
          * We determine if we need to move onto the next envelope,
@@ -349,5 +423,23 @@ class ChainEnvelope : public BaseEnvelope {
          * @brief Start method
          * 
          */
-        void start() override;
+        void start() override { this->next_envelope(); }
+
+        /**
+         * @brief Optimizes the internal structure of the ChainEnvelope
+         * 
+         * Our main purpose is to "fill in the blanks",
+         * that being place certain envelopes in between two envelopes if there is dead time.
+         * We use the "InternalEnvelope" for this, which simply returns the stop value
+         * from the previous envelope.
+         * 
+         * By default, we keep track of the envelopes that are previously optimized,
+         * meaning that when called again, only new envelopes will be optimized,
+         * thus saving some time.
+         * If need be, (an envelope is inserted into previously optimized envelopes)
+         * then we can ignore this value and re-optimize the entire chain.
+         * 
+         * This function will be called automatically when necessary.
+         */
+        void optimize();
 };

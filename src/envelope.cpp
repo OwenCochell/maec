@@ -39,6 +39,10 @@ void ConstantEnvelope::process() {
 
     std::fill(this->buff->sbegin(), this->buff->send(), this->get_start_value());
 
+    // Set the time:
+
+    this->get_timer()->add_sample(static_cast<int>(this->buff->size()));
+
 }
 
 void SetValue::process() {
@@ -51,7 +55,7 @@ void SetValue::process() {
 
     auto size = this->buff->size();
 
-    int64_t initial = std::min((this->get_stop_time() - this->get_timer()->get_time()) / this->get_timer()->get_npf(), static_cast<int64_t>(size));
+    int64_t initial = std::min(this->remaining_samples(), static_cast<int64_t>(size));
 
     // Determine the number of values to be final:
 
@@ -101,4 +105,182 @@ void LinearRamp::process() {
         *iter = this->get_start_value() + this->val_diff() * (static_cast<long double>(this->get_time_inc() - this->get_start_time()) / static_cast<long double>(this->time_diff()));
     }
 
+}
+
+void ChainEnvelope::add_envelope(BaseEnvelope* env) {
+
+    // Determine if we are optimized
+    // (Value exists at the end):
+
+    if (this->inter.size() > 0) {
+
+        // Remove last value:
+
+        this->envs.pop_back();
+        this->inter.pop_back();
+    }
+
+    // Add the envelope to the collection:
+
+    this->envs.push_back(env);
+
+    // Optimize?
+
+    this->optimize();
+
+}
+
+void ChainEnvelope::optimize() {
+
+    // Iterate until all modules are optimized:
+
+    int size = static_cast<int>(this->envs.size()) - 1;
+
+    while (this->optimized < size) {
+
+        // Determine if we need to fill in some blanks:
+
+        auto* env = this->envs[this->optimized];
+
+        if (env->get_stop_time() >= this->envs[this->optimized+1]->get_start_time()) {
+
+            // Valid chain! No inserts necessary ...
+
+            this->optimized++;
+
+            continue;
+        }
+
+        // Otherwise, create internal envelope:
+
+        this->create_internal(++(this->optimized));
+
+    }
+
+    // Finally, add envelope to the back:
+
+    //this->optimized++;
+
+    this->create_internal(static_cast<int>(this->envs.size()));
+
+}
+
+void ChainEnvelope::create_internal(int index) {
+
+    // Create the InternalEnvelope:
+
+    std::unique_ptr<InternalEnvelope> interp = std::make_unique<InternalEnvelope>();
+
+    // Determine start value and time:
+
+    if (index == 0) {
+
+        // Simply use ChainTimer start value:
+
+        interp->set_start_value(this->get_start_value());
+        interp->set_start_time(0);
+    }
+ 
+    else {
+
+        // Otherwise, use previous stop value:
+
+        interp->set_start_value(this->envs[index-1]->get_stop_value());
+        interp->set_start_time(this->envs[index-1]->get_stop_time());
+    }
+
+    // Determine stop time:
+
+    if (index >= static_cast<int>(this->envs.size())) {
+
+        // No next envelope, set as -1:
+
+        interp->set_stop_time(-1);
+    }
+
+    else {
+
+        // Just use next envelope stop time:
+
+        interp->set_stop_time(this->envs[index]->get_start_time());
+    }
+
+    // Insert the envelope into the collection:
+
+    this->envs.insert(this->envs.begin()+index, interp.get());
+
+    // Add this envelope to the internal list:
+
+    this->inter.push_back(std::move(interp));
+
+}
+
+void ChainEnvelope::next_envelope() {
+
+    // Grab the next envelope:
+
+    this->current = this->envs[++(this->env_index)];
+
+    // Set their chain timer to ours:
+
+    *(this->current->get_timer()) = *(this->get_timer());
+
+}
+
+void ChainEnvelope::process() {
+
+    // Create a final buffer:
+
+    auto buff = this->create_buffer();
+
+    int processed = 0;
+
+    // Iterate until buffer is full:
+
+    while (processed < this->get_info()->buff_size) {
+
+        int num = this->get_info()->buff_size - processed;
+
+        // First, determine the number of samples current envelope will output:
+
+        if (this->current->get_stop_time() >= 0) {
+
+            num = std::min(num, static_cast<int>(this->current->remaining_samples()));
+
+        }
+
+        // Set size of current envelope to num value:
+
+        this->current->get_info()->buff_size = num;
+ 
+        // Grab buffer from current envelope:
+
+        this->current->meta_process();
+
+        auto cbuff = this->current->get_buffer();
+
+        // First, fill it with contents of first envelope:
+
+        std::copy_n(cbuff->ibegin(), num, buff->ibegin()+processed);
+
+        // Update the number of samples processed:
+
+        processed += num;
+
+        // Update the timer:
+
+        this->get_timer()->add_sample(num);
+
+        if (this->current->get_stop_time() >= 0 && this->get_time() >= this->current->get_stop_time()) {
+
+            // Get a new envelope:
+
+            this->next_envelope();
+        }
+
+    }
+
+    // Finally, set the buffer:
+
+    this->set_buffer(std::move(buff));
 }

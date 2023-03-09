@@ -10,6 +10,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <cmath>
 
 #include "envelope.hpp"
 
@@ -56,6 +57,20 @@ TEST(BaseEnvelopeTest, GetSet) {
     ASSERT_EQ(1, env.time_diff());
     ASSERT_EQ(1, env.val_diff());
     ASSERT_DOUBLE_EQ(4.0 / 3.0, env.val_divide());
+
+    // Check number of samples left:
+
+    env.set_start_time(0);
+    env.set_stop_time(nano * 5);
+
+    ASSERT_EQ(220507, env.remaining_samples());
+
+    // Check time increment is valid:
+
+    auto time = env.get_time();
+
+    ASSERT_EQ(env.get_time_inc(), time);
+    ASSERT_GT(env.get_time_inc(), time);
 
 }
 
@@ -332,6 +347,11 @@ TEST(LinearRampTest, Value) {
 
     ASSERT_NEAR(last, final_value, 0.05);
 
+    lin.meta_process();
+
+    auto buff = lin.get_buffer();
+
+
 }
 
 TEST(LinearRampTest, ValueLarge) {
@@ -475,7 +495,7 @@ TEST(SetValueTest, ValueOffset) {
     // Set some values:
 
     val.set_start_value(0);
-    val.set_stop_time(nano * seconds);
+    val.set_stop_time(static_cast<int64_t>(nano * seconds));
     val.set_stop_value(final_value);
     val.get_info()->buff_size = 1000;
     val.get_timer()->set_samplerate(1000);
@@ -500,6 +520,486 @@ TEST(SetValueTest, ValueOffset) {
         else {
         
             ASSERT_DOUBLE_EQ(*iter, 1);
+        }
+    }
+
+}
+
+TEST(ChainEnvelopeTest, Construct) {
+
+    ChainEnvelope chain;
+}
+
+TEST(ChainEnvelopeTest, AddEnvelope) {
+
+    // Construct the chain envelope:
+
+    ChainEnvelope chain;
+
+    // Create an envelope:
+
+    SetValue env;
+
+    // Add the envelope:
+
+    chain.add_envelope(&env);
+
+    // Get the next envelope:
+
+    chain.start();
+
+    // Ensure it is the one we added:
+
+    ASSERT_EQ(chain.get_current(), &env);
+
+}
+
+TEST(ChainEnvelopeTest, RepeatEnvelope) {
+
+    // Construct the chain envelope:
+
+    ChainEnvelope chain;
+
+    chain.get_timer()->set_samplerate(100);
+    chain.get_info()->buff_size = 100;
+
+    // Create an envelope:
+
+    ConstantEnvelope cnst;
+
+    // Set the values:
+
+    cnst.set_stop_time(-1);
+    cnst.set_start_value(5);
+
+    // Add it to the envelope:
+
+    chain.add_envelope(&cnst);
+
+    // Sample once:
+
+    chain.start();
+
+    chain.meta_process();
+
+    auto buff = chain.get_buffer();
+
+    for(auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+        ASSERT_EQ(*iter, 5);
+    }
+
+    // Sample twice:
+
+    chain.meta_process();
+
+    buff = chain.get_buffer();
+
+    for(auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+        ASSERT_EQ(*iter, 5);
+    }
+
+    // Sample THRICE!
+
+    chain.meta_process();
+
+    buff = chain.get_buffer();
+
+    for(auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+        ASSERT_EQ(*iter, 5);
+    }
+
+}
+
+TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
+
+    // Construct the chain envelope:
+
+    ChainEnvelope chain;
+
+    chain.get_timer()->set_samplerate(100);
+    chain.get_info()->buff_size = 100;
+
+    // Create the envelope:
+
+    ConstantEnvelope cnst;
+
+    cnst.set_start_value(5);
+    cnst.set_stop_value(10);
+    cnst.set_stop_time(nano);
+
+    // Add the envelope to the chain:
+
+    chain.add_envelope(&cnst);
+
+    // Add another envelope:
+
+    ConstantEnvelope cnst2;
+
+    cnst2.set_start_value(20);
+    cnst2.set_start_time(nano*2);
+    cnst2.set_stop_value(30);
+    cnst2.set_stop_time(nano*3);
+
+    chain.add_envelope(&cnst2);
+
+    // Start the chain:
+
+    chain.start();
+
+    // Get a buffer:
+
+    chain.meta_process();
+
+    auto buff = chain.get_buffer();
+
+    // Ensure buffer is all 5:
+
+    for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
+
+        // Use assert near, prime sine is not as accurate as long double:
+        ASSERT_DOUBLE_EQ(*iter, 5);
+
+    }
+
+    // Grab next buffer:
+
+    chain.meta_process();
+
+    buff = chain.get_buffer();
+
+    // Ensure buffer is all 10:
+
+    for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
+
+        // Use assert near, prime sine is not as accurate as long double:
+        ASSERT_DOUBLE_EQ(*iter, 10);
+
+    }
+
+    // Grab next buffer:
+
+    chain.meta_process();
+
+    buff = chain.get_buffer();
+
+    // Ensure buffer is all 20:
+
+    for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
+
+        // Use assert near, prime sine is not as accurate as long double:
+        ASSERT_DOUBLE_EQ(*iter, 20);
+
+    }
+
+    // Grab next buffer:
+
+    chain.meta_process();
+
+    buff = chain.get_buffer();
+
+    // Ensure buffer is all 30:
+
+    for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
+
+        // Use assert near, prime sine is not as accurate as long double:
+        ASSERT_DOUBLE_EQ(*iter, 30);
+
+    }
+
+}
+
+TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
+
+    // Construct the chain envelope:
+
+    ChainEnvelope chain;
+
+    chain.get_timer()->set_samplerate(100);
+    chain.get_info()->buff_size = 400;
+
+    // Create the envelope:
+
+    ConstantEnvelope cnst;
+
+    cnst.set_start_value(5);
+    cnst.set_stop_value(10);
+    cnst.set_stop_time(nano);
+
+    // Add the envelope to the chain:
+
+    chain.add_envelope(&cnst);
+
+    // Add another envelope:
+
+    ConstantEnvelope cnst2;
+
+    cnst2.set_start_value(20);
+    cnst2.set_start_time(nano*2);
+    cnst2.set_stop_value(30);
+    cnst2.set_stop_time(nano*3);
+
+    chain.add_envelope(&cnst2);
+
+    // Start the chain:
+
+    chain.start();
+
+    // Get a buffer:
+
+    chain.meta_process();
+
+    auto buff = chain.get_buffer();
+
+    // Ensure buffer is all 5:
+
+    for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < 100; ++iter) {
+
+        // Use assert near, prime sine is not as accurate as long double:
+        ASSERT_DOUBLE_EQ(*iter, 5);
+
+    }
+
+
+    // Ensure buffer is all 10:
+
+    for (auto iter = buff->sbegin()+100; static_cast<unsigned int>(iter.get_index()) < 200; ++iter) {
+
+        // Use assert near, prime sine is not as accurate as long double:
+        ASSERT_DOUBLE_EQ(*iter, 10);
+
+    }
+
+    // Ensure buffer is all 20:
+
+    for (auto iter = buff->sbegin()+200; static_cast<unsigned int>(iter.get_index()) < 300; ++iter) {
+
+        // Use assert near, prime sine is not as accurate as long double:
+        ASSERT_DOUBLE_EQ(*iter, 20);
+
+    }
+
+    // Ensure buffer is all 30:
+
+    for (auto iter = buff->sbegin()+300; static_cast<unsigned int>(iter.get_index()) < 400; ++iter) {
+
+        // Use assert near, prime sine is not as accurate as long double:
+        ASSERT_DOUBLE_EQ(*iter, 30);
+
+    }
+
+}
+
+TEST(ChainEnvelopeTest, FullTest) {
+
+    // Create a ChainEnvelope:
+
+    ChainEnvelope chain;
+
+    // Set the configuration values:
+
+    int sample_rate = SAMPLE_RATE;
+
+    int64_t time1_start = 0;
+    int64_t time1_stop = 0;
+
+    int64_t time2_start = 0;
+    int64_t time2_stop = 0;
+
+    int64_t time3_start = 0;
+    int64_t time3_stop = 0;
+
+    long double value1_start = 0;
+    long double value1_stop = 0;
+
+    long double value2_start = 0;
+    long double value2_stop = 0;
+
+    long double value3_start = 0;
+    long double value3_stop = 0;
+
+    int loops = std::ceil(time3_stop / sample_rate);  // By default, we loop until complete
+
+    auto* timer = chain.get_timer();
+
+    timer->set_samplerate(sample_rate);
+
+    ChainTimer ttime;
+    ttime.set_samplerate(sample_rate);
+
+    // Add the envelopes:
+
+    ConstantEnvelope env1;
+
+    env1.set_start_time(time1_start);
+    env1.set_stop_time(time1_stop);
+    env1.set_start_value(value1_start);
+    env1.set_stop_value(value1_stop);
+
+    ConstantEnvelope env2;
+
+    env2.set_start_time(time2_start);
+    env2.set_stop_time(time2_stop);
+    env2.set_start_value(value2_start);
+    env2.set_stop_value(value2_stop);
+
+    ConstantEnvelope env3;
+
+    env3.set_start_time(time3_start);
+    env3.set_stop_time(time3_stop);
+    env3.set_start_value(value3_start);
+    env3.set_stop_value(value3_stop);
+
+    // Add each envelope:
+
+    chain.add_envelope(&env1);
+    chain.add_envelope(&env2);
+    chain.add_envelope(&env3);
+
+    std::vector<ConstantEnvelope*> envs = {&env1, &env2, &env3};
+    int current_envelope = 0;
+
+    ConstantEnvelope* cenv = &env1;
+
+    int loop = 0;
+
+    while (loop < loops) {
+
+        // Grab the buffer:
+
+        chain.meta_process();
+
+        auto buff = chain.get_buffer();
+
+        // Iterate over the buffer:
+
+        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+            // Determine if the time is valid:
+
+            if (ttime.get_time() > cenv->get_stop_time()) {
+
+                // Update to the the next envelope:
+
+                cenv = envs[++current_envelope];
+            }
+
+            // Otherwise, ensure current value is accurate:
+
+            ASSERT_EQ(*iter, cenv->get_start_value());
+
+            // Update timer:
+
+            ttime.add_sample(1);
+
+        }
+
+        // Update the loop:
+
+        loop++;
+    }
+
+}
+
+TEST(ChainEnvelopeTest, AddAfter) {
+
+    // Create a ChainEnvelope:
+
+    ChainEnvelope chain;
+ 
+    chain.get_timer()->set_samplerate(100);
+    chain.get_info()->buff_size = 100;
+
+    // Create an envelope:
+
+    ConstantEnvelope cnst;
+
+    cnst.set_stop_time(nano * 2);
+    cnst.set_start_value(1);
+    cnst.set_stop_value(5);
+
+    chain.add_envelope(&cnst);
+
+    chain.start();
+
+    // Sample twice:
+
+    for(int i = 0; i < 2; ++i) {
+
+        chain.meta_process();
+
+        auto buff = chain.get_buffer();
+
+        // Ensure values are all 1:
+
+        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+            ASSERT_EQ(*iter, 1);
+        }         
+    }
+
+    // Sample twice again:
+
+    for (int i = 0; i < 2; ++i) {
+
+        chain.meta_process();
+
+        auto buff = chain.get_buffer();
+
+        // Ensure all values are 5:
+
+        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+            ASSERT_EQ(*iter, 5);
+        }
+    }
+
+    // Now, add another envelope:
+
+    ConstantEnvelope cnst2;
+
+    cnst2.set_start_time(chain.get_time());
+    cnst2.set_stop_time(chain.get_time() + (2 * nano));
+    cnst2.set_start_value(10);
+    cnst2.set_stop_value(20);
+
+    // Add the envelope:
+
+    chain.add_envelope(&cnst2);
+    //chain.optimize();
+    chain.next_envelope();
+
+    // Sample twice:
+
+    for(int i = 0; i < 2; ++i) {
+
+        chain.meta_process();
+
+        auto buff = chain.get_buffer();
+
+        // Ensure values are all 1:
+
+        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+            ASSERT_EQ(*iter, 10);
+        }         
+    }
+
+    // Sample twice again:
+
+    for (int i = 0; i < 2; ++i) {
+
+        chain.meta_process();
+
+        auto buff = chain.get_buffer();
+
+        // Ensure all values are 5:
+
+        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+            ASSERT_EQ(*iter, 20);
         }
     }
 

@@ -41,7 +41,7 @@ TEST(ChainTimerTest, NPF) {
 
     // Ensure default NPF is correct:
 
-    ASSERT_EQ(time.get_npf(), 0);
+    ASSERT_EQ(time.get_npf(), 22675);
 
     // Set a new NPF:
 

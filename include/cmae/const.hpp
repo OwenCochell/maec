@@ -21,3 +21,6 @@ const int BUFF_SIZE = 440;
 
 /// Very small value (usually used in place of zero in division)
 const double SMALL = 0.000001;
+
+/// Nanoseconds per second
+const int64_t nano = 1000000000;

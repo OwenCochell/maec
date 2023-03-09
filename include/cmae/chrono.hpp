@@ -26,8 +26,8 @@
 #include <chrono>
 #include <ctime>
 
-/// Nanoseconds per second
-const int64_t nano = 1000000000;
+#include "const.hpp"
+
 
 /**
  * @brief Gets the current time value
@@ -89,7 +89,7 @@ class ChainTimer {
         int sample = 0;
 
         /// Nanoseconds per frame
-        int64_t nano_frame = 0;
+        int64_t nano_frame = nano / SAMPLE_RATE;
 
     public:
 
