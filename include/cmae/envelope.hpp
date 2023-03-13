@@ -207,6 +207,86 @@ class BaseEnvelope : public SourceModule {
 };
 
 /**
+ * @brief Provides functionality for defining envelope durations
+ * 
+ * Envelopes, be design, have a understanding of a start time and stop time.
+ * This is necessary for the envelope to understand where it is in time,
+ * and when it needs to stop.
+ * This system allows for a high level of customization,
+ * but requires that the envelope has an 'absolute' understanding of time.
+ * 
+ * Sometimes, it is not possible for an envelope to know the exact time
+ * it starts and stops. Sometimes it is only possible for an envelope
+ * to understand it's own duration, and the absolute time values should be determined later.
+ * 
+ * This class does just that, we take an envelope, and a duration.
+ * When this envelope is started, we save the start time from our current timer.
+ * We then use this value to determine the start and stop value,
+ * allowing you to define an envelope with a duration,
+ * without having to worry about the absolute time information.
+ * 
+ * TODO: Elaborate on difference between absolute and relative time
+ * 
+ */
+class DurationEnvelope : public BaseEnvelope {
+
+    private:
+
+        /// Internal envelope to manage
+        BaseEnvelope* env = nullptr;
+
+        /// Duration of this envelope
+        int64_t duration = 0;
+
+    public:
+
+        DurationEnvelope() =default;
+
+        /**
+         * @brief Sets the duration to the given value, in nanoseconds
+         * 
+         * @param dur Duration in nanoseconds
+         */
+        void set_duration(int64_t dur) { this->duration = dur; }
+
+        /**
+         * @brief Gets the current duration, in nanoseconds
+         * 
+         * @return int64_t Duration in nanoseconds
+         */
+        int64_t get_duration() const { return this->duration; }
+
+        /**
+         * @brief Sets the envelope to the current value
+         * 
+         * @param sev Envelope to work with
+         */
+        void set_envelope(BaseEnvelope* sev) { this->env = sev; }
+
+        /**
+         * @brief Gets the current envelope
+         * 
+         * @return BaseEnvelope* Current envelope we are working with
+         */
+        BaseEnvelope* get_envelope() const { return this->env; }
+
+        /**
+         * @brief Computes and sets the start and stop time
+         * 
+         */
+        void start() override;
+
+        /**
+         * @brief Meta process this envelope
+         * 
+         * We simply call the meta process method on the child envelope,
+         * and set it's buffer to be ours.
+         * 
+         */
+        void meta_process() override { this->env->meta_process(); this->set_buffer(this->env->get_buffer()); }
+};
+
+/**
  * @brief Envelope that always returns the start value
  * 
  * This envelope will ALWAYS return the start value.

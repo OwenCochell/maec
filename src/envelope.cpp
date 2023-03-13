@@ -29,6 +29,17 @@ int64_t BaseEnvelope::get_time_inc() {
 
 }
 
+void DurationEnvelope::start() {
+
+    // First, set the start time to value from timer:
+
+    this->env->set_start_time(this->env->get_time());
+
+    // Next, set the stop time:
+
+    this->env->set_stop_time(this->env->get_time() + this->duration);
+}
+
 void ConstantEnvelope::process() {
 
     // Create a buffer for use:

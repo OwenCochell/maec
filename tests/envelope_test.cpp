@@ -74,6 +74,34 @@ TEST(BaseEnvelopeTest, GetSet) {
 
 }
 
+TEST(DurationEnvelope, Construct) {
+
+    DurationEnvelope dur;
+}
+
+TEST(DurationEnvelope, GetSet) {
+
+    // Create a DurationEnvelope:
+
+    DurationEnvelope dur;
+
+    // Create an envelope for use:
+
+    ConstantEnvelope cnst;
+
+    // Ensure default value is correct:
+
+    ASSERT_EQ(dur.get_envelope(), nullptr);
+
+    // Set the envelope:
+
+    dur.set_envelope(&cnst);
+
+    // Ensure value is correct:
+
+    ASSERT_EQ(dur.get_envelope(), &cnst);
+}
+
 TEST(ConstantEnvelopeTest, Construct) {
 
     ConstantEnvelope cnst;
