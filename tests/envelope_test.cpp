@@ -1,6 +1,6 @@
 /**
  * @file envelope_test.cpp
- * @author Owen Cochell (owen@gmail.com)
+ * @author Owen Cochell (owencochell@gmail.com)
  * @brief Various tests for envelopes
  * @version 0.1
  * @date 2023-02-25
@@ -74,12 +74,12 @@ TEST(BaseEnvelopeTest, GetSet) {
 
 }
 
-TEST(DurationEnvelope, Construct) {
+TEST(DurationEnvelopeTest, Construct) {
 
     DurationEnvelope dur;
 }
 
-TEST(DurationEnvelope, GetSet) {
+TEST(DurationEnvelopeTest, GetSet) {
 
     // Create a DurationEnvelope:
 
@@ -100,6 +100,65 @@ TEST(DurationEnvelope, GetSet) {
     // Ensure value is correct:
 
     ASSERT_EQ(dur.get_envelope(), &cnst);
+}
+
+TEST(DurationEnvelopeTest, Process) {
+
+    /**
+     * @brief Determines if the DurationEnvelope can correctly process
+     * 
+     * We test that the DurationEnvelope can process the managed envelope,
+     * and correctly grabs it's buffer for later use
+     * 
+     */
+
+    // Create the DurationEnvelope:
+
+    DurationEnvelope dur;
+
+    // Create a SetValue:
+
+    SetValue val;
+
+    val.set_start_value(1);
+    val.set_stop_value(5);
+    val.get_info()->buff_size = 100;
+    val.get_info()->sample_rate = 100;
+
+    // Configure the DurationEnvelope:
+
+    dur.set_duration(3 * nano);
+
+    // Register the envelope:
+
+    dur.set_envelope(&val);
+
+    // Start the envelope:
+
+    dur.start();
+
+    int index = 0;
+
+    while (index < 3) {
+
+        dur.meta_process();
+
+        auto buff = dur.get_buffer();
+
+        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+            ASSERT_DOUBLE_EQ(*iter, 1);
+        }
+    }
+
+    dur.meta_process();
+
+    auto buff = dur.get_buffer();
+
+    for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+        ASSERT_DOUBLE_EQ(*iter, 5);
+    }
 }
 
 TEST(ConstantEnvelopeTest, Construct) {
@@ -584,6 +643,14 @@ TEST(ChainEnvelopeTest, AddEnvelope) {
 
 TEST(ChainEnvelopeTest, RepeatEnvelope) {
 
+    /**
+     * @brief Determines if the ChainEnvelope repeats envelope with -1 stop time
+     * 
+     * We ensure that envelopes with stop time of -1 are correctly repeated
+     * indefinitely, until the user manually advances.
+     * 
+     */
+
     // Construct the chain envelope:
 
     ChainEnvelope chain;
@@ -687,7 +754,6 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
 
     for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
 
-        // Use assert near, prime sine is not as accurate as long double:
         ASSERT_DOUBLE_EQ(*iter, 5);
 
     }
@@ -702,7 +768,6 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
 
     for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
 
-        // Use assert near, prime sine is not as accurate as long double:
         ASSERT_DOUBLE_EQ(*iter, 10);
 
     }
@@ -717,7 +782,6 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
 
     for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
 
-        // Use assert near, prime sine is not as accurate as long double:
         ASSERT_DOUBLE_EQ(*iter, 20);
 
     }
@@ -732,7 +796,6 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
 
     for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
 
-        // Use assert near, prime sine is not as accurate as long double:
         ASSERT_DOUBLE_EQ(*iter, 30);
 
     }
@@ -785,7 +848,6 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
 
     for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < 100; ++iter) {
 
-        // Use assert near, prime sine is not as accurate as long double:
         ASSERT_DOUBLE_EQ(*iter, 5);
 
     }
@@ -795,7 +857,6 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
 
     for (auto iter = buff->sbegin()+100; static_cast<unsigned int>(iter.get_index()) < 200; ++iter) {
 
-        // Use assert near, prime sine is not as accurate as long double:
         ASSERT_DOUBLE_EQ(*iter, 10);
 
     }
@@ -804,7 +865,6 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
 
     for (auto iter = buff->sbegin()+200; static_cast<unsigned int>(iter.get_index()) < 300; ++iter) {
 
-        // Use assert near, prime sine is not as accurate as long double:
         ASSERT_DOUBLE_EQ(*iter, 20);
 
     }
@@ -813,7 +873,6 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
 
     for (auto iter = buff->sbegin()+300; static_cast<unsigned int>(iter.get_index()) < 400; ++iter) {
 
-        // Use assert near, prime sine is not as accurate as long double:
         ASSERT_DOUBLE_EQ(*iter, 30);
 
     }

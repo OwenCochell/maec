@@ -1,6 +1,6 @@
 /**
  * @file envelope.hpp
- * @author Owen Cochell (owen@gmail.com)
+ * @author Owen Cochell (owencochell@gmail.com)
  * @brief Various components for envelopes 
  * @version 0.1
  * @date 2023-02-25
@@ -225,6 +225,11 @@ class BaseEnvelope : public SourceModule {
  * allowing you to define an envelope with a duration,
  * without having to worry about the absolute time information.
  * 
+ * Most calls are just proxied to the envelope we are currently managing.
+ * As of now, we are not configured for managing the envelope correctly!
+ * The idea is that the envelope to be managed should be configured with necessary settings
+ * BEFORE it is managed within this envelope.
+ * 
  * TODO: Elaborate on difference between absolute and relative time
  * 
  */
@@ -414,6 +419,16 @@ class LinearRamp : public BaseEnvelope {
  * then we will NOT move onto the next envelope automatically,
  * and will sample it forever.
  * The user can force a move to the next envelope if need be.
+ * 
+ * This class has functionality to 'optimize' it's structure,
+ * allowing for envelopes to be inserted in dead zones.
+ * For example, if there is a period of 1 second in between two envelopes,
+ * we will insert envelopes that return the value of the last envelope.
+ * 
+ * TODO: Really not super happy with this system...
+ * I would like to separate this functionality.
+ * Maybe move 'safe' functionality to another class, SafeChainEnvelope?
+ * Could be good to ensure speed for components that can guarantee their structure
  */
 class ChainEnvelope : public BaseEnvelope {
 
@@ -450,6 +465,9 @@ class ChainEnvelope : public BaseEnvelope {
 
         /// Current envelope we are working with:
         BaseEnvelope* current = nullptr;
+
+        /// Value determining if we optimize
+        bool can_optimize = true;
 
     public:
 
@@ -522,4 +540,19 @@ class ChainEnvelope : public BaseEnvelope {
          * This function will be called automatically when necessary.
          */
         void optimize();
+};
+
+/**
+ * @brief Defines an Attack, Decay, Sustain Release (ADSR) envelope
+ * 
+ * This class defines an ADSR Envelope:
+ * 
+ * - Attack is the time it takes to reach maximum value when key is initially pressed
+ * - Decay is time it takes to release to sustain value
+ * - Sustain is the value to hold at while key is held
+ * - Release is the time it takes to ramp to zero after key is released
+ * 
+ */
+class ADSREnvelope : public ChainEnvelope {
+
 };

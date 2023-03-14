@@ -1,6 +1,6 @@
 /**
  * @file envelope.cpp
- * @author Owen Cochell (owen@gmail.com)
+ * @author Owen Cochell (owencochell@gmail.com)
  * @brief Implementations of envelopes
  * @version 0.1
  * @date 2023-02-25
@@ -147,7 +147,7 @@ void ChainEnvelope::optimize() {
 
     int size = static_cast<int>(this->envs.size()) - 1;
 
-    while (this->optimized < size) {
+    while (this->can_optimize && this->optimized < size) {
 
         // Determine if we need to fill in some blanks:
 
@@ -169,8 +169,6 @@ void ChainEnvelope::optimize() {
     }
 
     // Finally, add envelope to the back:
-
-    //this->optimized++;
 
     this->create_internal(static_cast<int>(this->envs.size()));
 

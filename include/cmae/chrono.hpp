@@ -1,6 +1,6 @@
 /**
  * @file chrono.hpp
- * @author Owen Cochell (owen@gmail.com)
+ * @author Owen Cochell (owencochell@gmail.com)
  * @brief Various tools for working with time
  * @version 0.1
  * @date 2023-02-09
