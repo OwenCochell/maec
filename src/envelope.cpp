@@ -293,3 +293,34 @@ void ChainEnvelope::process() {
 
     this->set_buffer(std::move(buff));
 }
+
+void ADSREnvelope::start() {
+
+    // Add linear ramp for attack:
+
+    LinearRamp att;
+
+    att.set_start_value(0);
+    att.set_stop_value(1);
+    att.set_start_time(0);
+    att.set_stop_time(this->attack);
+
+    // Add linear ramp for decay:
+
+    LinearRamp dec;
+
+    dec.set_start_value(1);
+    dec.set_stop_value(this->sustain);
+    dec.set_start_time(this->attack);
+    dec.set_stop_time(this->decay);
+
+    // Add constant ramp for sustain:
+
+    ConstantEnvelope sus;
+    
+    sus.set_start_value(this->sustain);
+    sus.set_stop_value(this->sustain);
+    sus.set_start_time(this->decay);
+    sus.set_stop_time(-1);
+}
+

@@ -555,4 +555,97 @@ class ChainEnvelope : public BaseEnvelope {
  */
 class ADSREnvelope : public ChainEnvelope {
 
+    private:
+
+        /// Time it takes to ramp to max value
+        int64_t attack = 0;
+
+        /// Time it takes to ramp to sustain value
+        int64_t decay = 0;
+
+        /// Value to sustain at
+        long double sustain = 0;
+
+        /// Time it takes to ramp to zero after key is released
+        int64_t release = 0;
+
+    public:
+
+        ADSREnvelope() =default;
+
+        ADSREnvelope(int64_t att, int64_t dec, long double sus, int64_t rel) : attack(att), decay(dec), sustain(sus), release(rel) {}
+
+        /**
+         * @brief Sets the attack value
+         * 
+         * Sets the attack of this envelope.
+         * 
+         * @param att Attack to set
+         */
+        void set_attack(int64_t att) { this->attack = att; }
+
+        /**
+         * @brief Gets the attack value
+         * 
+         * @return int64_t Current attack
+         */
+        int64_t get_attack() const { return this->attack; }
+
+        /**
+         * @brief Sets the decay value
+         * 
+         * Sets the decay of this envelope
+         * 
+         * @param dec Decay to set
+         */
+        void set_decay(int64_t dec) { this->decay = dec; }
+
+        /**
+         * @brief Gets the decay value
+         * 
+         * @return int64_t Current decay
+         */
+        int64_t get_decay() const { return this->decay; }
+
+        /**
+         * @brief Sets the sustain value
+         * 
+         * Sets the sustain value of this envelope
+         * 
+         * @param sus Sustain to set
+         */
+        void set_sustain(long double sus) { this->sustain = sus; }
+
+        /**
+         * @brief Gets the sustain value
+         * 
+         * @return long double Current sustain value
+         */
+        long double get_sustain() const { return this->sustain; }
+
+        /**
+         * @brief Sets the release value
+         * 
+         * Sets the release value of this envelope
+         * 
+         * @param rel Release to set
+         */
+        void set_release(int64_t rel) { this->release = rel; }
+
+        /**
+         * @brief Gets the release value
+         * 
+         * @return int64_t Release to set
+         */
+        int64_t get_release() const { return this->release; }
+
+        /**
+         * @brief Starts this envelope
+         * 
+         * Here, we configure the internal envelope to match
+         * the functionality of an ADSR envelope.
+         * 
+         */
+        void start() override;
+
 };
