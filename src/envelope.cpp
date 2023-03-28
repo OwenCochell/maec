@@ -123,7 +123,7 @@ void ChainEnvelope::add_envelope(BaseEnvelope* env) {
     // Determine if we are optimized
     // (Value exists at the end):
 
-    if (this->inter.size() > 0) {
+    if (this->inter.empty()) {
 
         // Remove last value:
 
@@ -298,29 +298,45 @@ void ADSREnvelope::start() {
 
     // Add linear ramp for attack:
 
-    LinearRamp att;
+    std::unique_ptr<BaseEnvelope> att = std::make_unique<LinearRamp>();
 
-    att.set_start_value(0);
-    att.set_stop_value(1);
-    att.set_start_time(0);
-    att.set_stop_time(this->attack);
+    att->set_start_value(0);
+    att->set_stop_value(1);
+    att->set_start_time(0);
+    att->set_stop_time(this->attack);
+
+    this->add_envelope(att.get());
+    this->envs.add_object(att);
 
     // Add linear ramp for decay:
 
-    LinearRamp dec;
+    std::unique_ptr<BaseEnvelope> dec = std::make_unique<LinearRamp>();
 
-    dec.set_start_value(1);
-    dec.set_stop_value(this->sustain);
-    dec.set_start_time(this->attack);
-    dec.set_stop_time(this->decay);
+    dec->set_start_value(1);
+    dec->set_stop_value(this->sustain);
+    dec->set_start_time(this->attack);
+    dec->set_stop_time(this->decay);
+
+    this->add_envelope(dec.get());
+    this->envs.add_object(dec);
 
     // Add constant ramp for sustain:
 
-    ConstantEnvelope sus;
-    
-    sus.set_start_value(this->sustain);
-    sus.set_stop_value(this->sustain);
-    sus.set_start_time(this->decay);
-    sus.set_stop_time(-1);
+    std::unique_ptr<BaseEnvelope> sus = std::make_unique<ConstantEnvelope>();
+
+    sus->set_start_value(this->sustain);
+    sus->set_stop_value(this->sustain);
+    sus->set_start_time(this->decay);
+    sus->set_stop_time(-1);
+
+    this->add_envelope(sus.get());
+    this->envs.add_object(sus);
+
+    // 
+
 }
 
+void ADSREnvelope::finish() {
+
+    // Ca
+}

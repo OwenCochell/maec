@@ -11,20 +11,20 @@
 
 #include "utils.hpp"
 
-template<class T>
-void Collection<T>::add_object(std::unique_ptr<T> ptr) {
+// template<class T>
+// void Collection<T>::add_object(std::unique_ptr<T> ptr) {
 
-    // Add the unique pointer to our collection:
+//     // Add the unique pointer to our collection:
 
-    this->objs.push_back(std::move(ptr));
-}
+//     this->objs.push_back(std::move(ptr));
+// }
 
 template <class T>
 void Collection<T>::add_object(std::unique_ptr<T> &ptr) {
 
     // Add and move the unique pointer to our collection:
 
-    this->add_object(std::move(ptr));
+    this->objs.push_back(std::move(ptr));
 }
 
 template<class T>

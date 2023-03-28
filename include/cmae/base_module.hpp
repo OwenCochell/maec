@@ -1,6 +1,6 @@
 /**
  * @file base_module.hpp
- * @author Owen Cochell (you@domain.com)
+ * @author Owen Cochell (owencochell@gmail.com)
  * @brief This file contains components used for working with modules.
  * @version 0.1
  * @date 2022-09-04

@@ -1,6 +1,6 @@
 /**
  * @file audio_module.hpp
- * @author Owen Cochell (owen@gmail.com)
+ * @author Owen Cochell (owencochell@gmail.com)
  * @brief This file contains module components for working with audio data.
  * @version 0.1
  * @date 2022-09-04

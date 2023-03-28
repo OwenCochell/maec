@@ -56,7 +56,7 @@ class Collection {
          * 
          * @param ptr Pointer to save
          */
-        void add_object(std::unique_ptr<T> ptr);
+        // void add_object(std::unique_ptr<T> ptr);
 
         /**
          * @brief Adds the given object via unique pointer

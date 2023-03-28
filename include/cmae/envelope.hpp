@@ -25,6 +25,7 @@
 
 #include "source_module.hpp"
 #include "chrono.hpp"
+#include "utils.hpp"
 
 /**
  * @brief Base class for all envelopes
@@ -569,6 +570,9 @@ class ADSREnvelope : public ChainEnvelope {
         /// Time it takes to ramp to zero after key is released
         int64_t release = 0;
 
+        /// Collection for keeping envelopes:
+        Collection<BaseEnvelope> envs;
+
     public:
 
         ADSREnvelope() =default;
@@ -647,5 +651,16 @@ class ADSREnvelope : public ChainEnvelope {
          * 
          */
         void start() override;
+
+        /**
+         * @brief Finishes this envelope
+         * 
+         * Here, we configure the envelope to ramp
+         * down to zero when called.
+         * We determine the current value we are operating at
+         * and ramp downwards.
+         * 
+         */
+        void finish() override;
 
 };

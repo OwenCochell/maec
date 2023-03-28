@@ -1,6 +1,6 @@
 /**
  * @file base_module.cpp
- * @author your name (you@domain.com)
+ * @author Owen Cochell (owencochell@gmail.com)
  * @brief Implementations for base modules
  * @version 0.1
  * @date 2022-09-04
