@@ -285,7 +285,7 @@ class BufferModule : public SourceModule {
          * 
          * @param ibuff Buffer to repeat
          */
-        void set_rbuffer(AudioBuffer* ibuff) { this->gbuff = ibuff; this->get_info()->buff_size = ibuff->size(); }
+        void set_rbuffer(AudioBuffer* ibuff) { this->gbuff = ibuff; this->get_info()->buff_size = static_cast<int>(ibuff->size()); }
 
         /**
          * @brief Gets the buffer being repeated
@@ -302,4 +302,65 @@ class BufferModule : public SourceModule {
          * 
          */
         void process() override;
+};
+
+/**
+ * @brief Ensures outgoing AudioBuffers are a uniform size
+ * 
+ * This module takes buffers of arbitrary size on the input,
+ * and outputs a buffer of standard size.
+ * For example, if we are inputting buffers with size 20,
+ * and we want an output size of 10, then we will split up the buffer into two parts.
+ * 
+ * This is useful if you want to work with buffers of a specific size,
+ * and you don't know exactly what the incoming buffer size will be,
+ * or if you don't want to do the work yourself.
+ * 
+ * Be warned, we may process the back modules multiple times to fill the buffer!
+ * Ensure that any syncronization issues will not arise if this module is used.
+ * 
+ * TODO: 
+ * 
+ * as of now, the buffer size is a member attribute.
+ * Once you implement a better audio info framework,
+ * THEN YOU SHOULD UPDATE THIS COMPONENT TO PLAY NICE!
+ * 
+ */
+class UniformBuffer : public AudioModule {
+
+    private:
+
+        /// Size of outgoing buffer
+        int buffer_size = 0;
+
+        /// Index to empty position in out buffer
+        int index = 0;
+
+        /// Index to next copy position in in buffer
+        int iindex = 0;
+
+        /// Current incoming buffer
+        std::unique_ptr<AudioBuffer> ibuff = nullptr;
+
+    public:
+
+        UniformBuffer() =default;
+
+        /**
+         * @brief Process method
+         * 
+         * Within, we do the buffer uniform operation.
+         * 
+         */
+        void process() override;
+
+        /**
+         * @brief Overwrite the meta process method
+         * 
+         * We simply do nothing but call the process method!
+         * It will handle back processing when necessary.
+         * 
+         */
+        void meta_process() override { this->process(); }
+
 };

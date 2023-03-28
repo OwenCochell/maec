@@ -10,35 +10,3 @@
  */
 
 #include "utils.hpp"
-
-// template<class T>
-// void Collection<T>::add_object(std::unique_ptr<T> ptr) {
-
-//     // Add the unique pointer to our collection:
-
-//     this->objs.push_back(std::move(ptr));
-// }
-
-template <class T>
-void Collection<T>::add_object(std::unique_ptr<T> &ptr) {
-
-    // Add and move the unique pointer to our collection:
-
-    this->objs.push_back(std::move(ptr));
-}
-
-template<class T>
-T* Collection<T>::release_object(int index) {
-
-    // Grab and release the object at the position:
-
-    return this->objs.at(index).release();
-}
-
-template<class T>
-void Collection<T>::free_object(int index) {
-
-    // Grab and release the object at the position:
-
-    this->objs.erase(this->objs.begin() + index);
-}

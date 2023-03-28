@@ -214,7 +214,7 @@ TEST(MetaLatencyTest, LatencyTime) {
 
     // Get the elapsed time:
 
-    int total = late.latency();
+    int64_t total = late.latency();
 
     ASSERT_LT(late.latency(), late.time());
     ASSERT_EQ(late.latency(), late.total_latency());
@@ -320,4 +320,22 @@ TEST(MetaBufferTest, Process) {
 
         ASSERT_DOUBLE_EQ(data.at(i % 10), *(tdata->ibegin() + (i % 10)));
     }
+}
+
+/**
+ * @brief Ensures the UniformBuffer module constructs properly
+ * 
+ */
+TEST(UniformBufferTest, Construct) {
+
+    UniformBuffer uni;
+
+}
+
+/**
+ * @brief Ensures UniformBuffer module handles equal input and output sizes
+ * 
+ */
+TEST(UniformBufferTest, SameSize) {
+
 }

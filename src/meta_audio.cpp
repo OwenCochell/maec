@@ -9,6 +9,8 @@
  * 
  */
 
+#include <cmath>
+
 #include "meta_audio.hpp"
 
 void Counter::process() {
@@ -99,5 +101,54 @@ void BufferModule::process() {
     // Next, fill it using the contents of our old buffer:
 
     std::copy(this->gbuff->ibegin(), this->gbuff->iend(), this->buff->ibegin());
+
+}
+
+void UniformBuffer::process() {
+
+    // Create new empty buffer:
+
+    this->set_buffer(this->create_buffer());  // TODO: Does not create buffer of valid size!
+
+    while (this->index < this->buffer_size) {
+
+        // Determine if in buffer is out of values:
+
+        if (this->iindex >= this->ibuff->size()) {
+
+            // The current in buffer is done, grab a new one:
+
+            // Meta process back module:
+
+            this->get_backward()->meta_process();
+
+            // Save the buffer:
+
+            this->ibuff = this->get_backward()->get_buffer();
+
+            // Update the in index:
+
+            this->iindex = 0;
+
+        }
+
+        // Determine the number of samples yet to fill:
+
+        int remaining = std::min(this->buffer_size - this->index, static_cast<int>(this->ibuff->size()) - this->iindex);
+
+        // Fill the current buffer with this value:
+
+        std::copy_n(this->ibuff->ibegin(), remaining, this->buff->ibegin()+this->index);
+
+        // Update values and move on:
+
+        this->iindex += remaining;
+        this->index += remaining;
+
+    }
+
+    // Finally, set our index back to zero:
+
+    this->index = 0;
 
 }

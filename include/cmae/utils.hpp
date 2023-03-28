@@ -51,23 +51,13 @@ class Collection {
         /**
          * @brief Adds the given object via unique pointer
          * 
-         * We take the given unique pointer and add it to our collection.
-         * It is critical that the given smart pointer is moved into our possession!
-         * 
-         * @param ptr Pointer to save
-         */
-        // void add_object(std::unique_ptr<T> ptr);
-
-        /**
-         * @brief Adds the given object via unique pointer
-         * 
          * We take the unique pointer and add it to our collection.
          * We take the given pointer by reference, and move it into our ownership.
          * The passed unique pointer SHOULD NOT use be used after this operation!
          * 
          * @param ptr Pointer to save
          */
-        void add_object(std::unique_ptr<T>& ptr);
+        void add_object(std::unique_ptr<T>& ptr) { this->objs.push_back(std::move(ptr)); }
 
         /**
          * @brief Gets the object at the given position
@@ -75,7 +65,7 @@ class Collection {
          * We retrieve the object at the given position
          * and return the raw pointer.
          * 
-         * YOU SHOULD NO FREE OR ALTER THIS POINTER!
+         * YOU SHOULD NOT FREE OR ALTER THIS POINTER!
          * This class still has ownership of the pointer,
          * and manipulating it could lead to trouble.
          * 
@@ -110,13 +100,12 @@ class Collection {
          * @param index Index of object to release
          * @return T* Pointer to released object
          */
-        T* release_object(int index);
+        T *release_object(int index) { return this->objs.at(index).release(); }
 
         /**
          * @brief Frees the object at the given index
          * 
          * @param index INdex of object to free
          */
-        void free_object(int index);
-
+        void free_object(int index) { this->objs.erase(this->objs.begin() + index); }
 };
