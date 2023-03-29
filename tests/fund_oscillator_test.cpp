@@ -44,7 +44,7 @@ void CompareBuffer(BaseOscillator* osc, const std::vector<long double>* expected
 
     // Ensure the number of samples is correct:
 
-    ASSERT_EQ(int(buff->size()), osc->get_info()->buff_size);
+    ASSERT_EQ(int(buff->size()), osc->get_info()->out_buffer);
 
     // Ensure each value is close:
 

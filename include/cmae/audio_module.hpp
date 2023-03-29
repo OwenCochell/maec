@@ -19,6 +19,28 @@
 #include "audio_buffer.hpp"
 
 /**
+ * @brief Structure for holding information about an AudioModule
+ * 
+ * This struct contains many attributes that modules can utilize.
+ * AudioModules are under no obligation to consider this information.
+ * However, good modules WILL take this info into consideration,
+ * and modules attached to this one will use this info.
+ * 
+ */
+struct ModuleInfo {
+
+    /// The sample rate of the audio data, if applicable
+    long double sample_rate = SAMPLE_RATE;
+
+    /// Size of the incoming audio buffer
+    int in_buffer = BUFF_SIZE;
+
+    /// Size of the outgoing audio buffer
+    int out_buffer = BUFF_SIZE;
+
+};
+
+/**
  * @brief Structure for holding audio info
  * 
  * We contain various info to be shared among modules
@@ -67,16 +89,13 @@ class AudioModule : public BaseModule {
 
     private:
 
-        /// Pointer to the audio info
-
-        std::shared_ptr<AudioInfo> info=nullptr;
+        /// Information for this specific module
+        ModuleInfo info;
 
         /// Pointer to the audio module we are attached to
-
         AudioModule* forward=nullptr;
 
         /// Pointer to the audio module that is attached to us
-
         AudioModule* backward=nullptr;
 
     protected:
@@ -93,13 +112,13 @@ class AudioModule : public BaseModule {
          * We also create a AudioInfo struct for use
          * 
          */
-        AudioModule() { this->info = std::make_shared<AudioInfo>(); }
+        AudioModule() =default;
 
         /**
          * @brief Destroy the Audio Module object
          * 
          */
-        virtual ~AudioModule() =default;
+        ~AudioModule() override =default;
 
         /**
          * @brief Copy constructor
@@ -247,9 +266,9 @@ class AudioModule : public BaseModule {
         /**
          * @brief Get the info object
          * 
-         * @return std::shared_ptr<AudioInfo> The audio info in use by this module
+         * @return ModuleInfo* ModuleInfo struct in use by this class
          */
-        std::shared_ptr<AudioInfo> get_info() { return this->info; }
+        ModuleInfo* get_info() { return &this->info; }
 
         /**
          * @brief Set the info object
@@ -257,5 +276,5 @@ class AudioModule : public BaseModule {
          * @param in Audio info struct
          *
          */
-        void set_info(std::shared_ptr<AudioInfo> inf) { this->info = std::move(inf); }
+        void set_info(ModuleInfo& inf) { this->info = inf; }
 };

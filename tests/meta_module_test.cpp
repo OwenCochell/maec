@@ -42,7 +42,7 @@ TEST(MetaCountTest, Count) {
     // Ensure numbers are right:
 
     ASSERT_EQ(3, count.processed());
-    ASSERT_EQ(3 * con.get_info()->buff_size, count.samples());
+    ASSERT_EQ(3 * con.get_info()->out_buffer, count.samples());
 }
 
 TEST(MetaCountTest, Reset) {
@@ -138,7 +138,7 @@ TEST(MetaLatencyTest, TotalTime) {
 
     // Get expected time:
 
-    ASSERT_EQ(late.expected(), 440 * (nano / 44100));
+    ASSERT_EQ(late.expected(), 440 * (NANO / 44100));
 
 }
 
@@ -337,5 +337,58 @@ TEST(UniformBufferTest, Construct) {
  * 
  */
 TEST(UniformBufferTest, SameSize) {
+
+    // Create modules:
+
+    UniformBuffer uni;
+
+    BufferModule mbuf;
+
+    // Configure modules:
+
+    int size = 247;
+
+    mbuf.get_info()->out_buffer = size;
+    uni.get_info()->out_buffer = size;
+
+    // Bind the modules:
+
+    uni.bind(&mbuf);
+
+    // Create buffer:
+
+    AudioBuffer buff(size);
+    auto iter = buff.ibegin();
+
+    for (int i = 0; i < size; ++i) {
+
+        *iter++ = i;
+    }
+
+    // Set buffer:
+
+    mbuf.set_rbuffer(&buff);
+
+    // Finally, meta process:
+
+    for (int i = 0; i < 4; ++i) {
+
+        // Meta process:
+
+        uni.meta_process();
+
+        // Grab the buffer:
+
+        auto buff = uni.get_buffer();
+
+        // Ensure buffer is valid:
+
+        iter = buff->ibegin();
+
+        for (int j = 0; j < size; ++j) {
+
+            ASSERT_DOUBLE_EQ(*iter++, j);
+        }
+    }
 
 }

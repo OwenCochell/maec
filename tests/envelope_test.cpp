@@ -61,7 +61,7 @@ TEST(BaseEnvelopeTest, GetSet) {
     // Check number of samples left:
 
     env.set_start_time(0);
-    env.set_stop_time(nano * 5);
+    env.set_stop_time(NANO * 5);
 
     ASSERT_EQ(220507, env.remaining_samples());
 
@@ -102,15 +102,14 @@ TEST(DurationEnvelopeTest, GetSet) {
     ASSERT_EQ(dur.get_envelope(), &cnst);
 }
 
+/**
+ * @brief Determines if the DurationEnvelope can correctly process
+ * 
+ * We test that the DurationEnvelope can process the managed envelope,
+ * and correctly grabs it's buffer for later use
+ * 
+ */
 TEST(DurationEnvelopeTest, Process) {
-
-    /**
-     * @brief Determines if the DurationEnvelope can correctly process
-     * 
-     * We test that the DurationEnvelope can process the managed envelope,
-     * and correctly grabs it's buffer for later use
-     * 
-     */
 
     // Create the DurationEnvelope:
 
@@ -122,12 +121,13 @@ TEST(DurationEnvelopeTest, Process) {
 
     val.set_start_value(1);
     val.set_stop_value(5);
-    val.get_info()->buff_size = 100;
+    val.get_info()->out_buffer = 100;
     val.get_info()->sample_rate = 100;
+    val.get_timer()->set_samplerate(100);
 
     // Configure the DurationEnvelope:
 
-    dur.set_duration(3 * nano);
+    dur.set_duration(3 * NANO);
 
     // Register the envelope:
 
@@ -149,6 +149,8 @@ TEST(DurationEnvelopeTest, Process) {
 
             ASSERT_DOUBLE_EQ(*iter, 1);
         }
+
+        ++index;
     }
 
     dur.meta_process();
@@ -254,9 +256,9 @@ TEST(ExponentialRampTest, Value) {
     // Set some values:
 
     exp.set_start_value(SMALL);
-    exp.set_stop_time(nano * seconds);
+    exp.set_stop_time(NANO * seconds);
     exp.set_stop_value(final_value);
-    exp.get_info()->buff_size = 1000;
+    exp.get_info()->out_buffer = 1000;
     exp.get_timer()->set_samplerate(1000);
 
     long double last = -1;
@@ -319,9 +321,9 @@ TEST(ExponentialRampTest, ValueLarge) {
     // Set some values:
 
     exp.set_start_value(SMALL);
-    exp.set_stop_time(nano * seconds);
+    exp.set_stop_time(NANO * seconds);
     exp.set_stop_value(final_value);
-    exp.get_info()->buff_size = 5000;
+    exp.get_info()->out_buffer = 5000;
     exp.get_timer()->set_samplerate(1000);
 
     long double last = -1;
@@ -389,9 +391,9 @@ TEST(LinearRampTest, Value) {
     // Set some values:
 
     lin.set_start_value(SMALL);
-    lin.set_stop_time(nano * seconds);
+    lin.set_stop_time(NANO * seconds);
     lin.set_stop_value(final_value);
-    lin.get_info()->buff_size = 1000;
+    lin.get_info()->out_buffer = 1000;
     lin.get_timer()->set_samplerate(1000);
 
     long double last = 0;
@@ -458,9 +460,9 @@ TEST(LinearRampTest, ValueLarge) {
     // Set some values:
 
     lin.set_start_value(SMALL);
-    lin.set_stop_time(nano * seconds);
+    lin.set_stop_time(NANO * seconds);
     lin.set_stop_value(final_value);
-    lin.get_info()->buff_size = 5000;
+    lin.get_info()->out_buffer = 5000;
     lin.get_timer()->set_samplerate(1000);
 
     long double last = 0;
@@ -527,9 +529,9 @@ TEST(SetValueTest, Value) {
     // Set some values:
 
     val.set_start_value(0);
-    val.set_stop_time(nano * seconds);
+    val.set_stop_time(NANO * seconds);
     val.set_stop_value(final_value);
-    val.get_info()->buff_size = 1000;
+    val.get_info()->out_buffer = 1000;
     val.get_timer()->set_samplerate(1000);
 
     for (int i = 0; i < 2; ++i) {
@@ -582,9 +584,9 @@ TEST(SetValueTest, ValueOffset) {
     // Set some values:
 
     val.set_start_value(0);
-    val.set_stop_time(static_cast<int64_t>(nano * seconds));
+    val.set_stop_time(static_cast<int64_t>(NANO * seconds));
     val.set_stop_value(final_value);
-    val.get_info()->buff_size = 1000;
+    val.get_info()->out_buffer = 1000;
     val.get_timer()->set_samplerate(1000);
 
     // Meta process:
@@ -656,7 +658,7 @@ TEST(ChainEnvelopeTest, RepeatEnvelope) {
     ChainEnvelope chain;
 
     chain.get_timer()->set_samplerate(100);
-    chain.get_info()->buff_size = 100;
+    chain.get_info()->out_buffer = 100;
 
     // Create an envelope:
 
@@ -715,7 +717,7 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
     ChainEnvelope chain;
 
     chain.get_timer()->set_samplerate(100);
-    chain.get_info()->buff_size = 100;
+    chain.get_info()->out_buffer = 100;
 
     // Create the envelope:
 
@@ -723,7 +725,7 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
 
     cnst.set_start_value(5);
     cnst.set_stop_value(10);
-    cnst.set_stop_time(nano);
+    cnst.set_stop_time(NANO);
 
     // Add the envelope to the chain:
 
@@ -734,9 +736,9 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
     ConstantEnvelope cnst2;
 
     cnst2.set_start_value(20);
-    cnst2.set_start_time(nano*2);
+    cnst2.set_start_time(NANO*2);
     cnst2.set_stop_value(30);
-    cnst2.set_stop_time(nano*3);
+    cnst2.set_stop_time(NANO*3);
 
     chain.add_envelope(&cnst2);
 
@@ -809,7 +811,7 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
     ChainEnvelope chain;
 
     chain.get_timer()->set_samplerate(100);
-    chain.get_info()->buff_size = 400;
+    chain.get_info()->out_buffer = 400;
 
     // Create the envelope:
 
@@ -817,7 +819,7 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
 
     cnst.set_start_value(5);
     cnst.set_stop_value(10);
-    cnst.set_stop_time(nano);
+    cnst.set_stop_time(NANO);
 
     // Add the envelope to the chain:
 
@@ -828,9 +830,9 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
     ConstantEnvelope cnst2;
 
     cnst2.set_start_value(20);
-    cnst2.set_start_time(nano*2);
+    cnst2.set_start_time(NANO*2);
     cnst2.set_stop_value(30);
-    cnst2.set_stop_time(nano*3);
+    cnst2.set_stop_time(NANO*3);
 
     chain.add_envelope(&cnst2);
 
@@ -997,13 +999,13 @@ TEST(ChainEnvelopeTest, AddAfter) {
     ChainEnvelope chain;
  
     chain.get_timer()->set_samplerate(100);
-    chain.get_info()->buff_size = 100;
+    chain.get_info()->out_buffer = 100;
 
     // Create an envelope:
 
     ConstantEnvelope cnst;
 
-    cnst.set_stop_time(nano * 2);
+    cnst.set_stop_time(NANO * 2);
     cnst.set_start_value(1);
     cnst.set_stop_value(5);
 
@@ -1048,7 +1050,7 @@ TEST(ChainEnvelopeTest, AddAfter) {
     ConstantEnvelope cnst2;
 
     cnst2.set_start_time(chain.get_time());
-    cnst2.set_stop_time(chain.get_time() + (2 * nano));
+    cnst2.set_stop_time(chain.get_time() + (2 * NANO));
     cnst2.set_start_value(10);
     cnst2.set_stop_value(20);
 

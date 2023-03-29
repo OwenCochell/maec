@@ -38,6 +38,11 @@ void DurationEnvelope::start() {
     // Next, set the stop time:
 
     this->env->set_stop_time(this->env->get_time() + this->duration);
+
+    // Next, start the enclosed envelope:
+
+    this->env->start();
+
 }
 
 void ConstantEnvelope::process() {
@@ -123,7 +128,7 @@ void ChainEnvelope::add_envelope(BaseEnvelope* env) {
     // Determine if we are optimized
     // (Value exists at the end):
 
-    if (this->inter.empty()) {
+    if (!this->inter.empty()) {
 
         // Remove last value:
 
@@ -246,9 +251,9 @@ void ChainEnvelope::process() {
 
     // Iterate until buffer is full:
 
-    while (processed < this->get_info()->buff_size) {
+    while (processed < this->get_info()->out_buffer) {
 
-        int num = this->get_info()->buff_size - processed;
+        int num = this->get_info()->out_buffer - processed;
 
         // First, determine the number of samples current envelope will output:
 
@@ -260,7 +265,7 @@ void ChainEnvelope::process() {
 
         // Set size of current envelope to num value:
 
-        this->current->get_info()->buff_size = num;
+        this->current->get_info()->out_buffer = num;
  
         // Grab buffer from current envelope:
 

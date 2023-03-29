@@ -23,4 +23,4 @@ const int BUFF_SIZE = 440;
 const double SMALL = 0.000001;
 
 /// Nanoseconds per second
-const int64_t nano = 1000000000;
+const int64_t NANO = 1000000000;

@@ -285,7 +285,7 @@ class BufferModule : public SourceModule {
          * 
          * @param ibuff Buffer to repeat
          */
-        void set_rbuffer(AudioBuffer* ibuff) { this->gbuff = ibuff; this->get_info()->buff_size = static_cast<int>(ibuff->size()); }
+        void set_rbuffer(AudioBuffer* ibuff) { this->gbuff = ibuff; this->get_info()->out_buffer = static_cast<int>(ibuff->size()); }
 
         /**
          * @brief Gets the buffer being repeated
@@ -319,19 +319,10 @@ class BufferModule : public SourceModule {
  * Be warned, we may process the back modules multiple times to fill the buffer!
  * Ensure that any syncronization issues will not arise if this module is used.
  * 
- * TODO: 
- * 
- * as of now, the buffer size is a member attribute.
- * Once you implement a better audio info framework,
- * THEN YOU SHOULD UPDATE THIS COMPONENT TO PLAY NICE!
- * 
  */
 class UniformBuffer : public AudioModule {
 
     private:
-
-        /// Size of outgoing buffer
-        int buffer_size = 0;
 
         /// Index to empty position in out buffer
         int index = 0;

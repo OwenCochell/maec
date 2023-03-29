@@ -60,8 +60,6 @@ class BaseOscillator : public SourceModule {
 
             // Get the frequency from the module info object:
 
-            this->frequency = this->get_info()->freq;
-
             // Get the sample rate from the module info object:
 
             this->sample_rate = this->get_info()->sample_rate;

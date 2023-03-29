@@ -62,11 +62,11 @@ TEST(SinkModuleTest, MetaProcess) {
 
     // Get the audio info:
 
-    std::shared_ptr<AudioInfo> info = oconst.get_info();
+    auto* info = oconst.get_info();
 
     // Ensure the size is correct:
 
-    ASSERT_EQ(count.samples(), info->buff_size * sink.get_period());
+    ASSERT_EQ(count.samples(), info->out_buffer * sink.get_period());
     ASSERT_EQ(count.processed(), sink.get_period());
 
     // Now, test with different period:
@@ -81,7 +81,7 @@ TEST(SinkModuleTest, MetaProcess) {
 
     // Finally, ensure size is correct:
 
-    ASSERT_EQ(count.samples(), info->buff_size * sink.get_period());
+    ASSERT_EQ(count.samples(), info->out_buffer * sink.get_period());
     ASSERT_EQ(count.processed(), sink.get_period());
 
 }

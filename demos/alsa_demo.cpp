@@ -42,8 +42,8 @@ int main(int argc, char** argv) {
 
     // Temporary buffer size - Prevent underruns? TAKE INTO ACCOUNT THE SIZE OF THE FORMAT!
 
-    sink.get_info()->buff_size = 524288 / 4;
-    saw.get_info()->buff_size = 524288 / 4;
+    sink.get_info()->out_buffer = 524288 / 4;
+    saw.get_info()->out_buffer = 524288 / 4;
 
     int dang = sizeof(long double);
     int dfloat = sizeof(float);

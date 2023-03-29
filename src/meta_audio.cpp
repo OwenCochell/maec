@@ -108,13 +108,13 @@ void UniformBuffer::process() {
 
     // Create new empty buffer:
 
-    this->set_buffer(this->create_buffer());  // TODO: Does not create buffer of valid size!
+    this->set_buffer(this->create_buffer());
 
-    while (this->index < this->buffer_size) {
+    while (this->index < this->get_info()->out_buffer) {
 
         // Determine if in buffer is out of values:
 
-        if (this->iindex >= this->ibuff->size()) {
+        if (this->ibuff == nullptr || this->iindex >= static_cast<int>(this->ibuff->size())) {
 
             // The current in buffer is done, grab a new one:
 
@@ -134,7 +134,7 @@ void UniformBuffer::process() {
 
         // Determine the number of samples yet to fill:
 
-        int remaining = std::min(this->buffer_size - this->index, static_cast<int>(this->ibuff->size()) - this->iindex);
+        int remaining = std::min(this->get_info()->out_buffer - this->index, static_cast<int>(this->ibuff->size()) - this->iindex);
 
         // Fill the current buffer with this value:
 

@@ -94,7 +94,7 @@ TEST(AudioModuleTest, GetInfo) {
 
     // Get the info:
 
-    auto info = mod.get_info();
+    auto* info = mod.get_info();
 
     // Check the info:
 
@@ -110,7 +110,7 @@ TEST(AudioModuleTest, SetInfo) {
 
     // Create the info:
 
-    std::shared_ptr<AudioInfo> info = std::shared_ptr<AudioInfo>();
+    ModuleInfo info;
 
     // Set the info:
 

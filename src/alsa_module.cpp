@@ -350,7 +350,7 @@ void ALSASink::start() {
 
     // Next, upcall:
 
-    ALSABase::alsa_start(this->get_info()->sample_rate, this->get_info()->buff_size);
+    ALSABase::alsa_start(this->get_info()->sample_rate, this->get_info()->out_buffer);
 
     // Next, set the new period number:
 
@@ -358,7 +358,7 @@ void ALSASink::start() {
 
     // Set the new buffer size:
 
-    this->get_info()->buff_size = this->get_device().period_size;
+    this->get_info()->out_buffer = this->get_device().period_size;
 
 }
 

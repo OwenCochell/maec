@@ -89,7 +89,7 @@ class ChainTimer {
         int sample = 0;
 
         /// Nanoseconds per frame
-        int64_t nano_frame = nano / SAMPLE_RATE;
+        int64_t nano_frame = NANO / SAMPLE_RATE;
 
     public:
 
@@ -116,7 +116,7 @@ class ChainTimer {
          * 
          * @param samplerate Number of samples per second
          */
-        void set_samplerate(int samplerate) { this->nano_frame = nano / samplerate; }
+        void set_samplerate(int samplerate) { this->nano_frame = NANO / samplerate; }
 
         /**
          * @brief Gets the samplerate of this timer
@@ -125,7 +125,7 @@ class ChainTimer {
          * 
          * @return long double Current approximate samplerate
          */
-        int get_samplerate() const { return static_cast<int>(nano / this->nano_frame); }
+        int get_samplerate() const { return static_cast<int>(NANO / this->nano_frame); }
 
         /**
          * @brief Sets the Nano Seconds Per Frame (NPF)
