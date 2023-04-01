@@ -392,3 +392,127 @@ TEST(UniformBufferTest, SameSize) {
     }
 
 }
+
+/**
+ * @brief Ensures UniformBuffer handles smaller input buffer
+ * 
+ */
+TEST(UniformBufferTest, SamllerSize) {
+
+    // Create modules:
+
+    UniformBuffer uni;
+
+    BufferModule mbuff;
+
+    // Configure modules:
+
+    int osize = 100;
+    int isize = 20;
+
+    mbuff.get_info()->out_buffer = isize;
+    uni.get_info()->out_buffer = osize;
+
+    // Bind the modules:
+
+    uni.bind(&mbuff);
+
+    // Loop a certain number of times:
+
+    long double last = 0;
+
+    // Create buffer:
+
+    AudioBuffer buff(isize);
+    auto iter = buff.ibegin();
+
+    for (int i = 0; i < isize; ++i) {
+
+        *iter++ = i;
+    }
+
+    // Set buffer:
+
+    mbuff.set_rbuffer(&buff);
+
+    // Meta process:
+
+    uni.meta_process();
+
+    // Grab buffer:
+
+    auto obuff = uni.get_buffer();
+
+    // Ensure buffer is accurate:
+
+    for (auto iter = obuff->ibegin(); iter != obuff->iend(); ++iter) {
+
+        ASSERT_DOUBLE_EQ(*iter, iter.get_index() % isize);
+    }
+
+}
+
+/**
+ * @brief Ensures UniformBuffer handles larger input buffer
+ * 
+ */
+TEST(UniformBufferTest, BiggerSize) {
+
+    // Create the modules:
+
+    UniformBuffer uni;
+    BufferModule mbuff;
+
+    // Configure the module:
+
+    int isize = 100;
+    int osize = 20;
+
+    uni.get_info()->out_buffer = osize;
+    mbuff.get_info()->out_buffer = isize;
+
+    // Bind the modules:
+
+    uni.bind(&mbuff);
+
+    // Create a buffer:
+
+    AudioBuffer buff(isize);
+    auto iter = buff.ibegin();
+
+    // Add values to buffer:
+
+    for (int j = 0; j < isize; ++j) {
+
+        *iter++ = j;
+    }
+
+    // Add buffer to module:
+
+    mbuff.set_rbuffer(&buff);
+
+    // Iterate a certain number of time:
+
+    for (int i = 0; i < (isize / 20); ++i) {
+
+        // Meta process:
+
+        uni.meta_process();
+
+        // Grab the buffer:
+
+        auto obuff = uni.get_buffer();
+
+        // Ensure buffer is accurate:
+
+        for (auto tier = obuff->ibegin(); tier != obuff->iend(); ++tier) {
+
+            // Check value:
+
+            ASSERT_DOUBLE_EQ(*tier, tier.get_index() + (i * osize));
+
+        }
+
+    }
+
+}

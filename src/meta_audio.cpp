@@ -138,7 +138,7 @@ void UniformBuffer::process() {
 
         // Fill the current buffer with this value:
 
-        std::copy_n(this->ibuff->ibegin(), remaining, this->buff->ibegin()+this->index);
+        std::copy_n(this->ibuff->ibegin() + this->iindex, remaining, this->buff->ibegin() + this->index);
 
         // Update values and move on:
 
