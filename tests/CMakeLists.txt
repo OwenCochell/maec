@@ -17,6 +17,7 @@ set(TEST_FILES
     chrono_test.cpp
     envelope_test.cpp
     utils_test.cpp
+    dsp/conv_test.cpp
 )
 
 # Get Google Tests

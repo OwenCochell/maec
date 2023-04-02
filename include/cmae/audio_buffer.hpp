@@ -18,6 +18,7 @@
 #include <vector>
 #include <iterator>
 #include <algorithm>
+#include <memory>
 
 #include "const.hpp"
 
@@ -164,6 +165,16 @@ class BaseAudioIterator {
         C& operator+=(const long int& num) { this->set_index(this->get_index() + num); return static_cast<C&>(*this); }
 
         /**
+         * @brief Adds the given number to this iterator
+         * 
+         * Set plus operation for unsigned int
+         * 
+         * @param num Number to add to current index
+         * @return C& This iterator
+         */
+        C& operator+=(const unsigned int& num) { this->set_index(this->get_index() + num); return static_cast<C&>(*this); }
+
+        /**
          * @brief Subtracts the given number from this iterator
          * 
          * @param num Number to add to the current index
@@ -188,6 +199,16 @@ class BaseAudioIterator {
          * @return C A new iterator with the new index
          */
         C operator+(const long int& num) { C tmp = static_cast<C&>(*this); tmp += num; return tmp; }
+
+        /**
+         * @brief Creates a new iterator by adding the given number to our index
+         * 
+         * Plus operation for unsigned int
+         * 
+         * @param num Number to add to the current index
+         * @return C A new iterator with the new index
+         */
+        C operator+(const unsigned int& num) { C tmp = static_cast<C&>(*this); tmp += num; return tmp; }
 
         /**
          * @brief Creates a new iterator by adding ourselves to the given iterator
@@ -1117,6 +1138,9 @@ class AudioBuffer {
          */
         AudioBuffer::SeqIterator<long double> end() { return this->send(); }
 };
+
+/// Alias for a unique pointer to an AudioBuffer
+using BufferPointer = std::unique_ptr<AudioBuffer>;
 
 /**
  * @brief Components that squish and split audio buffers.

@@ -19,6 +19,7 @@ add_library(${PROJECT_NAME}
     src/chrono.cpp
     src/envelope.cpp
     src/utils.cpp
+    src/dsp/conv.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -44,6 +45,7 @@ if(ALSA_FOUND)
 
   include_directories(${ALSA_INCLUDE_DIRS})
   target_link_libraries(cmae ${ALSA_LIBRARIES})
+
 endif(ALSA_FOUND)
 
 # Set compile options:

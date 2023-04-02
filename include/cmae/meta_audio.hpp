@@ -311,6 +311,9 @@ class BufferModule : public SourceModule {
  * and outputs a buffer of standard size.
  * For example, if we are inputting buffers with size 20,
  * and we want an output size of 10, then we will split up the buffer into two parts.
+ * The opposite is also true, if we are inputting buffers with size 10
+ * and want an output size of 20, then we will sample the back modules twice
+ * and merge the contents into one buffer.
  * 
  * This is useful if you want to work with buffers of a specific size,
  * and you don't know exactly what the incoming buffer size will be,
