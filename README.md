@@ -1,16 +1,20 @@
 
-# cmae
+<span style>
 
-C++ Modular Audio Engine
+# maec
 
-# Disclaimer
+Modular Audio Engine in C++
+
+![maec info](./assets/maec_logo.png)
+
+## Disclaimer
 
 This project is a work in progress!
 This project will remain in an experimental state for a long time.
 Any components or features may change in a massive way with no warning.
 Use at your own risk.
 
-# Theory
+## Theory
 
 In theory, this project will provide modules that can be chained
 together to produce/ work with audio data.

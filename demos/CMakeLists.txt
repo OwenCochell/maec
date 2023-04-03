@@ -22,6 +22,6 @@ foreach( demosourcefile ${MISC_FILES} )
 
     # Link MAEC
 
-    target_link_libraries( ${demoname} cmae )
+    target_link_libraries( ${demoname} maec )
 
 endforeach( demosourcefile ${MISC_FILES} )

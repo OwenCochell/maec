@@ -45,6 +45,17 @@
 int length_conv(int size1, int size2);
 
 /**
+ * @brief Determines the length of the Convolution output given input sizes
+ * 
+ * Determines the final length using the size type.
+ *
+ * @param size1 Size of first input signal
+ * @param size2 Size of second input signal
+ * @return Size of output
+ */
+int length_conv(std::size_t size1, std::size_t size2);
+
+/**
  * @brief Convolves the input signal with the kernel by input side using start iterators and signal sizes
  * 
  * Does a Convolution operation using the input side algorithm:

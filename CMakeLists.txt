@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(cmae VERSION 1.0.0 DESCRIPTION "A Modular Audio Engine" HOMEPAGE_URL "https://github.com/Owen-Cochell/cmae" LANGUAGES CXX)
+project(maec VERSION 1.0.0 DESCRIPTION "Modular Audio Engine in C++" HOMEPAGE_URL "https://github.com/Owen-Cochell/cmae" LANGUAGES CXX)
 
 # Define our target and set properties:
 
@@ -39,12 +39,12 @@ if(ALSA_FOUND)
 
   # Specify that we have found ALSA:
 
-  target_compile_definitions(cmae PUBLIC ALSA_F=1)
+  target_compile_definitions(maec PUBLIC ALSA_F=1)
 
   # Include ALSA for linking:
 
   include_directories(${ALSA_INCLUDE_DIRS})
-  target_link_libraries(cmae ${ALSA_LIBRARIES})
+  target_link_libraries(maec ${ALSA_LIBRARIES})
 
 endif(ALSA_FOUND)
 

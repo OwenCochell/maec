@@ -13,10 +13,16 @@
 
 int length_conv(int size1, int size2) {
 
-    // Calculate and return
+    // Calculate and return:
 
     return size1 + size2 - 1;
+}
 
+int length_conv(std::size_t size1, std::size_t size2) {
+
+    // Calculate and return:
+
+    return static_cast<int>(size1) + static_cast<int>(size2) - 1;
 }
 
 BufferPointer input_conv(BufferPointer input, BufferPointer kernel) {

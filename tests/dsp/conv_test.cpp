@@ -77,7 +77,6 @@ TEST(ConvolutionTest, InputIter) {
 
         ASSERT_DOUBLE_EQ(*iter, output.at(iter.get_index()));
     }
-
 }
 
 /**
@@ -101,7 +100,6 @@ TEST(ConvolutionTest, InputBuffer) {
 
         ASSERT_DOUBLE_EQ(*iter, output.at(iter.get_index()));
     }
-
 }
 
 /**
@@ -121,6 +119,51 @@ TEST(ConvolutionTest, OutputIterSize) {
     // Check that output matches expected:
 
     for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
+
+        ASSERT_DOUBLE_EQ(*iter, output.at(iter.get_index()));
+    }
+}
+
+/**
+ * @brief Ensures the output side convolution algorithm works with start and stop iterators
+ * 
+ */
+TEST(ConvolutionTest, OutputIter) {
+
+    // Create a buffer of results:
+
+    AudioBuffer buff(length_conv(input.size(), kernel.size()));
+
+    // Do operation:
+
+    output_conv(input.begin(), input.end(), kernel.begin(), kernel.end(), buff.ibegin());
+
+    // Check that output matches expected:
+
+    for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
+
+        ASSERT_DOUBLE_EQ(*iter, output.at(iter.get_index()));
+    }
+}
+
+/**
+ * @brief Ensures the output side convolution algorithm works with AudioBuffers
+ * 
+ */
+TEST(ConvolutionTest, OutputBuffer) {
+
+    // Create buffers:
+
+    BufferPointer binput = std::make_unique<AudioBuffer>(input);
+    BufferPointer bkernel = std::make_unique<AudioBuffer>(kernel);
+
+    // Do operation:
+
+    auto buff = input_conv(std::move(binput), std::move(bkernel));
+
+    // Check that output matches expected:
+
+    for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
         ASSERT_DOUBLE_EQ(*iter, output.at(iter.get_index()));
     }
