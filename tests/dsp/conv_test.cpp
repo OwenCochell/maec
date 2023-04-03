@@ -36,7 +36,7 @@ TEST(ConvolutionTest, Length) {
 }
 
 /**
- * @brief Ensures the input side convolution algorithm works with iterators and sizes works
+ * @brief Ensures the input side convolution algorithm works with iterators and sizes
  * 
  */
 TEST(ConvolutionTest, InputIterSize) {
@@ -102,4 +102,26 @@ TEST(ConvolutionTest, InputBuffer) {
         ASSERT_DOUBLE_EQ(*iter, output.at(iter.get_index()));
     }
 
+}
+
+/**
+ * @brief Ensures the output side convolution algorithm works with iterators and sizes
+ * 
+ */
+TEST(ConvolutionTest, OutputIterSize) {
+
+    // Create a buffer of results:
+
+    AudioBuffer buff(length_conv(input.size(), kernel.size()));
+
+    // Do operation:
+
+    output_conv(input.begin(), input.size(), kernel.begin(), kernel.size(), buff.ibegin());
+
+    // Check that output matches expected:
+
+    for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
+
+        ASSERT_DOUBLE_EQ(*iter, output.at(iter.get_index()));
+    }
 }

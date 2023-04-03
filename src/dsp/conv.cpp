@@ -34,3 +34,18 @@ BufferPointer input_conv(BufferPointer input, BufferPointer kernel) {
     return buff;
 
 }
+
+BufferPointer output_conv(BufferPointer input, BufferPointer kernel) {
+
+    // First, create an output buffer:
+
+    BufferPointer buff = std::make_unique<AudioBuffer>(length_conv(static_cast<int>(input->size()), static_cast<int>(kernel->size())));
+
+    // Pass the data along to other function:
+
+    input_conv(input->ibegin(), input->size(), kernel->ibegin(), kernel->size(), buff->ibegin());
+
+    // Finally, return the output buffer:
+
+    return buff;
+}

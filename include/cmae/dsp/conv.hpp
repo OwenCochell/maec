@@ -81,7 +81,7 @@ int length_conv(int size1, int size2);
  * @param output Start iterator to output buffer
  */
 template <typename I, typename K, typename O>
-void input_conv(I binput, unsigned int input_size, K bkernel, unsigned int kernel_size, O output) {
+void input_conv(I input, unsigned int input_size, K kernel, unsigned int kernel_size, O output) {
 
     // Iterate over each point in input:
 
@@ -94,10 +94,9 @@ void input_conv(I binput, unsigned int input_size, K bkernel, unsigned int kerne
             // Determine the value at this position:
             // output[i+j] += input[i] * kernel[j]
 
-            *(output+i+j) += (*(binput+i) * *(bkernel+j));
+            *(output+i+j) += (*(input+i) * *(kernel+j));
         }
     }
-
 }
 
 /**
@@ -164,34 +163,73 @@ BufferPointer input_conv(BufferPointer input, BufferPointer kernel);
  * and kernel in order to make your operation more clear.
  * 
  * @tparam I Input signal iterator type
- * @tparam K Kernel input signal iterator type
+ * @tparam K Kernel iterator type
  * @tparam O Output buffer iterator type
  * @param input Input signal start iterator
  * @param input_size Size of input signal
- * @param kernel Kernel signal start iterator
+ * @param kernel Kernel start iterator
  * @param kernel_size Size of kernel
  * @param output Start iterator to output buffer
  */
 template<typename I, typename K, typename O>
 void output_conv(I input, int input_size, K kernel, int kernel_size, O output) {
 
+    // Determine final size:
 
+    int size = length_conv(input_size, kernel_size);
+
+    // Iterate over each sample in output:
+
+    for (int i = 0; i < size; ++i) {
+
+        // Iterate over each point in kernel:
+
+        for (int j = 0; j < kernel_size; ++j) {
+
+            // Ensure we are within bounds
+
+            if (i - j < 0 || i - j > input_size - 1) {
+
+                // Simply do nothing
+
+                continue;
+
+            }
+
+            // Do operation:
+            // output[i] += kernel[j] * input[i - j]
+
+            *output += *(kernel + j) * *(input + (i - j));
+        }
+
+        // Increment the output iterator:
+
+        ++output;
+    }
 }
 
 /**
  * @brief Convolves the input signal with the kernel by output side using start and end iterators
  * 
- * @tparam I 
- * @tparam K 
- * @tparam O 
- * @param input 
- * @param input_size 
- * @param kernel 
- * @param kernel_size 
- * @param output 
+ * This function is identical to the other output_conv() functions,
+ * with the exception that we take start and stop iterators
+ * for the input signal and kernel.
+ * 
+ * @tparam I Input signal iterator type
+ * @tparam K Kernel iterator type
+ * @tparam O Output buffer iterator type
+ * @param binput Input signal start iterator
+ * @param eipnut Input signal stop iterator
+ * @param bkernel Kernel start iterator
+ * @param ekernel Kernel stop iterator
+ * @param output Start iterator to output buffer
  */
 template<typename I, typename K, typename O>
-void output_conv(I input, int input_size, K kernel, int kernel_size, O output) {
+void output_conv(I binput, I einput, K bkernel, K ekernel, O output) {
+
+    // Call other method with sizes determined:
+
+    output_conv(binput, std::distance(binput, einput), bkernel, std::distance(bkernel, ekernel), output);
 }
 
 /**
@@ -208,4 +246,4 @@ void output_conv(I input, int input_size, K kernel, int kernel_size, O output) {
  * @param kernel Kernal to apply to the input signal
  * @return BufferPointer Pointer to buffer containing result.
  */
-BufferPointer output_conv(BufferPointer input, BufferPointer kernel) {}
+BufferPointer output_conv(BufferPointer input, BufferPointer kernel);
