@@ -1,7 +1,7 @@
 /**
  * @file conv.hpp
  * @author Owen Cochell (owencochell@gmail.com)
- * @brief 
+ * @brief Various convolution tools and components
  * @version 0.1
  * @date 2023-04-01
  * 

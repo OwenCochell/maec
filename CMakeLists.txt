@@ -20,6 +20,7 @@ add_library(${PROJECT_NAME}
     src/envelope.cpp
     src/utils.cpp
     src/dsp/conv.cpp
+    src/dsp/ft.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
