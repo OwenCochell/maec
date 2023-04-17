@@ -63,9 +63,9 @@ long double sin_basis(int phase, int total, long double freq);
  * Include equation?
  * Maybe offer custom basis functions? That could be cool...
  * 
- * @tparam R Real buffer iterator type
- * @tparam U Non-real buffer iterator type
- * @tparam O Output buffer iterator type
+ * @tparam R Real iterator type
+ * @tparam U Non-real iterator type
+ * @tparam O Output iterator type
  * @param real Start iterator for real data
  * @param nonreal Start iterator for unreal data
  * @param size Size of real/non-real data
@@ -81,7 +81,7 @@ void inv_dft(R real, U nonreal, int size, O output) {
     // Preform edge case normalization operation, divide by 2:
 
     *(real) /= 2;
-    *(real + size - 1) /= 2;
+    *(real + (size - 1)) /= 2;
 
     // Iterate over each sample in components:
 
@@ -121,3 +121,55 @@ void inv_dft(R real, U nonreal, int size, O output) {
  * @return Pointer to buffer containing result
  */
 BufferPointer inv_dft(BufferPointer real, BufferPointer nonreal);
+
+/**
+ * @brief Preforms a Discreet Fourier Transform
+ * 
+ * We compute the DFT using the given input signal.
+ * We store the real and non-real results in the given iterators.
+ *
+ * @tparam R Real iterator type
+ * @tparam U Non-real iterator type
+ * @tparam I Input iterator type
+ * @param input Start iterator to input data
+ * @param size Size of input data
+ * @param real Output iterator to real data
+ * @param nonreal Output iterator to non-real data
+ */
+template<typename I, typename R, typename U>
+void dft(I input, int size, R real, U nonreal) {
+
+    // Determine size of output buffers:
+
+    int output_size = (size / 2) + 1;
+
+    // Iterate over output size:
+
+    for (int k = 0; k < output_size; ++k) {
+
+        // Iterate over total size:
+
+        for (int i = 0; i < size; ++i) {
+
+            // Determine value for real part:
+
+            long double val = *(input+i);
+
+            *(real+k) += val * cos_basis(i, output_size, k);
+            *(nonreal+k) += val * sin_basis(i, output_size, k);
+        }
+    }
+}
+
+/**
+ * @brief Preforms a Discreet Fourier Transform
+ * 
+ * This function is identical to the dft() function,
+ * with the exception that we take a BufferPointer containing the input signal,
+ * and return the result as a BufferPointer,
+ * with the real part existing in channel 0 and the non-real part existing in channel 1.
+ * 
+ * @param input Pointer to input signal
+ * @return Pointer to AudioBuffer containing real and non-real parts
+ */
+BufferPointer dft(BufferPointer input);

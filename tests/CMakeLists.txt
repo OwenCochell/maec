@@ -18,6 +18,7 @@ set(TEST_FILES
     envelope_test.cpp
     utils_test.cpp
     dsp/conv_test.cpp
+    dsp/ft_test.cpp
 )
 
 # Get Google Tests
