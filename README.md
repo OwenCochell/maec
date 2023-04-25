@@ -1,6 +1,3 @@
-
-<span style>
-
 # maec
 
 Modular Audio Engine in C++
