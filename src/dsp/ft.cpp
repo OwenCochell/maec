@@ -34,11 +34,26 @@ BufferPointer inv_dft(BufferPointer real, BufferPointer nonreal) {
 
     // Create final output buffer:
 
-    BufferPointer buff = std::make_unique<AudioBuffer>((real->size() - 1) / 2);
+    BufferPointer buff = std::make_unique<AudioBuffer>((real->size() - 1) * 2);
 
     // Pass values to other function:
 
     inv_dft(real->ibegin(), nonreal->ibegin(), static_cast<int>(real->size()), buff->ibegin());
+
+    // Finally, return pointer to output buffer:
+
+    return buff;
+}
+
+BufferPointer dft(BufferPointer input) {
+
+    // Create final output buffer:
+
+    BufferPointer buff = std::make_unique<AudioBuffer>((input->size() / 2) + 1, 2);
+
+    // Pass values to other function:
+
+    dft(input->ibegin(), input->size(), buff->chbegin()->begin(), (buff->chbegin()+1)->begin());
 
     // Finally, return pointer to output buffer:
 
