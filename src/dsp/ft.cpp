@@ -19,7 +19,7 @@ long double cos_basis(int phase, int total, long double freq) {
 
     // Preform operation and return:
 
-    return cos(2 * M_PI * freq * phase / total);
+    return cos((2 * M_PI * freq * phase) / total);
 
 }
 
@@ -27,7 +27,21 @@ long double sin_basis(int phase, int total, long double freq) {
 
     // Preform operation and return:
 
-    return sin(2 * M_PI * freq * phase / total);
+    return sin((2 * M_PI * freq * phase) / total);
+}
+
+int length_ft(std::size_t size) {
+
+    // Simply calculate and return:
+
+    return (size / 2) + 1;
+}
+
+int length_ift(std::size_t size) {
+
+    // Simply calculate and return:
+
+    return (size - 1) * 2;
 }
 
 BufferPointer inv_dft(BufferPointer real, BufferPointer nonreal) {

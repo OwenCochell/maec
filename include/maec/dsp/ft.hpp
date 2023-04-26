@@ -49,6 +49,32 @@ long double cos_basis(int phase, int total, long double freq);
 long double sin_basis(int phase, int total, long double freq);
 
 /**
+ * @brief Determines the length of real and non-real results from a DFT operation
+ * 
+ * When applying a FT operation on an input signal, we will 
+ * have two output parts of a set size, defined by this equation:
+ * 
+ * output = (size / 2) + 1
+ * 
+ * @param size Size of input signal
+ * @return int Size of the real and non-real parts
+ */
+int length_ft(std::size_t size);
+
+/**
+ * @brief Determines the length of the output signal result from an inverse DFT operation
+ * 
+ * When preforming an inverse FT operation on a real and non-real part,
+ * we will have one output signal of a set size, defined by this equation:
+ * 
+ * output = (size - 1) * 2
+ * 
+ * @param size Size of real and non-real parts
+ * @return int Size of output signal
+ */
+int length_ift(std::size_t size);
+
+/**
  * @brief Preforms an Inverse DFT  
  * 
  * We compute the inverse DFT using the given real and non-real parts.
@@ -78,7 +104,16 @@ void inv_dft(R real, U nonreal, int size, O output) {
 
     int final_size = (size - 1) * 2;
 
-    // Preform edge case normalization operation, divide by 2:
+    // Determine division value:
+
+    const long double div_value = final_size / 2.0;
+
+    // Grab initial values for future reference:
+
+    auto real0 = *(real);
+    auto reale = *(real + (size - 1));
+
+    // Preform edge case normalization operation, divide by final_size:
 
     *(real) /= 2;
     *(real + (size - 1)) /= 2;
@@ -89,8 +124,8 @@ void inv_dft(R real, U nonreal, int size, O output) {
 
         // Grab samples for this operation and normalize:
 
-        long double real_part = *(real+k) / (final_size / 2.0);
-        long double nonreal_part = *(nonreal+k) / (final_size / 2.0);
+        long double real_part = *(real+k) / (div_value);
+        long double nonreal_part = *(nonreal+k) / (-div_value);
 
         // Iterate over output:
 
@@ -104,8 +139,8 @@ void inv_dft(R real, U nonreal, int size, O output) {
 
     // Finally, undo edge case normalization:
 
-    *(real) *= 2;
-    *(real + size - 1) *= 2;
+    *(real) = real0;
+    *(real + (size - 1)) = reale;
 }
 
 /**
@@ -155,8 +190,8 @@ void dft(I input, int size, R real, U nonreal) {
 
             long double val = *(input+i);
 
-            *(real+k) += val * cos_basis(i, output_size, k);
-            *(nonreal+k) += val * sin_basis(i, output_size, k);
+            *(real+k) += val * cos_basis(i, size, k);
+            *(nonreal+k) += -val * sin_basis(i, size, k);
         }
     }
 }
