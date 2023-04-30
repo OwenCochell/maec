@@ -102,7 +102,7 @@ void inv_dft(R real, U nonreal, int size, O output) {
 
     // Determine final output size:
 
-    int final_size = (size - 1) * 2;
+    int final_size = length_ift(size);
 
     // Determine division value:
 
@@ -176,7 +176,7 @@ void dft(I input, int size, R real, U nonreal) {
 
     // Determine size of output buffers:
 
-    int output_size = (size / 2) + 1;
+    int output_size = length_ft(size);
 
     // Iterate over output size:
 
@@ -184,14 +184,17 @@ void dft(I input, int size, R real, U nonreal) {
 
         // Iterate over total size:
 
+        auto real_iter = real+k;
+        auto nonreal_iter = nonreal+k;
+
         for (int i = 0; i < size; ++i) {
 
             // Determine value for real part:
 
             long double val = *(input+i);
 
-            *(real+k) += val * cos_basis(i, size, k);
-            *(nonreal+k) += -val * sin_basis(i, size, k);
+            *(real_iter) += val * cos_basis(i, size, k);
+            *(nonreal_iter) += -val * sin_basis(i, size, k);
         }
     }
 }

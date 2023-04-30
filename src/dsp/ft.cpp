@@ -67,7 +67,7 @@ BufferPointer dft(BufferPointer input) {
 
     // Pass values to other function:
 
-    dft(input->ibegin(), input->size(), buff->chbegin()->begin(), (buff->chbegin()+1)->begin());
+    dft(input->ibegin(), static_cast<int>(input->size()), buff->chbegin()->begin(), (buff->chbegin()+1)->begin());
 
     // Finally, return pointer to output buffer:
 
