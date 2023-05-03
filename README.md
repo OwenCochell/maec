@@ -2,7 +2,7 @@
 
 Modular Audio Engine in C++
 
-![maec info](./assets/maec_logo.png)
+![maec info](./assets/maec.png)
 
 ## Disclaimer
 
