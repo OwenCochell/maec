@@ -9,9 +9,10 @@
  * 
  */
 
+#include <iostream>
+
 #ifdef ALSA_F
 
-#include <iostream>
 #include "alsa_module.hpp"
 #include "fund_oscillator.hpp"
 
@@ -60,7 +61,13 @@ int main(int argc, char** argv) {
 
     sink.stop();
     saw.stop();
+}
 
+#else
+
+int main(int argc, char** argv) {
+
+    std::cout << "ALSA Is not installed!" << std::endl;
 }
 
 #endif
