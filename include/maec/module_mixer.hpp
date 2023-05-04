@@ -103,7 +103,7 @@ class ModuleMixDown : virtual public AudioModule {
          * 
          * @return int Number of input modules attached to this mixer
          */
-        int num_inputs() { return in.size(); }
+        int num_inputs() { return static_cast<int>(in.size()); }
 
 };
 
@@ -190,7 +190,7 @@ class ModuleMixUp : virtual public AudioModule {
          * 
          * @return int Number of output modules bound to us
          */
-        int num_outputs() { return out.size(); }
+        int num_outputs() { return static_cast<int>(out.size()); }
 
 };
 
