@@ -92,7 +92,7 @@ int length_conv(std::size_t size1, std::size_t size2);
  * @param output Start iterator to output buffer
  */
 template <typename I, typename K, typename O>
-void input_conv(I input, unsigned int input_size, K kernel, unsigned int kernel_size, O output) {
+void input_conv(I input, std::size_t input_size, K kernel, std::size_t kernel_size, O output) {
 
     // Iterate over each point in input:
 
@@ -183,7 +183,7 @@ BufferPointer input_conv(BufferPointer input, BufferPointer kernel);
  * @param output Start iterator to output buffer
  */
 template<typename I, typename K, typename O>
-void output_conv(I input, int input_size, K kernel, int kernel_size, O output) {
+void output_conv(I input, std::size_t input_size, K kernel, std::size_t kernel_size, O output) {
 
     // Determine final size:
 

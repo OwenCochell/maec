@@ -245,7 +245,7 @@ void ChainEnvelope::process() {
 
     // Create a final buffer:
 
-    auto buff = this->create_buffer();
+    auto tbuff = this->create_buffer();
 
     int processed = 0;
 
@@ -275,7 +275,7 @@ void ChainEnvelope::process() {
 
         // First, fill it with contents of first envelope:
 
-        std::copy_n(cbuff->ibegin(), num, buff->ibegin()+processed);
+        std::copy_n(cbuff->ibegin(), num, tbuff->ibegin()+processed);
 
         // Update the number of samples processed:
 
@@ -296,7 +296,7 @@ void ChainEnvelope::process() {
 
     // Finally, set the buffer:
 
-    this->set_buffer(std::move(buff));
+    this->set_buffer(std::move(tbuff));
 }
 
 void ADSREnvelope::start() {

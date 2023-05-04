@@ -34,14 +34,14 @@ int length_ft(std::size_t size) {
 
     // Simply calculate and return:
 
-    return (size / 2) + 1;
+    return (static_cast<int>(size) / 2) + 1;
 }
 
 int length_ift(std::size_t size) {
 
     // Simply calculate and return:
 
-    return (size - 1) * 2;
+    return (static_cast<int>(size) - 1) * 2;
 }
 
 BufferPointer inv_dft(BufferPointer real, BufferPointer nonreal) {
