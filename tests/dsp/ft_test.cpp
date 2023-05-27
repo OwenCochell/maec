@@ -23,6 +23,9 @@ std::vector<long double> ft_data = {-81.0611399999996160709, -32.431240000000261
 std::vector<long double> reals = {-689.550949999998468776, -360.761730393757710567, -9.09627805513791995104, -327.622828943792766043, -237.608057949997369562, -56.4823335254953177095, -420.058431365067667523, -405.18109821272589835, 410.473673843006695933, 384.975560036773781697, -493.178524073103451975, 396.298291421185540917, 58.616429016356431804, 317.639586912586099038, -125.923587794969226675, -26.3771664745074108874, -186.769206518632613412, 192.096986502756412657, -396.525639886057485434, 145.43231520399339618, -187.554675926895537533, -345.553158653373423709, -606.114272127072479468, -44.830973873640273572, 821.155170837586112498, -357.606149999998992051};
 std::vector<long double> nonreals = {0, -56.7987997464239218748, -88.4598663671056244934, 114.599317038853708184, 59.8147392880928162121, -318.732530313386465293, 25.4838243897190054234, 298.856932852788386101, -52.7828546196376580737, 639.085076012777274668, -725.060920075901687409, -217.793354878620727413, -50.8793220693166556787, -81.2345735657510905209, -312.27135476011737128, 13.6098176315475818607, -225.700304988403331885, 267.968070726491263162, -138.317628623756462919, 724.441385521063360764, 358.256926195155114334, 367.869822138617369595, -379.416274255358194706, -378.675193748761023865, -204.906665100901602239, 4.487825376552348945e-13};
 
+/// Known complex data
+std::vector<std::complex<long double>> cft_data = {std::complex<long double>(-15.189251, 0.000000), std::complex<long double>(11.704489, -7.808442), std::complex<long double>(-0.090070, 10.845936), std::complex<long double>(-11.697811, -5.706792), std::complex<long double>(-2.788215, 7.507124), std::complex<long double>(8.873675, -10.790867), std::complex<long double>(-5.838451, 2.531785), std::complex<long double>(4.630811, -6.716717), std::complex<long double>(0.936014, -15.374274), std::complex<long double>(15.496844, -3.780477), std::complex<long double>(6.904307, -2.551331), std::complex<long double>(-4.702844, 12.109802), std::complex<long double>(-4.071020, 15.037189), std::complex<long double>(7.972179, -6.781337), std::complex<long double>(0.624014, -5.571347), std::complex<long double>(4.138358, -0.394291), std::complex<long double>(-1.130739, 0.000000), std::complex<long double>(4.138358, 0.394291), std::complex<long double>(0.624014, 5.571347), std::complex<long double>(7.972179, 6.781337), std::complex<long double>(-4.071020, -15.037189), std::complex<long double>(-4.702844, -12.109802), std::complex<long double>(6.904307, 2.551331), std::complex<long double>(15.496844, 3.780477), std::complex<long double>(0.936014, 15.374274), std::complex<long double>(4.630811, 6.716717), std::complex<long double>(-5.838451, -2.531785), std::complex<long double>(8.873675, 10.790867), std::complex<long double>(-2.788215, -7.507124), std::complex<long double>(-11.697811, 5.706792), std::complex<long double>(-0.090070, -10.845936), std::complex<long double>(11.704489, 7.808442)};
+
 /**
  * @brief Ensures the length functions are accurate
  * 
@@ -267,4 +270,39 @@ TEST(DFT, InvKnownBuffer) {
 
         ++data_iter;
     }
+}
+
+/**
+ * @brief Tests that the radix 2 FFT algorithm works with known data
+ * 
+ */
+TEST(FFT2, Known) {
+
+    // Create vector of output data:
+    
+    std::vector<std::complex<long double>> out;
+
+    // Get length of output data:
+
+    int output_length = cft_data.size();
+
+    // Reserve output buffer:
+
+    out.reserve(output_length);
+
+    // Fill output buffer with zeroes:
+
+    for (int i = 0; i < output_length; ++i) {
+
+        out.push_back(0);
+    }
+
+    // Send data through FFT function:
+
+    fft_nr_radix2(cft_data.begin(), static_cast<int>(cft_data.size()), out.begin());
+
+    // DO NOTHING! Just for debugging...
+
+    int blah = 0;
+
 }

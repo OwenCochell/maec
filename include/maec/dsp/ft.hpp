@@ -20,7 +20,22 @@
 
 #pragma once
 
+#include <complex>
+
 #include "../audio_buffer.hpp"
+
+/**
+ * This section defines functions for calculating
+ * the Discreet Fourier Transform, as well as it's inverse.
+ * 
+ * These functions are very trivial and simple to use,
+ * and they have few surprises and nuances.
+ * Unfortunately, these functions are also incredibly slow.
+ *
+ * If you want extra speed, and extra complexity,
+ * then you should look below at the FFT algorithms.
+ * 
+ */
 
 /**
  * @brief Cosine basis function
@@ -211,3 +226,109 @@ void dft(I input, int size, R real, U nonreal) {
  * @return Pointer to AudioBuffer containing real and non-real parts
  */
 BufferPointer dft(BufferPointer input);
+
+/**
+ * This section defines functions for calculating
+ * the Fast Fourier Transform, as well as it's inverse.
+ * 
+ * The FFT is a complicated algorithm that has some nuances.
+ * For example, it works primarily with non-real numbers.
+ * These functions do contain versions that work with real data,
+ * but there are some nuances to consider when using these.
+ * 
+ * These functions have different implementations,
+ * some being in-place, out of place, Decimation in Time(DIT),
+ * Decimation in Frequency(DIF), and type (radix-2, radix-4, radix-n, ect,)
+ * 
+ * Please read the function documentation for a breakdown
+ * on the features of each implementation!
+ * 
+ */
+
+/**
+ * @brief Preforms a non-real, out of place, radix2 FFT
+ * 
+ * This function is very naive!
+ * Is is implemented via recursion,
+ * and is very slow (at least compared to other FFT algorithms...)
+ * 
+ * @tparam I Input iterator type
+ * @tparam O Output iterator type
+ * @param input Input iterator for complex data
+ * @param size Size of input data
+ * @param output Output iterator for complex data
+ * @param stride Current stride (step size)
+ */
+template <typename I, typename O>
+void fft_nr_radix2(I input, int size, O output, int stride=1) {
+
+    // Determine if we have a trivial size:
+
+    if (size == 1) {
+
+        // Trivial case, size=1 is just current value:
+
+        *(output) = *input;
+
+        return;
+    }
+
+    // Pre-compute some common values:
+
+    const int N = size/2;
+    const long double THETA = 2 * M_PI / size;
+
+    // Call function recursively for first half:
+
+    fft_nr_radix2(input, N, output, stride * 2);
+
+    // Call function recursively for second half:
+
+    fft_nr_radix2(input + N, N, output + N, stride * 2);
+
+    // Iterate over components:
+
+    for (int p = 0; p < N; ++p) {
+
+        // Grab current values:
+
+        const std::complex<long double> a = *(input + p);
+        const std::complex<long double> b = *(input + p + N);
+
+        // Determine the twiddle factor:
+
+        //std::complex<long double> twiddle = std::polar<long double>(1.0, THETA * p);
+        std::complex<long double> twiddle = std::complex<long double>(cos(p*THETA), -sin(p*THETA));
+
+        // Determine new values:
+
+        *(output + p) = a + b;
+        *(output + p + N) = (a - b) * twiddle;
+    }
+}
+
+template <typename I, typename O>
+void ifft_nr_radix2(I input, int size, O output, int stride=1) {
+
+    // First, take conjugate of incoming variables:
+
+    for (int i = 0; i < size; ++i) {
+
+        // Take the conjugate:
+
+        *(input+i) = std::conj(*(input+i));
+    }
+
+    // Run through FFT function:
+
+    fft_nr_radix2(input, size, output, stride);
+
+    // Finally, normalize:
+
+    for (int i = 0; i < size; ++i) {
+
+        // Take conjugate once more and normalize:
+
+        *(output+i) = std::conj(*(output+i)) / static_cast<double>(size);
+    }    
+}

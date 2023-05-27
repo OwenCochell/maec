@@ -32,6 +32,27 @@ target_include_directories(${PROJECT_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
+# Include helper modules:
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
+
+# See if we can find FFTW:
+
+find_package(FFTW)
+
+if (FFTW_FOUND)
+
+  # Specify that we have found FFTW:
+
+  target_compile_definitions(maec, PUBLIC FFTW=1)
+
+  # Include FFTW for linking:
+
+  include_directories(${FFTW_LIBRARIES})
+  target_link_libraries(maec, ${FFTW_LIBRARIES})
+
+endif(FFTW_FOUND)
+
 # Check for some platform-dependent stuff:
 
 find_package(ALSA)
