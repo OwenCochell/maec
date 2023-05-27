@@ -34,7 +34,7 @@ target_include_directories(${PROJECT_NAME}
 
 # Include helper modules:
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # See if we can find FFTW:
 
@@ -42,14 +42,26 @@ find_package(FFTW)
 
 if (FFTW_FOUND)
 
+  #####
+
+  # Not super happy with this, should openMPI be required?
+  # It is on Arch Linux, might not be the case for other systems...
+
+  find_package(MPI)
+
+  include_directories(${MPI_CXX_INCLUDE_DIRS})
+  target_link_libraries(maec ${MPI_CXX_LIBRARIES})
+
+  #####
+
   # Specify that we have found FFTW:
 
-  target_compile_definitions(maec, PUBLIC FFTW=1)
+  target_compile_definitions(maec PUBLIC FFTW=1)
 
   # Include FFTW for linking:
 
-  include_directories(${FFTW_LIBRARIES})
-  target_link_libraries(maec, ${FFTW_LIBRARIES})
+  include_directories(${FFTW_INCLUDE_DIRS})
+  target_link_libraries(maec ${FFTW_LIBRARIES})
 
 endif(FFTW_FOUND)
 
