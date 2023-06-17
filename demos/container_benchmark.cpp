@@ -102,7 +102,7 @@ int main(int argc, char** argv) {
     std::cout << " --== [ Testing vector write performance... ] ==--" << std::endl;
 
     for (int i = 0; i < iterations; i++) {
-            
+
             // First, clear and shrink:
 
             vec.clear();

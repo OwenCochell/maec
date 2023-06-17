@@ -6,6 +6,8 @@ set(MISC_FILES
     alsa_demo.cpp
     coversion_experiment.cpp
     container_benchmark.cpp
+    fftw_demo.cpp
+    fft_radix2_benchmark.cpp
 )
 
 # Finally, build and link all misc. demo files:

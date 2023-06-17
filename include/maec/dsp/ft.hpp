@@ -246,11 +246,23 @@ BufferPointer dft(BufferPointer input);
  */
 
 /**
- * @brief Preforms a non-real, out of place, radix2 FFT
+ * @brief Preforms a complex, out of place, radix2 FFT
  * 
  * This function is very naive!
  * Is is implemented via recursion,
  * and is very slow (at least compared to other FFT algorithms...)
+ * This is an implementation of the Cooley-Turkey algorithm.
+ * 
+ * We work with iterators (or array pointers if necessary),
+ * allowing this function to work with many different
+ * containers and datatypes.
+ * Please be aware that we work with long doubles under the hood.
+ * 
+ * The size of this input data MUST be a power of two!
+ * We will happily work with data that does not match this requirement,
+ * but the outgoing data will be incorrect!
+ * Please be sure that the output array has the correct
+ * size reserved! We will encounter issues if not.
  * 
  * @tparam I Input iterator type
  * @tparam O Output iterator type
@@ -258,9 +270,10 @@ BufferPointer dft(BufferPointer input);
  * @param size Size of input data
  * @param output Output iterator for complex data
  * @param stride Current stride (step size)
+ * @param sign Sign of the exponent, (-1) for forward, (1) for backward
  */
 template <typename I, typename O>
-void fft_nr_radix2(I input, int size, O output, int stride=1) {
+void fft_c_radix2(I input, int size, O output, int stride = 1, int sign = -1) {
 
     // Determine if we have a trivial size:
 
@@ -275,60 +288,198 @@ void fft_nr_radix2(I input, int size, O output, int stride=1) {
 
     // Pre-compute some common values:
 
-    const int N = size/2;
-    const long double THETA = 2 * M_PI / size;
+    const int N_2 = size / 2;
+    const long double THETA = sign * 2 * M_PI / size;
 
     // Call function recursively for first half:
 
-    fft_nr_radix2(input, N, output, stride * 2);
+    fft_c_radix2(input, N_2, output, stride * 2, sign);
 
     // Call function recursively for second half:
 
-    fft_nr_radix2(input + N, N, output + N, stride * 2);
+    fft_c_radix2(input + stride, N_2, output + N_2, stride * 2, sign);
 
-    // Iterate over components:
+    // Iterate over frequency components:
 
-    for (int p = 0; p < N; ++p) {
+    for (int p = 0; p < N_2; ++p) {
 
         // Grab current values:
 
-        const std::complex<long double> a = *(input + p);
-        const std::complex<long double> b = *(input + p + N);
+        const std::complex<long double> first = *(output + p);
+        const std::complex<long double> second = *(output + p + N_2);
 
         // Determine the twiddle factor:
 
-        //std::complex<long double> twiddle = std::polar<long double>(1.0, THETA * p);
-        std::complex<long double> twiddle = std::complex<long double>(cos(p*THETA), -sin(p*THETA));
+        std::complex<long double> twiddle = std::polar<long double>(1.0, THETA * p) * second;
 
         // Determine new values:
 
-        *(output + p) = a + b;
-        *(output + p + N) = (a - b) * twiddle;
+        *(output + p) = first + twiddle;
+        *(output + p + N_2) = first - twiddle;
     }
 }
 
+/**
+ * @brief Preforms a complex, in place, radix2 inverse FFT
+ * 
+ * This function uses the fft_c_radix2 (out of place) function under the hood!
+ * We simply specify that the sign is positive one (1).
+ * and pass the data along to fft_c_radix2.
+ * This means that this function inherits the speed issues
+ * of forward fft_c_radix2 function.
+ * 
+ * We also preform some normalization on the output data,
+ * where we divide each value in the output by the size.
+ * 
+ * We work with iterators (or array pointers if necessary),
+ * allowing this function to work with many different
+ * containers and datatypes.
+ * Please be aware that we work with long doubles under the hood.
+ * 
+ * The size of this input data MUST be a power of two!
+ * We will happily work with data that does not match this requirement,
+ * but the outgoing data will be incorrect!
+ * Please be sure that the output array has the correct
+ * size reserved! We will encounter issues if not.
+ * 
+ * @tparam I Input iterator type
+ * @tparam O Output iterator type
+ * @param input Input iterator of complex data
+ * @param size Size of input data
+ * @param output Output iterator of complex data
+ * @param stride Current stride (step size)
+ */
 template <typename I, typename O>
-void ifft_nr_radix2(I input, int size, O output, int stride=1) {
-
-    // First, take conjugate of incoming variables:
-
-    for (int i = 0; i < size; ++i) {
-
-        // Take the conjugate:
-
-        *(input+i) = std::conj(*(input+i));
-    }
+void ifft_c_radix2(I input, int size, O output, int stride = 1) {
 
     // Run through FFT function:
 
-    fft_nr_radix2(input, size, output, stride);
+    fft_c_radix2(input, size, output, stride, 1);
 
     // Finally, normalize:
 
     for (int i = 0; i < size; ++i) {
 
-        // Take conjugate once more and normalize:
+        // Normalize the output:
 
-        *(output+i) = std::conj(*(output+i)) / static_cast<double>(size);
-    }    
+        *(output+i) = *(output+i) / static_cast<long double>(size);
+    }
+}
+
+/**
+ * @brief Preforms a complex, in place, radix2 FFT
+ * 
+ * This function is very naive!
+ * Is is implemented via recursion,
+ * and is very slow (at least compared to other FFT algorithms...)
+ * This is an implementation of the in-place Cooley-Turkey algorithm.
+ * 
+ * It is important to note that we do NOT
+ * do bit reversal sorting on the output data.
+ * This means the data will be not be in natural order.
+ * For forward/reverse transforms, as well certain processing
+ * operations (like fast convolution!), this out-of-order
+ * data works fine.
+ * If you do want to work with natural order data,
+ * then you can look elsewhere in maec for bit reversal sorting functions.
+ * 
+ * We work with iterators (or array pointers if necessary),
+ * allowing this function to work with many different containers and datatypes.
+ * Please be aware that we work with long doubles under the hood.
+ * 
+ * The size of this input data MUST be a power of two!
+ * We will happily work with data that does not match this requirement,
+ * but the outgoing data will be incorrect!
+ * 
+ * @tparam I Input iterator type
+ * @param input Input iterator of complex data
+ * @param size Size of input data
+ */
+template <typename I>
+void fft_c_radix2(I input, int size, int sign = -1) {
+
+    // Determine if we are working with the trivial case:
+
+    if (size == 1) {
+
+        // Trivial case, do nothing:
+
+        return;
+    }
+
+    // Pre-compute some common values:
+
+    const int N_2 = size / 2;
+    const long double THETA = sign * 2 * M_PI / size;
+
+    // Iterate over frequency components:
+
+    for (int p = 0; p < N_2; ++p) {
+
+        // Grab current values:
+
+        const std::complex<long double> first = *(input + p);
+        const std::complex<long double> second = *(input + p + N_2);
+
+        // Determine the twiddle factor:
+
+        std::complex<long double> twiddle = std::polar<long double>(1.0, THETA * p);
+
+        // Determine new values:
+
+        *(input + p) = first + second;
+        *(input + p + N_2) = (first - second) * twiddle;
+    }
+
+    fft_c_radix2(input, size / 2, sign);
+    fft_c_radix2(input + N_2, size / 2, sign);
+}
+
+/**
+ * @brief Preforms a complex, in place, radix2 inverse FFT
+ * 
+ * This function uses the fft_c_radix2 (in place) function under the hood!
+ * We simply specify that the sign is positive one (1).
+ * and pass the data along to fft_c_radix2.
+ * This means that this function inherits the speed issues
+ * of forward fft_c_radix2 function.
+ * 
+ * It is important to note that, same as the fft_c_nr (in place) function,
+ * we do NOT do bit reversal sorting on the output data.
+ * This means the data will be not be in natural order.
+ * For forward/reverse transforms, as well certain processing
+ * operations (like fast convolution!), this out-of-order data works fine.
+ * If you do want to work with natural order data,
+ * then you can look elsewhere in maec for bit reversal sorting functions.
+ * 
+ * We also preform some normalization on the output data,
+ * where we divide each value in the output by the size.
+ * 
+ * We work with iterators (or array pointers if necessary),
+ * allowing this function to work with many different containers and datatypes.
+ * Please be aware that we work with long doubles under the hood.
+ * 
+ * The size of this input data MUST be a power of two!
+ * We will happily work with data that does not match this requirement,
+ * but the outgoing data will be incorrect!
+ * 
+ * @tparam I Input iterator type
+ * @param input Input iterator of complex data
+ * @param size Size of input data
+ */
+template <typename I>
+void ifft_c_radix2(I input, int size) {
+
+    // Run through FFT function:
+
+    fft_c_radix2(input, size, 1);
+
+    // Finally, normalize:
+
+    for (int i = 0; i < size; ++i) {
+
+        // Normalize the output:
+
+        *(input+i) = *(input+i) / static_cast<long double>(size);
+    }
 }
