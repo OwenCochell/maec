@@ -337,7 +337,7 @@ TEST(DFT, InvKnownBuffer) {
  * @brief Tests that the radix 2 FFT algorithm works with known data
  * 
  */
-TEST(FFT2, Known) {
+TEST(FFT2, OutKnown) {
 
     // Get length of output data:
 
@@ -369,7 +369,7 @@ TEST(FFT2, Known) {
  * @brief Tests that the radix 2 inverse FFT algorithm works with known data
  * 
  */
-TEST(FFT2, InvKnown) {
+TEST(FFT2, InvOutKnown) {
 
     // Get length of output data:
 

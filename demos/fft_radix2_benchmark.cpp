@@ -12,18 +12,7 @@
  * We also test some variations on the Radix2 FFT,
  * which are compared against the default maec FFT implementations.
  * 
- * Takeaways:
- * 
- * The alternate Radix2 algorithm that I was testing is not a valid
- * out of place Radix2 algorithm...
- * What I essentially did was make a less efficient Radix2 in-place algorithm,
- * as we copy the contents over to the output array.
- * That is also not taking into account the overhead involved with bit-reversal sorting.
- * 
- * With that being said, the alternate function is slightly faster
- * than the maec Radix2 out of place algorithm.
- * But overall not useful to explore this alternative algorithm.
- */
+*/
 
 #include <chrono>
 #include <iostream>
@@ -31,6 +20,9 @@
 #include <random>
 #include <complex>
 #include <algorithm>
+
+#include "dsp/ft.hpp"
+#include "dsp/util.hpp"
 
 /// Number of times to repeat the benchmark
 const int repeat = 500;
@@ -102,111 +94,6 @@ bool compare_complex(std::complex<long double> first, std::complex<long double> 
     // Finally, return value:
 
     return real_near && imaginary_real;
-
-}
-
-template <typename I, typename O>
-void fft_c_radix2(I input, int size, O output, int stride = 1, int sign = -1) {
-
-    // Determine if we have a trivial size:
-
-    if (size == 1) {
-
-        // Trivial case, size=1 is just current value:
-
-        *(output) = *input;
-
-        return;
-    }
-
-    // Pre-compute some common values:
-
-    const int N_2 = size / 2;
-    const long double THETA = sign * 2 * M_PI / size;
-
-    // Call function recursively for first half:
-
-    fft_c_radix2(input, N_2, output, stride * 2, sign);
-
-    // Call function recursively for second half:
-
-    fft_c_radix2(input + stride, N_2, output + N_2, stride * 2, sign);
-
-    // Iterate over frequency components:
-
-    for (int p = 0; p < N_2; ++p) {
-
-        // Grab current values:
-
-        const std::complex<long double> first = *(output + p);
-        const std::complex<long double> second = *(output + p + N_2);
-
-        // Determine the twiddle factor:
-
-        std::complex<long double> twiddle = std::polar<long double>(1.0, THETA * p) * second;
-
-        // Determine new values:
-
-        *(output + p) = first + twiddle;
-        *(output + p + N_2) = first - twiddle;
-    }
-}
-
-template <typename I, typename O>
-void fft_c_radix2_altw(I input, int size, O output, int stride = 1, int sign = -1) {
-
-    // Determine if we are trivial case:
-
-    if (size == 1) {
-
-        // Trivial case, do nothing
-
-        return;
-    }
-
-    // Pre-compute some common values:
-
-    const int N_2 = size / 2;
-    const long double THETA = sign * 2 * M_PI / size;
-
-    // Iterate over frequency components:
-
-    for (int p = 0; p < N_2; ++p) {
-
-        // Grab current values:
-
-        const std::complex<long double> first = *(output + p);
-        const std::complex<long double> second = *(output + p + N_2);
-
-        // Determine the twiddle factor:
-
-        std::complex<long double> twiddle = std::polar<long double>(1.0, THETA * p) * second;
-
-        // Determine new values:
-
-        *(output + p) = first + twiddle;
-        *(output + p + N_2) = first - twiddle;
-    }
-
-    // Call function recursively for first half:
-
-    fft_c_radix2_altw(input, N_2, output, stride * 2, sign);
-
-    // Call function recursively for second half:
-
-    fft_c_radix2_altw(input + stride, N_2, output + N_2, stride * 2, sign);
-}
-
-template <typename I, typename O>
-void fft_c_radix2_alt(I input, int size, O output) {
-
-    // First, copy values over to output:
-
-    std::copy_n(input, size, output);
-
-    // Send to alternate worker function:
-
-    fft_c_radix2_altw(input, size, output);
 }
 
 /**
@@ -239,13 +126,21 @@ bool check_accuracy() {
 
         rand_complex(num, idata.begin());
 
+        // Copy data to new vector:
+
+        std::copy_n(idata.begin(), num, aodata.begin());
+
         // Run through Radix2:
 
         fft_c_radix2(idata.begin(), num, odata.begin());
 
         // Run through alternate Radix2:
 
-        fft_c_radix2_alt(idata.begin(), num, aodata.begin());
+        fft_c_radix2(aodata.begin(), num);
+
+        // Do bit reversal:
+
+        bit_reverse(num, aodata.begin());
 
         // Iterate over results:
 
@@ -293,11 +188,11 @@ bool check_accuracy() {
 }
 
 /**
- * @brief Benchmarks the alternate FFT Radix2 algorithm
+ * @brief Benchmarks the out-of-place FFT Radix2 algorithm
  * 
  * @return long double Average computation time
  */
-long double benchmark_radix2_alt() {
+long double benchmark_radix2_out() {
 
     std::cout << "+=================================+" << std::endl;
     std::cout << " !Benchmarking Alternative Radix2!" << std::endl;
@@ -324,12 +219,10 @@ long double benchmark_radix2_alt() {
         // First, create a vector of random complex data:
 
         std::vector<std::complex<long double>> idata;
-        std::vector<std::complex<long double>> odata;
 
         // Reserve data:
 
         idata.reserve(num);
-        odata.reserve(num);
 
         // Generate random complex data:
 
@@ -341,7 +234,11 @@ long double benchmark_radix2_alt() {
 
         // Compute the value:
 
-        fft_c_radix2_alt(idata.begin(), num, odata.begin());
+        fft_c_radix2(idata.begin(), num);
+
+        // Do bit reversal:
+
+        bit_reverse(num, idata.begin());
 
         // Stop the clock:
 
@@ -353,7 +250,7 @@ long double benchmark_radix2_alt() {
 
         // Print the time:
     
-        std::cout << "FFT Radix2-Alt Time [" << i << "]: " << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
+        std::cout << "FFT Radix2-Out Time [" << i << "]: " << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
 
         // Add to the total:
 
@@ -431,7 +328,7 @@ long double benchmark_radix2() {
 
         // Print the time:
     
-        std::cout << "FFT Radix2-Alt Time [" << i << "]: " << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
+        std::cout << "FFT Radix2 Time [" << i << "]: " << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
 
         // Add to the total:
 
@@ -460,11 +357,13 @@ int main() {
 
         std::cout << "Not Accurate! See above" << std::endl;
 
+        //return 1;
+
     }
 
     // Run benchmark for Radix2-alt:
 
-    long double alt_avg = benchmark_radix2_alt();
+    long double alt_avg = benchmark_radix2_out();
 
     // Run benchmark for Radix2:
 
