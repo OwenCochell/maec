@@ -28,7 +28,8 @@
 
 #include <memory>
 
-#include "../audio_buffer.hpp"
+#include "audio_buffer.hpp"
+#include "dsp/ft.hpp"
 
 /**
  * @brief Determines the length of the Convolution output given input sizes
@@ -169,7 +170,7 @@ BufferPointer input_conv(BufferPointer input, BufferPointer kernel);
  * and end values will not be very useful.
  * 
  * Again, convolution is associative!
- * It foes not matter the order you pass the buffers,
+ * It does not matter the order you pass the buffers,
  * but for the sake of style it is recommended to pass the input signal
  * and kernel in order to make your operation more clear.
  * 
@@ -195,11 +196,11 @@ void output_conv(I input, std::size_t input_size, K kernel, std::size_t kernel_s
 
         // Iterate over each point in kernel:
 
-        for (int j = 0; j < kernel_size; ++j) {
+        for (int j = 0; j < static_cast<int>(kernel_size); ++j) {
 
             // Ensure we are within bounds
 
-            if (i - j < 0 || i - j > input_size - 1) {
+            if (i - j < 0 || i - j > static_cast<int>(input_size) - 1) {
 
                 // Simply do nothing
 
@@ -258,3 +259,47 @@ void output_conv(I binput, I einput, K bkernel, K ekernel, O output) {
  * @return BufferPointer Pointer to buffer containing result.
  */
 BufferPointer output_conv(BufferPointer input, BufferPointer kernel);
+
+/**
+ * This section defines functions for preforming FFT convolutions.
+ *
+ * The idea behind this method is built on the relation between 
+ * convolution in the time domain and multiplication in the frequency domain,
+ * being that they produce identical outputs.
+ * This means that we can preform convolution by multiplying the frequency
+ * domains of the input signal and kernel together to achieve the same output.
+ * 
+ * By using FFT methods, this operation can be very fast!
+ * Much faster in comparison to the conventional convolution methods.
+ * This section aims to simplify this operation,
+ * removing much of the complexities involved with FFT convolution.
+ */
+
+template<typename I, typename K, typename O>
+void conv_fft(I input, int input_size, K kernel, int kernel_size, O output) {
+
+    // First, determine output size:
+
+    int output_size = length_conv(input_size, kernel_size);
+
+    // Next, create new vectors for input and kernel
+    // TODO: RESEARCH OTHER METHODS! This can take a lot of memory...
+    // Not to mention being super slow in theory...
+
+    std::vector<long double> pinput(output_size);
+    std::vector<long double> pkernel(output_size);
+
+    // Fill normal content:
+
+    std::copy_n(input, input_size, pinput.begin());
+    std::copy_n(kernel, kernel_size, pkernel.begin());
+
+    // Fill in zero components:
+
+    std::fill_n(pinput.begin() + input_size, output_size - input_size, 0.0);
+    std::fill_n(pkernel.begin() + kernel_size, output_size - kernel_size, 0.0);
+
+    // Now, run through FFT functions
+    // TODO: Figure out how to specify custom FFT methods?
+
+}

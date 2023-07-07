@@ -21,8 +21,10 @@
 #pragma once
 
 #include <complex>
+#include <iterator>
 
-#include "../audio_buffer.hpp"
+#include "audio_buffer.hpp"
+#include "dsp/util.hpp"
 
 /**
  * This section defines functions for calculating
@@ -62,6 +64,125 @@ long double cos_basis(int phase, int total, long double freq);
  * @return Value at current phase
  */
 long double sin_basis(int phase, int total, long double freq);
+
+/**
+ * @brief Determines the twiddle factor for a frequency component
+ *
+ * We calculate the twiddle factor of the given frequency component of the given size.
+ * Users can optionally provide the sign of the twiddle factor,
+ * with (-1) for the forward FFT, and (1) for the backward FFT.
+ * We utilize the following equation:
+ *
+ * twiddle = e ^ (j * sign * 2 * k * PI / size)
+ *
+ * (j being the imaginary component)
+ * Which expands out to this:
+ *
+ * real = cos(sign * 2 * k * PI / size)
+ * imaginary = sin(sign * 2 * k * PI / size)
+ *
+ * Where the real and imaginary parts will be
+ * used in the complex type and returned.
+ * By default we store results as long doubles.
+ * 
+ * @tparam T Type of output complex value
+ * @param k Frequency component to calculate
+ * @param size Size of input data
+ * @param sign Sign to use
+ * @return std::complex<T> Twiddle factor
+ */
+template <typename T = long double>
+std::complex<T> twiddle(int k, int size, int sign = -1) {
+
+}
+
+template<typename T, typename I>
+std::complex<T> normalize_e(I input, int size_2, int k) {
+
+    // Calculate the real part:
+
+    return (*(input + k) + std::conj(*(input + (size_2 - k)))) / static_cast<long double>(2.0);
+
+}
+
+template<typename T, typename I>
+std::complex<T> normalize_o(I input, int size_2, int k) {
+
+    // Calculate imaginary part:
+
+    using namespace std::complex_literals;
+
+    return -1il * ((*(input + k) - std::conj(*(input + (size_2 - k)))) / static_cast<long double>(2.0));
+}
+
+template<typename T>
+void postprocess_fft_c(T complex, int size) {
+
+    const long double THETA = -1 * 2 * M_PI / size;
+
+    // Run through each K value:
+    // TODO: try doing this out of place instead?
+
+    for (int k = 0; k < size/2; ++k) {
+
+         // Determine the twiddle factor:
+
+        std::complex<long double> twiddle = std::polar<long double>(1.0, THETA * k);
+
+        std::complex<long double> part_e = normalize_e<long double>(complex, size/2, k);
+        std::complex<long double> part_o = normalize_o<long double>(complex, size / 2, k);
+
+        *(complex+k) = part_e + part_o * twiddle;
+    }
+
+    // Calculate value at N/2:
+
+    *(complex + size / 2) = normalize_e<long double>(complex, size / 2, size / 2) - normalize_o<long double>(complex, size / 2, size / 2);
+}
+
+// void lastrealstage(double *datareal, std::complex<long double> *twiddle, unsigned int framesize)
+// {
+//     unsigned int n, f = framesize >> 1;
+//     long double evenreal, evenim, oddreal, oddim; // temp variables
+//     std::complex<long double> *data = (std::complex<long double> *)datareal; // cast the pointer
+
+//     for (n = framesize >> 2; n; n--) // include the 'half-Nyquist' point
+//     {
+//          evenreal = data[n].real + data[f - n].real; // split the spectra
+//          evenim = data[n].im - data[f - n].im;
+//          oddreal = data[n].im + data[f - n].im;
+//          oddim = data[f - n].real - data[n].real;
+
+//          // twiddle and add
+
+//          data[n].real = evenreal + (oddreal * twiddle[n].real - oddim * twiddle[n].im);
+//          data[n].im = evenim + (oddim * twiddle[n].real + oddreal * twiddle[n].im);
+
+//          data[f - n].real = evenreal + (oddreal * twiddle[f - n].real + oddim * twiddle[f - n].im);
+//          data[f - n].im = -evenim + (-oddim * twiddle[f - n].real + oddreal * twiddle[f - n].im);
+//     }
+//     evenreal = data[0].real;
+//     data[0].real = (data[0].real + data[0].im) * 2.; // double DC value
+//     data[0].im = (evenreal - data[0].im) * 2;        // double Nyquist and store next to DC
+// }
+
+// void postprocess_fft_c_new(std::complex<long double> *complex, int size) {
+
+//     int f = size >> 1;
+//     const long double THETA = -1 * 2 * M_PI / size;
+
+//     for (int n = size >> 2; n; n--) {
+
+//         long double evenreal = complex[n].real() + complex[f - n].real();
+//         long double evenim = complex[n].imag() - complex[f - n].imag();
+//         long double oddreal = complex[n].imag() + complex[f - n].imag();
+//         long double oddim = complex[f - n].real() - complex[n].real();
+
+//         // Twiddle and add:
+
+//         long double final_n_real = evenreal + (oddreal);
+//     }
+// }
 
 /**
  * @brief Determines the length of real and non-real results from a DFT operation
@@ -482,4 +603,36 @@ void ifft_c_radix2(I input, int size) {
 
         *(input+i) = *(input+i) / static_cast<long double>(size);
     }
+}
+
+template <typename I, typename O>
+void fft_r_radix2(I input, int size, O output) {
+
+    // First, determine iterator type:
+
+    typedef typename std::iterator_traits<I>::value_type iter_type;
+
+    // Determine output size:
+
+    int output_size = length_ft(size);
+
+    // Cast input data into complex array:
+
+    auto *cmp = reinterpret_cast<std::complex<iter_type>*>(&(*input));
+
+    // Send data through FFT function:
+
+    fft_c_radix2(cmp, size / 2, output);
+
+    // Complex output lives in output, do some processing:
+
+    postprocess_fft_c(output, size);
+
+    // This is some testing stuff:
+
+    int k = 0;
+
+    auto part1 = *(output + k);
+    auto part2 = *(output + (output_size / 2 - k));
+    auto part3 = std::conj(part2);
 }

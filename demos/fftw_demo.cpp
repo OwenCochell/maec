@@ -19,20 +19,35 @@
 
 int main(int argc , char** argv) {
 
+    // Some dummy testing:
+
+    std::vector<long double> ft_data = {-81.0611399999996160709, -32.4312400000002611124, -38.8382199999997827569, -111.7422700000002612, 52.9393500000000637312, 61.0861000000000130931, -16.2175099999997593923, -10.9511700000003418193, -61.7699399999997511741, -69.2286100000000882773, 0.421569999999996698238, 37.6517800000001357057, 80.4401700000000488971, -2.04557000000011644271, -85.9569899999997715442, 2.72508999999991183543, -66.3554300000000642709, -2.34488999999995559407, -40.3914900000000819981, -3.64987999999990044789, -17.7549800000004358823, 71.0510400000002124293, -48.0264400000000275734, 110.045180000000132392, -105.146259999999952539, -56.3275699999998687544, 95.8438100000005266874, 64.2721399999995513172, -43.4969999999996350254, -16.9237900000002831694, -109.863809999999695023, 84.7972800000000368273, 77.4762800000004462145, 57.2437800000003134647, -110.995029999999789382, -55.1876299999999012057, -95.6075800000002865298, 75.4721999999997809339, -12.7008200000005678967, -36.9976999999999474796, -49.1758900000000834345, -71.2256300000002166503, 108.823060000000235506, -110.420349999999915749, 90.9002899999999186831, -105.065209999999517897, 45.9153499999996984778, -1.05934999999953613926, -92.979900000000370891, -44.7161299999997329906};
+
+    std::complex<long double> *cmp = reinterpret_cast<std::complex<long double>*>(ft_data.data());
+
+    // Iterate over numbers:
+
+    for (int i = 0; i < ft_data.size() / 2; ++i) {
+
+        //std::cout << *(cmp+i) << std::endl;
+    }
+
     int N = 32;
 
     // Create vectors for data:
 
-    std::vector<std::complex<long double>> in = {std::complex<long double>(-15.189251, 0.000000), std::complex<long double>(11.704489, -7.808442), std::complex<long double>(-0.090070, 10.845936), std::complex<long double>(-11.697811, -5.706792), std::complex<long double>(-2.788215, 7.507124), std::complex<long double>(8.873675, -10.790867), std::complex<long double>(-5.838451, 2.531785), std::complex<long double>(4.630811, -6.716717), std::complex<long double>(0.936014, -15.374274), std::complex<long double>(15.496844, -3.780477), std::complex<long double>(6.904307, -2.551331), std::complex<long double>(-4.702844, 12.109802), std::complex<long double>(-4.071020, 15.037189), std::complex<long double>(7.972179, -6.781337), std::complex<long double>(0.624014, -5.571347), std::complex<long double>(4.138358, -0.394291), std::complex<long double>(-1.130739, 0.000000), std::complex<long double>(4.138358, 0.394291), std::complex<long double>(0.624014, 5.571347), std::complex<long double>(7.972179, 6.781337), std::complex<long double>(-4.071020, -15.037189), std::complex<long double>(-4.702844, -12.109802), std::complex<long double>(6.904307, 2.551331), std::complex<long double>(15.496844, 3.780477), std::complex<long double>(0.936014, 15.374274), std::complex<long double>(4.630811, 6.716717), std::complex<long double>(-5.838451, -2.531785), std::complex<long double>(8.873675, 10.790867), std::complex<long double>(-2.788215, -7.507124), std::complex<long double>(-11.697811, 5.706792), std::complex<long double>(-0.090070, -10.845936), std::complex<long double>(11.704489, 7.808442)};
+    //std::vector<std::complex<long double>> in = {std::complex<long double>(-15.189251, 0.000000), std::complex<long double>(11.704489, -7.808442), std::complex<long double>(-0.090070, 10.845936), std::complex<long double>(-11.697811, -5.706792), std::complex<long double>(-2.788215, 7.507124), std::complex<long double>(8.873675, -10.790867), std::complex<long double>(-5.838451, 2.531785), std::complex<long double>(4.630811, -6.716717), std::complex<long double>(0.936014, -15.374274), std::complex<long double>(15.496844, -3.780477), std::complex<long double>(6.904307, -2.551331), std::complex<long double>(-4.702844, 12.109802), std::complex<long double>(-4.071020, 15.037189), std::complex<long double>(7.972179, -6.781337), std::complex<long double>(0.624014, -5.571347), std::complex<long double>(4.138358, -0.394291), std::complex<long double>(-1.130739, 0.000000), std::complex<long double>(4.138358, 0.394291), std::complex<long double>(0.624014, 5.571347), std::complex<long double>(7.972179, 6.781337), std::complex<long double>(-4.071020, -15.037189), std::complex<long double>(-4.702844, -12.109802), std::complex<long double>(6.904307, 2.551331), std::complex<long double>(15.496844, 3.780477), std::complex<long double>(0.936014, 15.374274), std::complex<long double>(4.630811, 6.716717), std::complex<long double>(-5.838451, -2.531785), std::complex<long double>(8.873675, 10.790867), std::complex<long double>(-2.788215, -7.507124), std::complex<long double>(-11.697811, 5.706792), std::complex<long double>(-0.090070, -10.845936), std::complex<long double>(11.704489, 7.808442)};
+    std::vector<long double> in = {-81.0611399999996160709, -32.4312400000002611124, -38.8382199999997827569, -111.7422700000002612, 52.9393500000000637312, 61.0861000000000130931, -16.2175099999997593923, -10.9511700000003418193, -61.7699399999997511741, -69.2286100000000882773, 0.421569999999996698238, 37.6517800000001357057, 80.4401700000000488971, -2.04557000000011644271, -85.9569899999997715442, 2.72508999999991183543, -66.3554300000000642709, -2.34488999999995559407, -40.3914900000000819981, -3.64987999999990044789, -17.7549800000004358823, 71.0510400000002124293, -48.0264400000000275734, 110.045180000000132392, -105.146259999999952539, -56.3275699999998687544, 95.8438100000005266874, 64.2721399999995513172, -43.4969999999996350254, -16.9237900000002831694, -109.863809999999695023, 84.7972800000000368273, 77.4762800000004462145, 57.2437800000003134647, -110.995029999999789382, -55.1876299999999012057, -95.6075800000002865298, 75.4721999999997809339, -12.7008200000005678967, -36.9976999999999474796, -49.1758900000000834345, -71.2256300000002166503, 108.823060000000235506, -110.420349999999915749, 90.9002899999999186831, -105.065209999999517897, 45.9153499999996984778, -1.05934999999953613926, -92.979900000000370891, -44.7161299999997329906};
     std::vector<std::complex<long double>> out;
 
     // Reserve output vector:
 
-    out.reserve(N);
+    out.reserve(N / 2 + 1);
 
     // Create the plan:
 
-    fftwl_plan p = fftwl_plan_dft_1d(N, reinterpret_cast<fftwl_complex*>(in.data()), reinterpret_cast<fftwl_complex*>(out.data()), FFTW_FORWARD, FFTW_ESTIMATE);
+    //fftwl_plan p = fftwl_plan_dft_1d(N, reinterpret_cast<fftwl_complex*>(in.data()), reinterpret_cast<fftwl_complex*>(out.data()), FFTW_FORWARD, FFTW_ESTIMATE);
+    fftwl_plan p = fftwl_plan_dft_r2c_1d(N, in.data(), reinterpret_cast<fftwl_complex*>(out.data()), FFTW_ESTIMATE);
 
     // Execute:
 
@@ -40,7 +55,7 @@ int main(int argc , char** argv) {
 
     // Iterate over out data:
 
-    for(int i = 0; i < N; ++i) {
+    for(int i = 0; i < N / 2 + 1; ++i) {
 
         // Output data
 
