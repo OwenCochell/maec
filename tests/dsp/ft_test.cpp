@@ -30,11 +30,22 @@ const std::vector<std::complex<long double>> cft_data = {std::complex<long doubl
 // Known complex result:
 const std::vector<std::complex<long double>> cft_output = {std::complex<long double>(47.8646, 0), std::complex<long double>(-60.679, 0), std::complex<long double>(-65.8105, 0), std::complex<long double>(69.5778, 0), std::complex<long double>(99.7526, 0), std::complex<long double>(-90.287, 0), std::complex<long double>(36.9178, 0), std::complex<long double>(80.6327, 0), std::complex<long double>(-88.2723, 0), std::complex<long double>(-62.5006, 0), std::complex<long double>(-76.6374, 0), std::complex<long double>(-52.985, 0), std::complex<long double>(-46.0648, 0), std::complex<long double>(-86.605, 0), std::complex<long double>(-68.5806, 0), std::complex<long double>(-56.903, 0), std::complex<long double>(-97.7982, 0), std::complex<long double>(24.3152, 0), std::complex<long double>(58.614, 0), std::complex<long double>(89.4592, 0), std::complex<long double>(-55.8749, 0), std::complex<long double>(-93.1961, 0), std::complex<long double>(19.1352, 0), std::complex<long double>(-77.2428, 0), std::complex<long double>(25.5402, 0), std::complex<long double>(54.4226, 4.33681e-19), std::complex<long double>(-49.1747, 0), std::complex<long double>(80.9814, 0), std::complex<long double>(-0.730811, 0), std::complex<long double>(-43.9266, 0), std::complex<long double>(-1.95563e-07, -2.1684e-19), std::complex<long double>(6.6234926488113743e-07, 0)};
 
+// Known real data (power of 2)
+// TODO: Maybe replace ft_data with this?
+std::vector<long double> ft2_data = {-9.6733407586,62.9653550514,74.4000694857,99.1967369526,93.4037032815,57.3335037397,101.7345720310,18.1861254434,14.4572532371,-16.1701715992,-90.1191210720,65.5052860315,-50.6822660903,85.6097778570,64.9082173196,20.7108693629,80.0814240580,105.6846021807,65.2129539715,-85.4664831284,-11.1276864500,-99.0217522157,-104.1126140924,-12.2773308137,100.2898453047,-82.4167709429,103.5442857695,-81.0976502582,-109.1820435246,30.8008533158,29.1963157524,-11.3502179318,-6.2240021300,-38.8990464614,-52.9055938733,48.6190705661,50.3520832266,-62.9548072614,-69.0177881626,104.6779683739,39.5905650836,-101.7229133271,43.2043503664,47.9158760699,-56.6139623555,-21.0172069627,-31.0987360694,-16.0686666005,-31.4280055848,-76.0297646764,-9.3888213890,82.1388450892,-25.3763959200,-14.4709267300,-51.6942710109,-19.6178678761,-3.1049798902,-24.6729543717,11.6011396251,-55.8205348801,-46.1782259805,-75.5780087238,-95.4761768191,3.0709157917};
+
+// Known complex result:
+std::vector<std::complex<long double>> ft2_output = {std::complex<long double>(-43.664541595800022, 0), std::complex<long double>(359.45181848469754, -565.11450941061558), std::complex<long double>(8.6293957918963725, -753.12168792311656), std::complex<long double>(-46.863123137862357, -131.23397931250944), std::complex<long double>(239.56283276052127, -481.96012333692197), std::complex<long double>(224.101183608534, -1016.8846705832734), std::complex<long double>(-509.15587956189165, -464.98325585412137), std::complex<long double>(-389.00758691682769, 224.57211055070545), std::complex<long double>(264.70720400647352, -274.02490505960353), std::complex<long double>(-93.651889962216083, -417.15007283068046), std::complex<long double>(275.92137264991444, 368.38896499036456), std::complex<long double>(466.14362933356768, -209.80187776532449), std::complex<long double>(-402.08144966580375, 93.785616391165261), std::complex<long double>(62.754539854000547, -189.2984833849671), std::complex<long double>(-288.70843453473079, 107.18804062488756), std::complex<long double>(464.62263270044914, -213.62987034748249), std::complex<long double>(38.595183674499992, 478.88317332010003), std::complex<long double>(-518.36322233252044, -153.35268279949373), std::complex<long double>(326.60869521036493, -30.208229145220096), std::complex<long double>(100.10624013796194, 414.4482393462402), std::complex<long double>(24.120287213970933, -761.33411973294775), std::complex<long double>(-240.17910982830549, 805.60902291646104), std::complex<long double>(158.69833481771356, 60.469890206290065), std::complex<long double>(-21.543578704467073, -320.99769573919335), std::complex<long double>(414.07990225872646, 328.19458281099647), std::complex<long double>(-252.32542782790214, -302.63466451478207), std::complex<long double>(-557.5731385339072, 45.443397832052496), std::complex<long double>(-293.40889713883586, 118.58242620276572), std::complex<long double>(-335.50810291108844, 142.55294889496504), std::complex<long double>(426.81576634412209, 143.20747673715266), std::complex<long double>(69.173563266240378, -417.26860597337583), std::complex<long double>(-303.8423926719958, 206.59293747939968), std::complex<long double>(80.810036274799974, 0)};
+
 /**
  * @brief Compares two complex numbers.
- * 
+ *
  * We compare the real and imaginary
  * parts of the two given complex numbers.
+ *
+ * TODO: Use more precise output values?
+ * I think the absolute error is too low,
+ * so more precise values would fix this.
  * 
  * @param first First complex number
  * @param second Second complex number
@@ -589,16 +600,92 @@ TEST(FFT2, RandInPlace) {
 }
 
 /**
- * @brief tests that FFT operations on naive real data works 
+ * @brief Tests that forward FFT operations on real data works 
  * 
  */
 TEST(FFT2, Real) {
 
+    // Determine sizes:
+
+    int size = ft2_data.size();
+    int osize = length_ft(size);
+
     // Create vector to hold real to complex data:
+  
+    std::vector<std::complex<long double>> out(osize);
 
-    std::vector<std::complex<long double>> out(ft_data.size());
+    // Send data through real FFT function:
 
-    // Sed data through real FFT function:
+    fft_r_radix2(ft2_data.begin(), size, out.begin());
 
-    fft_r_radix2(ft_data.begin(), ft_data.size(), out.begin());
+    // Ensure output matches input:
+
+    for (int i = 0; i < osize; ++i) {
+
+        // Ensure values match:
+
+        compare_complex(ft2_output.at(i), out.at(i));
+    }
+}
+
+/**
+ * @brief Tests that backwards iFFT operations on real data works
+ * 
+ */
+TEST(FFT2, InvReal) {
+
+    // Determine sizes:
+
+    int size = ft2_output.size();
+    int osize = length_ift(size);
+
+    // Create vector to hold complex to real data:
+
+    std::vector<long double> out(osize);
+
+    // Send data through real iFFT function:
+
+    ifft_r_radix2(ft2_output.begin(), size, out.begin());
+
+    // Ensure output matches input:
+
+    for (int i = 0; i < osize; ++i) {
+
+        // Ensure values match:
+
+        ASSERT_NEAR(ft2_data.at(i), out.at(i), 0.00001);
+    }
+}
+
+/**
+ * MOVE THIS TEST SOMEWHERE ELSE!
+ * IT DOES NOT BELONG HERE!
+ * 
+ */
+TEST(FFT2, Real2Complex) {
+
+    // Define iterator pointing to real data:
+
+    auto input = ft2_data.begin();
+
+    // Convert array of real numbers into complex data:
+
+    auto *cmp = reinterpret_cast<std::complex<long double> *>(&(*input));
+
+    // Now, iterate over all data:
+
+    for (int i = 0; i < (ft2_data.size() / 2); ++i) {
+
+        // Grab current value:
+
+        std::complex<long double> current = cmp[i];
+
+        // Ensure real part is correct:
+
+        ASSERT_DOUBLE_EQ(current.real(), ft2_data[i * 2]);
+
+        // Ensure imaginary part is correct:
+
+        ASSERT_DOUBLE_EQ(current.imag(), ft2_data[i * 2 + 1]);
+    }
 }

@@ -76,6 +76,6 @@ void real_eop_complex(I input, int size, O output) {
 
         // Add data to output:
 
-        *(output+i) = std::complex(*(input + (2 * i)), *(input + (2 * i + 1)));
+        *(output+i) = std::complex<long double>(*(input + (2 * i)), *(input + (2 * i + 1)));
     }
 }

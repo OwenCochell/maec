@@ -27,19 +27,6 @@
 #include "dsp/util.hpp"
 
 /**
- * This section defines functions for calculating
- * the Discreet Fourier Transform, as well as it's inverse.
- * 
- * These functions are very trivial and simple to use,
- * and they have few surprises and nuances.
- * Unfortunately, these functions are also incredibly slow.
- *
- * If you want extra speed, and extra complexity,
- * then you should look below at the FFT algorithms.
- * 
- */
-
-/**
  * @brief Cosine basis function
  *
  * This function will be utilized to represent 
@@ -88,101 +75,93 @@ long double sin_basis(int phase, int total, long double freq);
  * @tparam T Type of output complex value
  * @param k Frequency component to calculate
  * @param size Size of input data
- * @param sign Sign to use
+ * @param sign Sign to use, (-1) forward, (1) backward
  * @return std::complex<T> Twiddle factor
  */
-template <typename T = long double>
+template <typename T>
 std::complex<T> twiddle(int k, int size, int sign = -1) {
 
-}
+    std::complex<T> res = std::polar<T>(1.0, sign * 2 * M_PI * k / size);
 
-template<typename T, typename I>
-std::complex<T> normalize_e(I input, int size_2, int k) {
-
-    // Calculate the real part:
-
-    return (*(input + k) + std::conj(*(input + (size_2 - k)))) / static_cast<long double>(2.0);
-
-}
-
-template<typename T, typename I>
-std::complex<T> normalize_o(I input, int size_2, int k) {
-
-    // Calculate imaginary part:
-
-    using namespace std::complex_literals;
-
-    return -1il * ((*(input + k) - std::conj(*(input + (size_2 - k)))) / static_cast<long double>(2.0));
+    return res;
 }
 
 template<typename T>
-void postprocess_fft_c(T complex, int size) {
+std::complex<T> compute_a(int k, int size) {
 
-    const long double THETA = -1 * 2 * M_PI / size;
+    using namespace std::complex_literals;
 
-    // Run through each K value:
-    // TODO: try doing this out of place instead?
+    auto res = twiddle<T>(k, size);
 
-    for (int k = 0; k < size/2; ++k) {
-
-         // Determine the twiddle factor:
-
-        std::complex<long double> twiddle = std::polar<long double>(1.0, THETA * k);
-
-        std::complex<long double> part_e = normalize_e<long double>(complex, size/2, k);
-        std::complex<long double> part_o = normalize_o<long double>(complex, size / 2, k);
-
-        *(complex+k) = part_e + part_o * twiddle;
-    }
-
-    // Calculate value at N/2:
-
-    *(complex + size / 2) = normalize_e<long double>(complex, size / 2, size / 2) - normalize_o<long double>(complex, size / 2, size / 2);
+    return (static_cast<T>(1.0) - res * 1il) / static_cast<T>(2);
 }
 
-// void lastrealstage(double *datareal, std::complex<long double> *twiddle, unsigned int framesize)
-// {
-//     unsigned int n, f = framesize >> 1;
-//     long double evenreal, evenim, oddreal, oddim; // temp variables
-//     std::complex<long double> *data = (std::complex<long double> *)datareal; // cast the pointer
+template<typename T>
+std::complex<T> compute_b(int k, int size) {
 
-//     for (n = framesize >> 2; n; n--) // include the 'half-Nyquist' point
-//     {
-//          evenreal = data[n].real + data[f - n].real; // split the spectra
-//          evenim = data[n].im - data[f - n].im;
-//          oddreal = data[n].im + data[f - n].im;
-//          oddim = data[f - n].real - data[n].real;
+    using namespace std::complex_literals;
 
-//          // twiddle and add
+    auto res = twiddle<T>(k, size);
 
-//          data[n].real = evenreal + (oddreal * twiddle[n].real - oddim * twiddle[n].im);
-//          data[n].im = evenim + (oddim * twiddle[n].real + oddreal * twiddle[n].im);
+    return (static_cast<T>(1.0) + res * 1il) / static_cast<T>(2);
+}
 
-//          data[f - n].real = evenreal + (oddreal * twiddle[f - n].real + oddim * twiddle[f - n].im);
-//          data[f - n].im = -evenim + (-oddim * twiddle[f - n].real + oddreal * twiddle[f - n].im);
-//     }
-//     evenreal = data[0].real;
-//     data[0].real = (data[0].real + data[0].im) * 2.; // double DC value
-//     data[0].im = (evenreal - data[0].im) * 2;        // double Nyquist and store next to DC
-// }
+template <typename T>
+void fft_process_real(T complex, int size, bool invert) {
 
-// void postprocess_fft_c_new(std::complex<long double> *complex, int size) {
+    // Set last input value to 0th value, if we are forward:
 
-//     int f = size >> 1;
-//     const long double THETA = -1 * 2 * M_PI / size;
+    if (!invert) {
 
-//     for (int n = size >> 2; n; n--) {
+        complex[size / 2] = complex[0];
+    }
 
-//         long double evenreal = complex[n].real() + complex[f - n].real();
-//         long double evenim = complex[n].imag() - complex[f - n].imag();
-//         long double oddreal = complex[n].imag() + complex[f - n].imag();
-//         long double oddim = complex[f - n].real() - complex[n].real();
+    // Run through each K value:
 
-//         // Twiddle and add:
+    int total = size >> 2;
 
-//         long double final_n_real = evenreal + (oddreal);
-//     }
-// }
+    for (int k = 0; k <= total; ++k) {
+
+        // Determine left A and B values:
+
+        std::complex<long double> a1 = compute_a<long double>(k, size);
+        std::complex<long double> b1 = compute_b<long double>(k, size);
+
+        // Determine right A and B values:
+
+        std::complex<long double> a2 = compute_a<long double>(size / 2 - k, size);
+        std::complex<long double> b2 = compute_b<long double>(size / 2 - k, size);
+
+        // Determine if we are doing a backwards operation:
+
+        if (invert) {
+
+            // Conjugate each value:
+
+            a1 = std::conj(a1);
+            b1 = std::conj(b1);
+            a2 = std::conj(a2);
+            b2 = std::conj(b2);
+        }
+
+        // Grab each value:
+
+        std::complex<long double> left = *(complex + k);  // Grab left value
+        std::complex<long double> right = *(complex + (size / 2 - k));  // Grab right value
+
+        // Determine value in first half:
+        // X[k] * A(K) + X*[N - k] * B(k)
+        // left * A(k) + *right * B(k)
+
+        *(complex + k) = left * a1 + std::conj(right) * b1;
+
+        // Determine value in second half:
+        // X[N - k] * A(N - k) + X*[k] * B(N - K)
+        // right * A(N - k) + *left * B(N - k)
+
+        *(complex + (size / 2 - k)) = right * a2 + std::conj(left) * b2;
+    }
+}
 
 /**
  * @brief Determines the length of real and non-real results from a DFT operation
@@ -209,6 +188,19 @@ int length_ft(std::size_t size);
  * @return int Size of output signal
  */
 int length_ift(std::size_t size);
+
+/**
+ * This section defines functions for calculating
+ * the Discreet Fourier Transform, as well as it's inverse.
+ *
+ * These functions are very trivial and simple to use,
+ * and they have few surprises and nuances.
+ * Unfortunately, these functions are also incredibly slow.
+ *
+ * If you want extra speed, and extra complexity,
+ * then you should look below at the FFT algorithms.
+ *
+ */
 
 /**
  * @brief Preforms an Inverse DFT  
@@ -612,10 +604,6 @@ void fft_r_radix2(I input, int size, O output) {
 
     typedef typename std::iterator_traits<I>::value_type iter_type;
 
-    // Determine output size:
-
-    int output_size = length_ft(size);
-
     // Cast input data into complex array:
 
     auto *cmp = reinterpret_cast<std::complex<iter_type>*>(&(*input));
@@ -626,13 +614,29 @@ void fft_r_radix2(I input, int size, O output) {
 
     // Complex output lives in output, do some processing:
 
-    postprocess_fft_c(output, size);
+    fft_process_real(output, size, false);
+}
 
-    // This is some testing stuff:
+template< typename I, typename O>
+void ifft_r_radix2(I input, int size, O output) {
 
-    int k = 0;
+    // First, determine iterator type:
 
-    auto part1 = *(output + k);
-    auto part2 = *(output + (output_size / 2 - k));
-    auto part3 = std::conj(part2);
+    typedef typename std::iterator_traits<O>::value_type iter_type;
+
+    // Determine output size:
+
+    int osize = length_ift(size);
+
+    // Run data through FFT process method:
+
+    fft_process_real(input, osize, true);
+
+    // Cast the iterator as a complex array:
+
+    auto *cmp = reinterpret_cast<std::complex<iter_type>*>(&(*output));
+
+    // Send data through iFFT function (excluding last value):
+
+    ifft_c_radix2(input, size - 1, cmp);
 }
