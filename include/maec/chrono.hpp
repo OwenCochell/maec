@@ -47,7 +47,7 @@ int64_t get_time();
 /**
  * @brief Handles timekeeping on a chain
  * 
- * This class keeps track of time relative to the synth chain,
+ * This class keeps track of time relative to the module chain,
  * NOT the current wall time.
  * Chain time does not necessarily correlate to the current wall time, but it might sometimes.
  * 

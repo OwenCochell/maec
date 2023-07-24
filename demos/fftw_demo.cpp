@@ -12,6 +12,9 @@
  */
 
 #include <iostream>
+
+#ifdef FFTW
+
 #include <iomanip>
 #include <vector>
 #include <complex.h>
@@ -64,3 +67,12 @@ int main(int argc , char** argv) {
         std::cout << std::setprecision(17) << out[i] << std::endl;
     }
 }
+
+#else
+
+int main(int argc, char** argv) {
+
+    std::cout << "FFTW Is not installed!" << std::endl;
+}
+
+#endif

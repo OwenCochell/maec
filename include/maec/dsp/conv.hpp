@@ -299,7 +299,20 @@ void conv_fft(I input, int input_size, K kernel, int kernel_size, O output) {
     std::fill_n(pinput.begin() + input_size, output_size - input_size, 0.0);
     std::fill_n(pkernel.begin() + kernel_size, output_size - kernel_size, 0.0);
 
-    // Now, run through FFT functions
-    // TODO: Figure out how to specify custom FFT methods?
+    // For now, define array for output data:
 
+    std::vector<std::complex<long double>> infp(output_size);
+    std::vector<std::complex<long double>> kernfp(output_size);
+    std::vector<std::complex<long double>> outf(output_size);
+
+    fft_r_radix2(input, input_size, infp.begin());
+    fft_r_radix2(kernel, kernel_size, kernfp.begin());
+
+    // Multiply signals:
+
+    multiply_signals(output_size, infp.begin(), kernfp.begin(), outf.begin());
+
+    // Send inputs back through inverse FFT:
+
+    ifft_r_radix2(outf.begin(), output_size, output);
 }

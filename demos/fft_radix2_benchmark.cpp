@@ -218,11 +218,7 @@ long double benchmark_radix2_out() {
 
         // First, create a vector of random complex data:
 
-        std::vector<std::complex<long double>> idata;
-
-        // Reserve data:
-
-        idata.reserve(num);
+        std::vector<std::complex<long double>> idata(num);
 
         // Generate random complex data:
 

@@ -38,7 +38,7 @@
  *  - Finishing - Module has been requested to stop, and should do any necessary operations
  *  - Stopped - Module has been stopped and will no longer work with data
  * 
- * The state can be identified by using the 'GetState()' method.
+ * The state can be identified by using the 'get_state()' method.
  * The state will automatically be set by each module as it is used.
  * 
  * We also contain state methods that are called when necessary,

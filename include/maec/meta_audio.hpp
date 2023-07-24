@@ -93,7 +93,7 @@ class Counter : public AudioModule {
  * - average latency of each operation
  * 
  * We utilize a chain timer that allows us to determine
- * the idea time.
+ * the ideal time.
  * We also inherit from the Counter to aid with the process
  * of counting samples and times processed.
  * We do our timekeeping in nanoseconds.
@@ -169,7 +169,7 @@ class LatencyModule : public Counter {
         /**
          * @brief Gets the time of the last operation in nanoseconds
          * 
-         * The operation time is the total time spend meta processing
+         * The operation time is the total time spent meta processing
          * all back modules.
          * 
          * @return int Elapsed operation time in nanoseconds

@@ -210,7 +210,7 @@ class BaseEnvelope : public SourceModule {
 /**
  * @brief Provides functionality for defining envelope durations
  * 
- * Envelopes, be design, have a understanding of a start time and stop time.
+ * Envelopes, by design, have a understanding of a start time and stop time.
  * This is necessary for the envelope to understand where it is in time,
  * and when it needs to stop.
  * This system allows for a high level of customization,

@@ -86,6 +86,31 @@ std::complex<T> twiddle(int k, int size, int sign = -1) {
     return res;
 }
 
+/**
+ * @brief Computes the A coefficient for real FFT processing
+ * 
+ * When processing (in either direction) data related to the real valued FFT,
+ * it is necessary to multiply the input data to the A and B coefficients
+ * to result in proper output.
+ * 
+ * This function computes the A coefficient for this operation.
+ * The A coefficient is computed as follows:
+ * 
+ * A(k, N) = (1 / 2) * (1 - j * W(k, N))
+ * 
+ * Where k is the current frequency component, 
+ * N is the size of the incoming data
+ * (that is, the size of the data before real/odd ordering, which results in data of N/2 size),
+ * and W(k, N) is the twiddle factor method. 
+ * 
+ * This function will be called automatically where necessary!
+ * Most of the time you will never have to worry about the output of this method.
+ *
+ * @tparam T Type of complex data
+ * @param k Frequency component to calculate
+ * @param size Size of data to compute
+ * @return Complex result of A()
+ */
 template<typename T>
 std::complex<T> compute_a(int k, int size) {
 
@@ -96,6 +121,31 @@ std::complex<T> compute_a(int k, int size) {
     return (static_cast<T>(1.0) - res * 1il) / static_cast<T>(2);
 }
 
+/**
+ * @brief Computes the B coefficient for real FFT processing
+ *
+ * When processing (in either direction) data related to the real valued FFT,
+ * it is necessary to multiply the input data to the A and B coefficients
+ * to result in proper output.
+ *
+ * This function computes the B coefficient for this operation.
+ * The B coefficient is computed as follows:
+ *
+ * B(k, N) = (1 / 2) * (1 + j * W(k,N))
+ *
+ * Where k is the current frequency component,
+ * N is the size of the incoming data
+ * (that is, the size of the data before real/odd ordering, which results in data of N/2 size),
+ * and W(k, N) is the twiddle factor method.
+ *
+ * This function will be called automatically where necessary!
+ * Most of the time you wil never have to worry about the output of this method.
+ *
+ * @tparam T Type of complex data
+ * @param k Frequency component to calculate
+ * @param size Size of data to compute
+ * @return Complex result of B()
+ */
 template<typename T>
 std::complex<T> compute_b(int k, int size) {
 
@@ -106,6 +156,46 @@ std::complex<T> compute_b(int k, int size) {
     return (static_cast<T>(1.0) + res * 1il) / static_cast<T>(2);
 }
 
+/**
+ * @brief Processes forward and backward FFT data.
+ *
+ * When processing real data in the FFT
+ * (placing even values in real component and odd in imaginary),
+ * it is necessary to preform some processing steps to ensure
+ * output data is what we expect.
+ *
+ * The forward processing formula is as follows:
+ *
+ * O(k) = X[k] * A(k) + X*[N - k] * B(k)
+ *
+ * The inverse (backwards) processing formula is as follows:
+ *
+ * O(k) = X[k] * A*(k) + X*[N - k] * B*(k)
+ *
+ * Where k is the frequency component,
+ * N is the size of the of the data
+ * (that is, the size of the data after real/odd ordering, which is 2N in size),
+ * and A/B are the coefficients, which are documented above.
+ * 
+ * This method should be called when working with frequency information
+ * of real data that has been ran through the FFT.
+ * After sending the frequency info of complex valued data through the forward FFT,
+ * then it should be sent through this method.
+ * Before sending the frequency info of the complex valued data through the inverse FFT,
+ * then it should be sent through this method.
+ * 
+ * The data to be provided MUST have the size of (N / 2) + 1
+ * (again, N is the size of the data before real/odd ordering).
+ * This can be calculated by sending the size through the 'ft_size()' function.
+ * You also need to provide if you want to do a forward or inverse operation,
+ * simply pass false for forward, and true for backward.
+ * This method also works in place!
+ *
+ * @tparam T Type of complex data
+ * @param complex Iterator of complex data
+ * @param size Size of complex data before real/odd ordering
+ * @param invert true for backward operation, false for forward operation
+ */
 template <typename T>
 void fft_process_real(T complex, int size, bool invert) {
 
