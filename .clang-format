@@ -1,0 +1,7 @@
+---
+BasedOnStyle: google
+IndentWidth: 4
+InsertNewlineAtEOF: true
+KeepEmptyLinesAtTheStartOfBlocks: true
+SeparateDefinitionBlocks: Always
+---

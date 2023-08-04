@@ -28,6 +28,16 @@ This project is geared towards realtime audio playback and analysis.
 Ideally, this project will be used as a framework for working with sound programably,
 as well as providing an environment for creating and using digital instruments and voices!
 
+In short, with the power of MAEC, you can:
+
+- Create audio data from scratch!
+- Alter existing audio data!
+- Link discreet modules together to form a meaningful chain!
+- Use our home grown DSP functions! (Ok maybe don't do this one...)
+- Import and export audio data to various places/services!
+- Hook your own custom functionality into MAEC!
+- Impress your friends!
+
 ## Current Features
 
 We currently have a lot of things implemented!

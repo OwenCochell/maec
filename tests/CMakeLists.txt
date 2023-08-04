@@ -19,6 +19,8 @@ set(TEST_FILES
     utils_test.cpp
     dsp/conv_test.cpp
     dsp/ft_test.cpp
+    dsp/window_test.cpp
+    dsp/kernel_test.cpp
 )
 
 # Get Google Tests

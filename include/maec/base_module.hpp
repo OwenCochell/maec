@@ -11,7 +11,6 @@
 
 #pragma once
 
-
 /**
  * @brief Represents a module
  * 

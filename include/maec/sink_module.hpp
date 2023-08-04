@@ -104,7 +104,7 @@ class SinkModule : public AudioModule {
          * 
          * By default, we represent this buffer in an interleaved format
          * 
-         * TODO: Create methods to allow squished format to ce choosen
+         * TODO: Create methods to allow squished format to be choosen
          */
         void meta_process() override;
 };

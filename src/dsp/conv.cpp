@@ -38,7 +38,6 @@ BufferPointer input_conv(BufferPointer input, BufferPointer kernel) {
     // Finally, return the output buffer:
 
     return buff;
-
 }
 
 BufferPointer output_conv(BufferPointer input, BufferPointer kernel) {

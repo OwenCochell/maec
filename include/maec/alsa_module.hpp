@@ -19,6 +19,7 @@
 
 #include <alsa/asoundlib.h>
 #include <string>
+
 #include "sink_module.hpp"
 
 /**

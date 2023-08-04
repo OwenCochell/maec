@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <utility>
 #include <iterator>
+#include <complex>
 
 template <typename I>
 void bit_reverse(int size, I iter) {
@@ -32,6 +33,21 @@ void bit_reverse(int size, I iter) {
         }
     }
 }
+
+/**
+ * @brief Implementation of the sinc function
+ * 
+ * The sinc function (pronounced sink) is defined as:
+ * 
+ * sin(x) / x
+ * 
+ * Which produces a sine wave that decays in amplitude
+ * as x becomes bigger.
+ * Of course, 0 should never be provided to this function!
+ * 
+ * @param x Current value to compute
+ */
+long double sinc(long double x);
 
 template<typename I1, typename O>
 void multiply_signals(int size, I1 input1, I1 input2, O output) {

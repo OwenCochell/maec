@@ -11,7 +11,6 @@
 
 #include "audio_module.hpp"
 
-
 void AudioModule::meta_process() {  // NOLINT(misc-no-recursion): No recursion cycles present, chain will eventually end
 
     // Call the module behind us:

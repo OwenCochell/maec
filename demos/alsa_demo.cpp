@@ -15,6 +15,7 @@
 
 #include "alsa_module.hpp"
 #include "fund_oscillator.hpp"
+#include "filter_module.hpp"
 
 int main(int argc, char** argv) {
 
@@ -28,18 +29,36 @@ int main(int argc, char** argv) {
 
     std::cout << "Creating saw oscillator ..." << std::endl;
 
-    SineOscillator saw(440.0);
+    SawtoothOscillator saw(440.0);
+
+    std::cout << "Creating filter module ..." << std::endl;
+
+    SincFilter sinc;
+
+    // Set type to lowpass:
+
+    sinc.set_type(FilterType::LowPass);
+
+    // Set low frequency to 440:
+
+    sinc.set_start_freq(440.0);
+
+    // Set the size:
+
+    sinc.set_size(100);
 
     // Bind the modules:
 
     std::cout << "Binding the modules ..." << std::endl;
 
-    sink.bind(&saw);
+    sinc.bind(&saw);
+    sink.bind(&sinc);
 
     // Start all modules:
 
     sink.start();
     saw.start();
+    sinc.start();
 
     // Temporary buffer size - Prevent underruns? TAKE INTO ACCOUNT THE SIZE OF THE FORMAT!
 

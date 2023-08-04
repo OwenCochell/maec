@@ -19,8 +19,12 @@ add_library(${PROJECT_NAME}
     src/chrono.cpp
     src/envelope.cpp
     src/utils.cpp
+    src/filter_module.cpp
     src/dsp/conv.cpp
     src/dsp/ft.cpp
+    src/dsp/util.cpp
+    src/dsp/window.cpp
+    src/dsp/kernel.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
