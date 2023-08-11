@@ -32,7 +32,7 @@ void DeviceInfo::create_device(void** hint, int id) {
 
     // Determine the IO type:
 
-    if (io == NULL) {
+    if (io == nullptr) {
 
         // We are both input and output:
 
@@ -65,7 +65,7 @@ void DeviceInfo::create_device(void** hint, int id) {
 
     // Now, get our device:
 
-    snd_pcm_t *pcm;
+    snd_pcm_t* pcm = nullptr;
 
     int err = snd_pcm_open(&pcm, this->name.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
 
@@ -80,7 +80,7 @@ void DeviceInfo::create_device(void** hint, int id) {
 
     // Allocate the hardware parameters:
 
-    snd_pcm_hw_params_t *params;
+    snd_pcm_hw_params_t* params = nullptr;
 
     snd_pcm_hw_params_alloca(&params);
 
@@ -92,30 +92,30 @@ void DeviceInfo::create_device(void** hint, int id) {
 
     snd_pcm_hw_params_get_periods_max(params, &this->period_max, 0);
     snd_pcm_hw_params_get_periods_min(params, &this->period_min, 0);
-    //snd_pcm_hw_params_get_periods(params, &this->period, 0);
     snd_pcm_hw_params_get_period_size_max(params, &this->period_size_max, 0);
     snd_pcm_hw_params_get_period_size_min(params, &this->period_size_min, 0);
-    snd_pcm_hw_params_get_period_size(params, &this->period_size, 0);
     snd_pcm_hw_params_get_channels(params, &this->channels);
     snd_pcm_hw_params_get_channels_max(params, &this->channels_max);
     snd_pcm_hw_params_get_channels_min(params, &this->channels_min);
-    snd_pcm_hw_params_get_period_time(params, &this->period_time, 0);
     snd_pcm_hw_params_get_period_time_min(params, &this->period_time_min, 0);
     snd_pcm_hw_params_get_period_time_max(params, &this->period_time_max, 0);
+
+    snd_pcm_hw_params_get_periods(params, &this->period, 0);
+    snd_pcm_hw_params_get_period_size(params, &this->period_size, 0);
+    snd_pcm_hw_params_get_period_time(params, &this->period_time, 0);
 
     // Do some freeing:
 
     snd_pcm_close(pcm);
     snd_pcm_hw_free(pcm);
-
 }
 
 int ALSABase::get_device_count() {
 
     // Define some values:
 
-    void** hints;
-    void** n;
+    void** hints = nullptr;
+    void** n = nullptr;
 
     // Get array of all devices:
 
@@ -130,7 +130,6 @@ int ALSABase::get_device_count() {
     for (; *n != nullptr; ++n) {
 
         ++num;
-
     }
 
     // Free the hints, as they are not needed:
@@ -140,15 +139,14 @@ int ALSABase::get_device_count() {
     // Finally, return the number of devices:
 
     return num;
-
 }
 
 DeviceInfo ALSABase::get_device_by_id(int index) {
 
     // Define some values:
 
-    void** hints;
-    void** n;
+    void** hints = nullptr;
+    void** n = nullptr;
 
     // Get specific device:
 
@@ -178,15 +176,14 @@ DeviceInfo ALSABase::get_device_by_id(int index) {
     // Finally, return the device info:
 
     return info;
-
 }
 
 DeviceInfo ALSABase::get_device_by_name(std::string name) {
 
     // Define some values:
 
-    void** hints;
-    void** n;
+    void** hints = nullptr;
+    void** n = nullptr;
 
     // Get all devices:
 
@@ -199,7 +196,7 @@ DeviceInfo ALSABase::get_device_by_name(std::string name) {
     int id = 0;
     DeviceInfo info;
 
-    for (; *n != NULL; ++n) {
+    for (; *n != nullptr; ++n) {
 
         // Get the name from the hint:
 
@@ -258,52 +255,54 @@ void ALSABase::alsa_start(int sample_rate, int buffer_size) {
 
     int h = snd_pcm_hw_params_set_rate_resample(pcm, this->params, 1);
 
+    // Set some non-negotiable values:
+
     int a = snd_pcm_hw_params_set_access(pcm, this->params, SND_PCM_ACCESS_RW_INTERLEAVED);
 	int b = snd_pcm_hw_params_set_format(pcm, this->params, SND_PCM_FORMAT_FLOAT); // THIS FAILS, ONLY WITH FLOAT_64
-    // int b = snd_pcm_hw_params_set_format(pcm, this->params, SND_PCM_FORMAT_S16_LE); // THIS FAILS, ONLY WITH FLOAT_64
-
 	int c = snd_pcm_hw_params_set_channels(pcm, this->params,  this->device.channels);
 	int d = snd_pcm_hw_params_set_rate(pcm, this->params, sample_rate, 0);
-	int e = snd_pcm_hw_params_set_periods(pcm, this->params, this->device.period, 0); // THIS FAILS
-    //int f = snd_pcm_hw_params_set_period_size(pcm, this->params, buffer_size, 0);
 
-	// int g = snd_pcm_hw_params_set_period_time(pcm, this->params, pt, 0); // 0.1 seconds period time
+    // Determine if we should attempt to set the number of periods:
 
-    // int meh = snd_pcm_set_params(pcm, SND_PCM_FORMAT_FLOAT, SND_PCM_ACCESS_RW_INTERLEAVED, this->device.channels, 44100, 1, this->device.period_time);
+    if (this->device.period > 0) {
 
-    // int bb = snd_pcm_hw_params_current(pcm, params);
+        // We have a request, get it close:
 
-    int bb1 = snd_pcm_hw_params_set_periods_near(pcm, params, &(this->device.period), 0);
+        int pcode = snd_pcm_hw_params_set_periods_near(pcm, params, &(this->device.period), 0);
+    }
+
+    // Determine if we should attempt to set the period size:
+
+    if (this->device.period_size > 0) {
+
+        // We have a request, get it close:
+
+        int pscode = snd_pcm_hw_params_set_period_size_near(pcm, params, &(this->device.period_size), 0);
+    }
 
     // Commit the parameters:
 
     int commit = snd_pcm_hw_params(pcm, params);
 
-    unsigned int blah;
+    snd_pcm_hw_params_get_periods(params, &(this->device.period), 0);
 
-    snd_pcm_hw_params_get_rate(params, &blah, 0);
+    int junk = 0;
 
-    unsigned int periods;
-
-    snd_pcm_hw_params_get_periods(params, &periods, 0);
-
-    unsigned int channels;
-
-    snd_pcm_hw_params_get_channels(params, &channels);
-
-    snd_pcm_uframes_t tatata = 0;
-    int ggggg = 0;
-
-    int rret = snd_pcm_hw_params_get_period_size(params, &tatata, &ggggg);
+    int rret = snd_pcm_hw_params_get_period_size(params, &(this->device.period_size), &junk);
 
     long unsigned int buffer_sizeb;
 
-    snd_pcm_hw_params_get_buffer_size(params, &buffer_sizeb);
+    snd_pcm_hw_params_get_buffer_size(params, &(this->device.buffer_size));
+
+    snd_pcm_hw_params_get_period_time(params, &(this->device.period_time), &junk);
+
+    unsigned int rate = 0;
+
+    snd_pcm_hw_params_get_rate(params, &rate, &junk);
 
     // DIVIDE BY 8 TO GET ACTUAL WIDTH!
 
     int sbits = snd_pcm_hw_params_get_sbits(params);
-
 }
 
 void ALSABase::alsa_stop() {
@@ -319,7 +318,6 @@ void ALSABase::alsa_stop() {
     // Free the hardware:
 
     snd_pcm_hw_free(this->pcm);
-
 }
 
 void ALSASink::process() {
@@ -328,14 +326,28 @@ void ALSASink::process() {
 
     std::vector<float> temp(buff->size() * buff->get_channel_count());
 
+    auto tthing = buff->size();
+
     // Next, squish it:
 
     squish_inter(this->buff.get(), temp.begin(), &mf_float);
+
+    auto thing = temp.size();
+
+    int state = snd_pcm_state(this->pcm);
+
+    // prepare the device once again:
+
+    //snd_pcm_prepare(this->pcm);
 
     // Finally, send the data along:
 
     int rc = snd_pcm_writei(this->pcm, reinterpret_cast<float*>(temp.data()), temp.size());
 
+    if (rc == -EPIPE) {
+        // Underrun occurred
+        snd_pcm_prepare(this->pcm);
+    }
 }
 
 void ALSASink::start() {
@@ -354,12 +366,11 @@ void ALSASink::start() {
 
     // Next, set the new period number:
 
-    this->set_period(this->get_device().period);
+    //this->set_period(this->get_device().period);
 
     // Set the new buffer size:
 
     this->get_info()->out_buffer = this->get_device().period_size;
-
 }
 
 #endif

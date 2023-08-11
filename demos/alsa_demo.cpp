@@ -16,6 +16,7 @@
 #include "alsa_module.hpp"
 #include "fund_oscillator.hpp"
 #include "filter_module.hpp"
+#include "meta_audio.hpp"
 
 int main(int argc, char** argv) {
 
@@ -29,7 +30,11 @@ int main(int argc, char** argv) {
 
     std::cout << "Creating saw oscillator ..." << std::endl;
 
-    SawtoothOscillator saw(440.0);
+    SineOscillator saw(440.0);
+
+    std::cout << "Creating LatencyModule ..." << std::endl;
+
+    LatencyModule latency;
 
     std::cout << "Creating filter module ..." << std::endl;
 
@@ -45,37 +50,44 @@ int main(int argc, char** argv) {
 
     // Set the size:
 
-    sinc.set_size(100);
+    int kern_size = 200;
+
+    sinc.set_size(kern_size);
 
     // Bind the modules:
 
     std::cout << "Binding the modules ..." << std::endl;
 
     sinc.bind(&saw);
-    sink.bind(&sinc);
+    latency.bind(&sinc);
+    sink.bind(&latency);
 
     // Start all modules:
 
     sink.start();
     saw.start();
+    latency.start();
     sinc.start();
 
     // Temporary buffer size - Prevent underruns? TAKE INTO ACCOUNT THE SIZE OF THE FORMAT!
 
-    sink.get_info()->out_buffer = 524288 / 4;
-    saw.get_info()->out_buffer = 524288 / 4;
+    // sink.get_info()->out_buffer = 524288 / 4;
+    // saw.get_info()->out_buffer = 524288 / 4;
+    saw.get_info()->out_buffer = (sink.get_info()->out_buffer - kern_size + 1);
+    //saw.get_info()->out_buffer = sink.get_info()->out_buffer;
 
-    int dang = sizeof(long double);
-    int dfloat = sizeof(float);
-    int dumb = sizeof(char);
     // Finally, meta process forever!
 
-    for(int i = 0; i < 5; i++) {
-
+    //for(int i = 0; i < 5; i++) {
+    while (true) {
         std::cout << "Processing ..." << std::endl;
 
         sink.meta_process();
 
+        std::cout << latency.latency() << std::endl;
+        std::cout << latency.average_latency() << std::endl;
+        std::cout << latency.total_latency() << std::endl;
+        std::cout << latency.time() << std::endl;
     }
 
     sink.stop();

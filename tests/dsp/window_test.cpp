@@ -35,7 +35,7 @@ TEST(WindowTest, Blackman) {
 
         // Ensure values are accurate:
 
-        ASSERT_NEAR(window_blackman(i, window_test_size), blackman_data.at(i), 0.0001);
+        ASSERT_NEAR(window_blackman(i, window_test_size), blackman_data.at(i), 0.0000001);
     }
 }
 
@@ -51,7 +51,7 @@ TEST(WindowTest, Hann) {
 
         // Ensure values are accurate:
 
-        ASSERT_NEAR(window_hann(i, window_test_size), hann_data.at(i), 0.0001);
+        ASSERT_NEAR(window_hann(i, window_test_size), hann_data.at(i), 0.0000001);
     }
 }
 
@@ -67,6 +67,6 @@ TEST(WindowTest, Hamming) {
 
         // Ensure values are accurate:
 
-        ASSERT_NEAR(window_hamming(i, window_test_size), hamming_data.at(i), 0.0001);
+        ASSERT_NEAR(window_hamming(i, window_test_size), hamming_data.at(i), 0.0000001);
     }
 }

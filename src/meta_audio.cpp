@@ -64,11 +64,15 @@ void LatencyModule::meta_process() {
 
     Counter::process();
 
+    // Get size of buffer:
+
+    int samples = static_cast<int>(this->buff->size() * this->buff->get_channel_count());
+
     // Update chain timer:
 
     this->timer.set_samplerate(static_cast<int>(this->buff->get_samplerate()));
     this->timer.set_channels(this->buff->get_channel_count());
-    this->timer.add_sample(static_cast<int>(this->buff->size() * this->buff->get_channel_count()));
+    this->timer.add_sample(samples);
 
     // Save the time:
 
@@ -80,7 +84,7 @@ void LatencyModule::meta_process() {
 
     // Determine the latency:
 
-    this->operation_latency = this->operation_time - this->timer.get_time();
+    this->operation_latency = this->operation_time - this->timer.get_time(samples);
 
     // Add to total latency:
 
@@ -89,7 +93,6 @@ void LatencyModule::meta_process() {
     // Call the processing module of our own:
 
     this->process();
-
 }
 
 void BufferModule::process() {
@@ -129,7 +132,6 @@ void UniformBuffer::process() {
             // Update the in index:
 
             this->iindex = 0;
-
         }
 
         // Determine the number of samples yet to fill:
@@ -144,11 +146,9 @@ void UniformBuffer::process() {
 
         this->iindex += remaining;
         this->index += remaining;
-
     }
 
     // Finally, set our index back to zero:
 
     this->index = 0;
-
 }

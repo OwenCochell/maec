@@ -89,6 +89,7 @@ class Counter : public AudioModule {
  * - expected time since start
  * - time of last operation
  * - latency of last operation
+ * - total latency thus far
  * - average time of each operation
  * - average latency of each operation
  * 
@@ -117,7 +118,7 @@ class LatencyModule : public Counter {
         /// Sum of all latency times
         int64_t total_operation_latency = 0;
 
-        /// Chain timer for idea timekeeping
+        /// Chain timer for ideal timekeeping
         ChainTimer timer;
 
     public:
@@ -200,11 +201,20 @@ class LatencyModule : public Counter {
         /**
          * @brief Gets the total latency in nanoseconds
          * 
-         * We sum the latency of each operation.
+         * We take the total operation time and and current expected chain time
+         * to determine the total latency.
+         * This allows you to understand the latency up to this point.
          * 
          * @return int Total latency in nanoseconds.
          */
-        int64_t total_latency() const { return this->total_operation_latency; }
+        int64_t total_latency() const { return this->total_operation_time - this->timer.get_time(); }
+
+        /**
+         * @brief Gets the sum of all operation latency
+         * 
+         * @return int64_t Sum of all operation latency
+         */
+        int64_t sum_latency() const { return this->total_operation_latency; }
 
         /**
          * @brief Gets the average operation time in nanoseconds
@@ -254,7 +264,6 @@ class LatencyModule : public Counter {
          * 
          */
         void process() override {}
-
 };
 
 /**

@@ -1,4 +1,8 @@
 ---
 Checks: "bugprone-*,clang-diagnostic-*,clang-analyzer-*,modernize-*,performance-*,readability-*,google-*,cppcoreguidelines-*,misc-*,performance-*,portability-*,
   -modernize-use-trailing-return-type,-modernize-use-nodiscard,-misc-const-correctness"
+FormatStyle: "file"
 HeaderFilterRegex: '.'
+CheckOptions:
+  - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value: '1'

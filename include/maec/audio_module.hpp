@@ -72,7 +72,6 @@ struct AudioInfo {
 
 };
 
-
 /**
  * @brief Module for working with audio data
  * 
@@ -226,7 +225,7 @@ class AudioModule : public BaseModule {
         virtual void set_forward(AudioModule* mod);
 
         /**
-         * @brief Create a buffer object
+         * @brief Creates an AudioBuffer
          * 
          * Creates a buffer object and 
          * returns the result.
@@ -244,6 +243,20 @@ class AudioModule : public BaseModule {
          * @return The newly created buffer
          */
         std::unique_ptr<AudioBuffer> create_buffer(int channels=1);
+
+        /**
+         * @brief Creates an AudioBuffer
+         *
+         * Creates a buffer object and
+         * returns the result.
+         * The resulting pointer should be unique,
+         * and have ownership of the buffer.
+         *
+         * @param size Size of buffer to create
+         * @param channels Channels in AudioBuffer
+         * @return std::unique_ptr<AudioBuffer> Newly created buffer
+         */
+        std::unique_ptr<AudioBuffer> create_buffer(int size, int channels) const;
 
         /**
          * @brief Get the forward object

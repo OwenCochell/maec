@@ -133,7 +133,6 @@ void input_conv(I binput, I einput, K bkernel, K ekernel, O output) {
     // Call the other method with sizes determined:
 
     input_conv(binput, std::distance(binput, einput), bkernel, std::distance(bkernel, ekernel), output);
-
 }
 
 /**

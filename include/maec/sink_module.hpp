@@ -22,7 +22,8 @@
 /**
  * @brief Sink module, base class for outputting audio data
  * 
- * A sink is a component that consumes audio data.
+ * A sink is a component that consumes audio data,
+ * allowing audio data to leave the chain.
  * How it goes about consuming audio data varies greatly,
  * but can include sending audio to a sound card, file,
  * network stream, ect.

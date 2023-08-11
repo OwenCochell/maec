@@ -165,14 +165,41 @@ class ChainTimer {
 
         /**
          * @brief Gets the current time
-         * 
+         *
          * We use the number of frames to determine the current time.
-         * 
+         *
          * TODO: This method might not be as efficient as it could be!
-         * 
-         * @return long double Current time in nanoseconds
+         *
+         * @return int64_t Current time in nanoseconds
          */
         int64_t get_time() const { return static_cast<int64_t>((this->sample / this->channels) * this->nano_frame); }
+
+        /**
+         * @brief Gets the current time for the given values
+         * 
+         * We compute the elapsed time using the given
+         * sample and channel number.
+         * This can be useful if you wish to compute the elapsed
+         * time independent of the current sample count.
+         * 
+         * @param sample Number of samples
+         * @param channel Number of channels
+         * @return int64_t Elapsed time in nanoseconds
+         */
+        int64_t get_time(int sample, int channel) const { return static_cast<int64_t>(sample / channel) * this->nano_frame; }
+
+        /**
+         * @brief Gets the current time for the given sample count
+         * 
+         * We compute the elapsed time using the given
+         * sample count.
+         * This can be useful if you wish to compute the elapsed
+         * time independent of the current sample count.
+         *
+         * @param sample Number of samples
+         * @return int74_t Elapsed time in nanoseconds
+         */
+        int64_t get_time(int sample) const { return static_cast<int64_t>(sample) * this->nano_frame; }
 
         /**
          * @brief Sets the sample to the given value
@@ -214,5 +241,4 @@ class ChainTimer {
          * @return int Current sample
          */
         int get_sample() const { return this->sample; }
-
 };

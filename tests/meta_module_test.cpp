@@ -99,7 +99,6 @@ TEST(MetaLatencyTest, MetaProcess) {
     // Meta process:
 
     late.meta_process();
-
 }
 
 TEST(MetaLatencyTest, TotalTime) {
@@ -139,7 +138,6 @@ TEST(MetaLatencyTest, TotalTime) {
     // Get expected time:
 
     ASSERT_EQ(late.expected(), 440 * (NANO / 44100));
-
 }
 
 TEST(MetaLatencyTest, OperationTime) {
@@ -184,7 +182,6 @@ TEST(MetaLatencyTest, OperationTime) {
     ASSERT_LT(late.time(), late.elapsed());
     ASSERT_EQ(late.total_time(), total);
     ASSERT_EQ(total / 2, late.average_time());
-
 }
 
 TEST(MetaLatencyTest, LatencyTime) {
@@ -204,8 +201,9 @@ TEST(MetaLatencyTest, LatencyTime) {
     // Ensure initial values are zero:
 
     ASSERT_EQ(late.latency(), 0);
-    ASSERT_EQ(late.total_latency(), 0);
+    ASSERT_EQ(late.sum_latency(), 0);
     //ASSERT_EQ(late.average_latency(), 0);
+    ASSERT_EQ(late.total_latency(), 0);
 
     // Meta process:
 
@@ -217,8 +215,9 @@ TEST(MetaLatencyTest, LatencyTime) {
     int64_t total = late.latency();
 
     ASSERT_LT(late.latency(), late.time());
-    ASSERT_EQ(late.latency(), late.total_latency());
+    ASSERT_EQ(late.latency(), late.sum_latency());
     ASSERT_EQ(late.latency(), late.average_latency());
+    ASSERT_EQ(late.total_latency(), late.total_time() - late.expected());
 
     // Meta process once more:
 
@@ -227,9 +226,9 @@ TEST(MetaLatencyTest, LatencyTime) {
     total += late.latency();
 
     ASSERT_LT(late.latency(), late.time());
-    ASSERT_EQ(late.total_latency(), total);
+    ASSERT_EQ(late.sum_latency(), total);
     ASSERT_EQ(total / 2, late.average_latency());
-
+    ASSERT_EQ(late.total_latency(), late.total_time() - late.expected());
 }
 
 TEST(MetaLatencyTest, Reset) {
@@ -263,7 +262,7 @@ TEST(MetaLatencyTest, Reset) {
     ASSERT_EQ(late.latency(), 0);
     ASSERT_EQ(late.total_latency(), 0);
     //ASSERT_EQ(late.average_latency(), 0);
-
+    ASSERT_EQ(late.sum_latency(), 0);
 }
 
 TEST(MetaBufferTest, Construct) {

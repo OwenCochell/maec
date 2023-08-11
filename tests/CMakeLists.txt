@@ -23,6 +23,9 @@ set(TEST_FILES
     dsp/kernel_test.cpp
 )
 
+# Enable testing for the project
+enable_testing()
+
 # Get Google Tests
 include(FetchContent)
 FetchContent_Declare(
@@ -37,9 +40,6 @@ FetchContent_MakeAvailable(googletest)
 
 # Include Google Test directories
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
-
-# Enable testing for the project
-enable_testing()
 
 # adding the Tests_run target
 add_executable(Tests_run ${TEST_FILES})

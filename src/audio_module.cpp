@@ -47,6 +47,13 @@ std::unique_ptr<AudioBuffer> AudioModule::create_buffer(int channels) {
     return std::make_unique<AudioBuffer>(this->info.out_buffer, channels);
 }
 
+std::unique_ptr<AudioBuffer> AudioModule::create_buffer(int size, int channels) const {
+
+    // Allocate the new buffer:
+
+    return std::make_unique<AudioBuffer>(size, channels);
+}
+
 void AudioModule::set_forward(AudioModule* mod) {
 
     // Set the forward module:

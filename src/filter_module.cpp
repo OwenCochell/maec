@@ -101,7 +101,21 @@ void BaseConvFilter::process() {
     // as it was owned by the convolution function.
     // I'm thinking maybe we finally hash out the AudioInfo issues?
 
-    this->set_buffer(input_conv(this->get_buffer(), std::move(this->kernel)));
+    // Grab the buffer:
+
+    auto ibuff = this->get_buffer();
+
+    // Allocate buffer for holding output:
+
+    auto nbuff = this->create_buffer(length_conv(ibuff->size(), this->kernel->size()), 1);
+
+    // Run though convolution function:
+
+    input_conv(ibuff->ibegin(), ibuff->size(), this->kernel->ibegin(), this->kernel->size(), nbuff->ibegin());
+
+    // Finally, set the buffer:
+
+    this->set_buffer(std::move(nbuff));
 }
 
 void SincFilter::generate_kernel() {
@@ -111,13 +125,13 @@ void SincFilter::generate_kernel() {
     auto type = this->get_type();
     int final_size = this->get_size() + 1;
 
-    double start_ratio = this->get_start_freq() / this->get_info()->sample_rate;
-    double stop_ratio = this->get_stop_freq() / this->get_info()->sample_rate;
+    auto start_ratio = static_cast<double>(this->get_start_freq() / this->get_info()->sample_rate);
+    auto stop_ratio = static_cast<double>(this->get_stop_freq() / this->get_info()->sample_rate);
 
     // First, create a buffer for use:
 
     BufferPointer kern =
-        std::make_unique<AudioBuffer>(final_size, 1);
+        std::make_unique<AudioBuffer>(this->get_size(), 1);
 
     // First off, just create the sinc kernel:
 

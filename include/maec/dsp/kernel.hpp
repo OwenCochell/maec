@@ -105,10 +105,10 @@ void sinc_kernel(double freq, int size, O output, window_functiont window = wind
 
     // Determine some constants:
 
-    const int size2 = size / 2;
+    const int size2 = (size - 1) / 2;
     const long double inner = 2 * M_PI * freq;
 
-    long double sum = inner;
+    long double sum = 1.;
 
     // Iterate over first half:
 
@@ -120,21 +120,21 @@ void sinc_kernel(double freq, int size, O output, window_functiont window = wind
 
         // Calculate value:
 
-        long double value = sinc(inner * half) / (half) * window(i, size);
+        long double value = sinc(inner * half) * window(i, size);
 
         // Set value on each half:
 
         *(output + i) = value;
-        *(output + (size - i)) = value;
+        *(output + (size - i - 1)) = value;
 
         // Keep a running sum of each value:
 
-        sum += value + value;
+        sum += value * 2;
     }
 
     // Calculate center value:
 
-    *(output + size2) = inner;
+    *(output + size2) = 1;
 
     // Normalize all values:
 
@@ -142,6 +142,6 @@ void sinc_kernel(double freq, int size, O output, window_functiont window = wind
 
         // Divide by total sum:
 
-        *(output) /= sum;
+        *(output + i) /= sum;
     }
 }

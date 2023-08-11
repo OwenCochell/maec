@@ -28,6 +28,5 @@ void SinkModule::meta_process() {
         // Process ? :
 
         this->process();
-
     }
 }
