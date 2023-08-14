@@ -12,7 +12,6 @@
 #include <algorithm>
 #include "audio_buffer.hpp"
 
-
 AudioBuffer::AudioBuffer(int size, int channels) {
      
     // Create the underlying vector:

@@ -188,6 +188,9 @@ class ALSABase {
     /// The ALSA PCM hardware parameters
     snd_pcm_hw_params_t* params;
 
+    /// Return code of the last write
+    int return_code = 0;
+
    public:
     /**
      * @brief Construct a new ALSAModule object

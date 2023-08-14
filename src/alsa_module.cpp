@@ -13,6 +13,10 @@
 
 #include "alsa_module.hpp"
 
+#include <iostream>
+
+#include "chrono.hpp"
+
 void DeviceInfo::create_device(void** hint, int id) {
 
     // First, set our id:
@@ -258,7 +262,7 @@ void ALSABase::alsa_start(int sample_rate, int buffer_size) {
     // Set some non-negotiable values:
 
     int a = snd_pcm_hw_params_set_access(pcm, this->params, SND_PCM_ACCESS_RW_INTERLEAVED);
-	int b = snd_pcm_hw_params_set_format(pcm, this->params, SND_PCM_FORMAT_FLOAT); // THIS FAILS, ONLY WITH FLOAT_64
+	int b = snd_pcm_hw_params_set_format(pcm, this->params, SND_PCM_FORMAT_FLOAT64); // THIS FAILS, ONLY WITH FLOAT_64
 	int c = snd_pcm_hw_params_set_channels(pcm, this->params,  this->device.channels);
 	int d = snd_pcm_hw_params_set_rate(pcm, this->params, sample_rate, 0);
 
@@ -322,6 +326,8 @@ void ALSABase::alsa_stop() {
 
 void ALSASink::process() {
 
+    int64_t start = get_time();
+
     // First, define our temporary vector:
 
     std::vector<float> temp(buff->size() * buff->get_channel_count());
@@ -334,18 +340,33 @@ void ALSASink::process() {
 
     auto thing = temp.size();
 
-    int state = snd_pcm_state(this->pcm);
+    int64_t stop = get_time();
 
-    // prepare the device once again:
+    std::cout << "Squish Latency:" << std::endl;
+    std::cout << stop - start << std::endl;
 
-    //snd_pcm_prepare(this->pcm);
+    // int state = snd_pcm_state(this->pcm);
+
+    // Determine if we need to prepare the device again:
+
+    // if (this->return_code == -EPIPE) {
+
+    //     // Underrun occurred, prepare the device again:
+    //     std::cout << "ALSA Underrun (Before)" << std::endl;
+
+    //     snd_pcm_prepare(this->pcm); 
+    // }
 
     // Finally, send the data along:
 
-    int rc = snd_pcm_writei(this->pcm, reinterpret_cast<float*>(temp.data()), temp.size());
+    this->return_code =
+        snd_pcm_writei(this->pcm, reinterpret_cast<float*>(temp.data()),
+                       static_cast<snd_pcm_uframes_t>(temp.size()));
 
-    if (rc == -EPIPE) {
+    if (this->return_code == -EPIPE) {
         // Underrun occurred
+
+        std::cout << "ALSA Underrun (After)" << std::endl;
         snd_pcm_prepare(this->pcm);
     }
 }

@@ -18,7 +18,7 @@
 #include "filter_module.hpp"
 #include "meta_audio.hpp"
 
-int main(int argc, char** argv) {
+int main() {
 
     // Create the ALSASink
 
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
 
     // Set the size:
 
-    int kern_size = 200;
+    int kern_size = 50;
 
     sinc.set_size(kern_size);
 
@@ -61,6 +61,8 @@ int main(int argc, char** argv) {
     sinc.bind(&saw);
     latency.bind(&sinc);
     sink.bind(&latency);
+    // latency.bind(&saw);
+    // sink.bind(&latency);
 
     // Start all modules:
 
@@ -76,9 +78,13 @@ int main(int argc, char** argv) {
     saw.get_info()->out_buffer = (sink.get_info()->out_buffer - kern_size + 1);
     //saw.get_info()->out_buffer = sink.get_info()->out_buffer;
 
+    // Get expected period time:
+
+    int period_time = sink.get_device().period_time * 1000;
+
     // Finally, meta process forever!
 
-    //for(int i = 0; i < 5; i++) {
+    // for(int i = 0; i < 5; i++) {
     while (true) {
         std::cout << "Processing ..." << std::endl;
 
@@ -88,6 +94,8 @@ int main(int argc, char** argv) {
         std::cout << latency.average_latency() << std::endl;
         std::cout << latency.total_latency() << std::endl;
         std::cout << latency.time() << std::endl;
+        std::cout << latency.time() - period_time << std::endl;
+        std::cout << period_time << std::endl;
     }
 
     sink.stop();

@@ -18,7 +18,6 @@
 #include "source_module.hpp"
 #include "chrono.hpp"
 
-
 /**
  * @brief Counts the number of samples this module encounters, and how many times it has been processed
  * 

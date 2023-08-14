@@ -337,7 +337,6 @@ class BaseAudioIterator {
          * @return pointer 
          */
         pointer base() const { return this->point; }
-
 };
 
 /**

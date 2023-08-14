@@ -63,9 +63,7 @@ class SinkModule : public AudioModule {
          * Default constructor.
          * We simply set the default squishier to squish_null
          */
-        // SinkModule() =default;
-
-        SinkModule() {}
+        SinkModule() =default;
 
         /**
          * @brief Gets the periods for this sink module
