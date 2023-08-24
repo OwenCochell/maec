@@ -1,6 +1,6 @@
 ---
 Checks: "bugprone-*,clang-diagnostic-*,clang-analyzer-*,modernize-*,performance-*,readability-*,google-*,cppcoreguidelines-*,misc-*,performance-*,portability-*,
-  -modernize-use-trailing-return-type,-modernize-use-nodiscard,-misc-const-correctness"
+  -modernize-use-trailing-return-type,-modernize-use-nodiscard"
 FormatStyle: "file"
 HeaderFilterRegex: '.'
 CheckOptions:

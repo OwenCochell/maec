@@ -183,10 +183,10 @@ class ALSABase {
 
    protected:
     /// The ALSA PCM interface
-    snd_pcm_t* pcm;
+    snd_pcm_t* pcm = nullptr;
 
     /// The ALSA PCM hardware parameters
-    snd_pcm_hw_params_t* params;
+    snd_pcm_hw_params_t* params = nullptr;
 
     /// Return code of the last write
     int return_code = 0;

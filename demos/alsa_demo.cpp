@@ -30,7 +30,7 @@ int main() {
 
     std::cout << "Creating saw oscillator ..." << std::endl;
 
-    SineOscillator saw(440.0);
+    SawtoothOscillator saw(440.0);
 
     std::cout << "Creating LatencyModule ..." << std::endl;
 
@@ -42,15 +42,16 @@ int main() {
 
     // Set type to lowpass:
 
-    sinc.set_type(FilterType::LowPass);
+    sinc.set_type(FilterType::BandReject);
 
     // Set low frequency to 440:
 
-    sinc.set_start_freq(440.0);
+    sinc.set_start_freq(440.);
+    sinc.set_stop_freq(1760.);
 
     // Set the size:
 
-    int kern_size = 50;
+    const int kern_size = 201;
 
     sinc.set_size(kern_size);
 
@@ -66,10 +67,10 @@ int main() {
 
     // Start all modules:
 
+    sinc.start();
     sink.start();
     saw.start();
     latency.start();
-    sinc.start();
 
     // Temporary buffer size - Prevent underruns? TAKE INTO ACCOUNT THE SIZE OF THE FORMAT!
 
@@ -81,7 +82,7 @@ int main() {
     // Get expected period time:
 
     int period_time = sink.get_device().period_time * 1000;
-
+ 
     // Finally, meta process forever!
 
     // for(int i = 0; i < 5; i++) {
@@ -92,7 +93,6 @@ int main() {
 
         std::cout << latency.latency() << std::endl;
         std::cout << latency.average_latency() << std::endl;
-        std::cout << latency.total_latency() << std::endl;
         std::cout << latency.time() << std::endl;
         std::cout << latency.time() - period_time << std::endl;
         std::cout << period_time << std::endl;

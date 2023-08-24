@@ -7,7 +7,7 @@
  * 
  * @copyright Copyright (c) 2023
  * 
- * A 'kernel' is an impulse response that is being used
+ * A 'kernel' is a finite impulse response that is being used
  * to filter a signal via convolution.
  * Filtering a signal is to preform signal separation
  * or signal restoration.
@@ -120,7 +120,7 @@ void sinc_kernel(double freq, int size, O output, window_functiont window = wind
 
         // Calculate value:
 
-        long double value = sinc(inner * half) * window(i, size);
+        const long double value = sinc(inner * half) * window(i, size);
 
         // Set value on each half:
 
@@ -134,7 +134,7 @@ void sinc_kernel(double freq, int size, O output, window_functiont window = wind
 
     // Calculate center value:
 
-    *(output + size2) = 1;
+    *(output + size2) = 1.;
 
     // Normalize all values:
 

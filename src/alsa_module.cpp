@@ -55,8 +55,8 @@ void DeviceInfo::create_device(void** hint, int id) {
             this->output = true;
         }
 
-        else if (temp == "Input")
-        {
+        else if (temp == "Input") {
+
             this->input = true;
         }
     }
@@ -262,7 +262,7 @@ void ALSABase::alsa_start(int sample_rate, int buffer_size) {
     // Set some non-negotiable values:
 
     int a = snd_pcm_hw_params_set_access(pcm, this->params, SND_PCM_ACCESS_RW_INTERLEAVED);
-	int b = snd_pcm_hw_params_set_format(pcm, this->params, SND_PCM_FORMAT_FLOAT64); // THIS FAILS, ONLY WITH FLOAT_64
+	int b = snd_pcm_hw_params_set_format(pcm, this->params, SND_PCM_FORMAT_FLOAT); // THIS FAILS, ONLY WITH FLOAT_64
 	int c = snd_pcm_hw_params_set_channels(pcm, this->params,  this->device.channels);
 	int d = snd_pcm_hw_params_set_rate(pcm, this->params, sample_rate, 0);
 
@@ -349,19 +349,21 @@ void ALSASink::process() {
 
     // Determine if we need to prepare the device again:
 
-    // if (this->return_code == -EPIPE) {
+    if (this->return_code == -EPIPE) {
 
-    //     // Underrun occurred, prepare the device again:
-    //     std::cout << "ALSA Underrun (Before)" << std::endl;
+        // Underrun occurred, prepare the device again:
+        std::cout << "ALSA Underrun (Before)" << std::endl;
 
-    //     snd_pcm_prepare(this->pcm); 
-    // }
+        snd_pcm_prepare(this->pcm); 
+    }
 
     // Finally, send the data along:
 
     this->return_code =
         snd_pcm_writei(this->pcm, reinterpret_cast<float*>(temp.data()),
                        static_cast<snd_pcm_uframes_t>(temp.size()));
+
+    std::cout << this->return_code << std::endl;
 
     if (this->return_code == -EPIPE) {
         // Underrun occurred
@@ -387,11 +389,11 @@ void ALSASink::start() {
 
     // Next, set the new period number:
 
-    //this->set_period(this->get_device().period);
+    this->set_period(this->get_device().period);
 
     // Set the new buffer size:
 
-    this->get_info()->out_buffer = this->get_device().period_size;
+    this->get_info()->out_buffer = this->get_device().period_size / 4;
 }
 
 #endif

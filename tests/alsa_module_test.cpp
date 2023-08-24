@@ -142,10 +142,13 @@ TEST(ALSASinkTest, Output) {
 
     sink.bind(&oconst);
 
+    // Start the sink:
+
+    sink.start();
+
     // Now, meta process the module:
 
     sink.meta_process();
-
 }
 
 #endif

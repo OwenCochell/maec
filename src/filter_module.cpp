@@ -122,11 +122,11 @@ void SincFilter::generate_kernel() {
 
     // Determine how to generate the kernel:
 
-    auto type = this->get_type();
-    int final_size = this->get_size() + 1;
+    const auto type = this->get_type();
+    const int final_size = this->get_size();
 
-    auto start_ratio = static_cast<double>(this->get_start_freq() / this->get_info()->sample_rate);
-    auto stop_ratio = static_cast<double>(this->get_stop_freq() / this->get_info()->sample_rate);
+    const auto start_ratio = static_cast<double>(this->get_start_freq() / this->get_info()->sample_rate);
+    const auto stop_ratio = static_cast<double>(this->get_stop_freq() / this->get_info()->sample_rate);
 
     // First, create a buffer for use:
 
@@ -135,9 +135,9 @@ void SincFilter::generate_kernel() {
 
     // First off, just create the sinc kernel:
 
-    sinc_kernel(start_ratio, this->get_size(), kern->ibegin());
+    sinc_kernel(start_ratio, final_size, kern->ibegin());
 
-    // Determine if we are done:
+    // Determine if we are making a high pass filter:
 
     if (type == FilterType::HighPass) {
 
@@ -155,7 +155,7 @@ void SincFilter::generate_kernel() {
 
         // Create low pass filter:
 
-        sinc_kernel(stop_ratio, this->get_size(), hkern.ibegin());
+        sinc_kernel(stop_ratio, final_size, hkern.ibegin());
 
         // Create high pass filter from this kernel:
 
@@ -167,7 +167,7 @@ void SincFilter::generate_kernel() {
 
             // Add values together:
 
-            *(kern->ibegin() + i) = *(kern->ibegin() + i) + *(hkern.ibegin() + 1);
+            *(kern->ibegin() + i) = *(kern->ibegin() + i) + *(hkern.ibegin() + i);
         }
 
         // Determine if we should invert:
