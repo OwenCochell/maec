@@ -91,6 +91,14 @@ T iir_recursive_single(T input, C& input_container, C& output_container, D aco, 
 /**
  * @brief A class that represents an Infinite Impulse Response (IIR) filter
  * 
+ * This class abstracts away some of the details involved in filtering.
+ * For example, we will automatically create containers for holding
+ * the previous input and output values,
+ * and will manage them for you.
+ * 
+ * Simply provide the A and B coefficients,
+ * and we will take it from there!
+ * We offer methods for processing signals in place and out of place.
  */
 template <typename T>
 class IIRFilter {
@@ -168,14 +176,24 @@ class IIRFilter {
         int get_bsize() const { return this->bsize; }
 
         /**
-         * @brief Retrieves an iterator for the A coefficient vector 
+         * @brief Retrieves a start iterator for the A coefficient vector 
          *
          * You can use this iterator to populate the A coefficient
          * vector with your values.
          *
-         * @return Iterator for A coefficient vector
+         * @return Start iterator for A coefficient vector
          */
         auto abegin() { return this->acoes.begin(); }
+
+        /**
+         * @brief Retrieves a end iterator for the A coefficient vector
+         * 
+         * You can use this iterator to determine when you have
+         * traversed the entire A coefficient vector.
+         * 
+         * @return auto End iterator for A coefficient vector
+         */
+        auto aend() { return this->acoes.end(); }
 
         /**
          * @brief Retrieves an iterator for the B coefficient vector
@@ -186,6 +204,8 @@ class IIRFilter {
          * @return Iterator for B coefficient vector
          */
         auto bbegin() { return this->bcoes.begin(); }
+
+        auto bend() { return this->bcoes.end(); }
 
         /**
          * @brief Filters the given signal.
