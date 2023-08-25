@@ -389,7 +389,7 @@ void ALSASink::start() {
 
     // Next, set the new period number:
 
-    this->set_period(this->get_device().period);
+    //this->set_period(this->get_device().period);
 
     // Set the new buffer size:
 

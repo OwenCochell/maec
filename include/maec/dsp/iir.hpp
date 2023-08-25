@@ -16,6 +16,7 @@
 #pragma once
 
 #include <deque>
+#include <vector>
 
 /**
  * @brief Preforms a recursive IIR filter on a single input
@@ -86,3 +87,128 @@ T iir_recursive_single(T input, C& input_container, C& output_container, D aco, 
 
     return final_value;
 }
+
+/**
+ * @brief A class that represents an Infinite Impulse Response (IIR) filter
+ * 
+ */
+template <typename T>
+class IIRFilter {
+
+    private:
+
+        /// Previous input data
+        std::deque<T> input;
+
+        /// Previous output data
+        std::deque<T> output;
+
+        /// Vector of A coefficients
+        std::vector<T> acoes;
+
+        /// Vector of B coefficients
+        std::vector<T> bcoes;
+
+        /// Number of A coefficients
+        int asize;
+
+        /// Number of B coefficients
+        int bsize;
+
+    public:
+
+        IIRFilter() =delete;
+
+        IIRFilter(int asize, int bsize) : asize(asize), bsize(bsize) { this->reserve(); }
+
+        /**
+         * @brief Reserves components for operation.
+         * 
+         * We reserve the A and B coefficient vectors,
+         * along with the input and output deques.
+         * This function will be called automatically where necessary.
+         * 
+         */
+        void reserve() {
+
+            // First, reserve A and B vectors:
+
+            this->acoes.reserve(this->asize);
+            this->bcoes.reserve(this->bcoes);
+
+            // Next, fill input and output deques:
+
+            for (int i = 0; i < this->asize; ++i) {
+
+                // Fill input with 0:
+
+                this->input.push_front(0);
+            }
+
+            for (int i = 0; i < this->bsize; ++i) {
+
+                // Fill output with 0:
+
+                this->input.push_front(0);
+            }
+        }
+
+        /**
+         * @brief Gets the number of A coefficients
+         *
+         * @return Number of A coefficients
+         */
+        int get_asize() const { return this->asize; }
+
+        /**
+         * @brief Gets the number of B coefficients
+         * 
+         * @return Number of B coefficients
+         */
+        int get_bsize() const { return this->bsize; }
+
+        /**
+         * @brief Retrieves an iterator for the A coefficient vector 
+         *
+         * You can use this iterator to populate the A coefficient
+         * vector with your values.
+         *
+         * @return Iterator for A coefficient vector
+         */
+        auto abegin() { return this->acoes.begin(); }
+
+        /**
+         * @brief Retrieves an iterator for the B coefficient vector
+         * 
+         * You can use this iterator to populate the B coefficient
+         * vector with your values.
+         * 
+         * @return Iterator for B coefficient vector
+         */
+        auto bbegin() { return this->bcoes.begin(); }
+
+        /**
+         * @brief Filters the given signal.
+         * 
+         * We run the signal through the IIR filter in place.
+         * We utilize the the coefficients and previous
+         * input/output values for this operation.
+         * 
+         * @tparam I Input iterator type
+         * @param input Signal to process
+         * @param size Size of signal
+         */
+        template<typename I>
+        void process(I input, int size) {
+
+            // Loop over each value in the signal:
+
+            for (int i = 0; i < size; ++i) {
+
+                // Run the signal through the IIR filter:
+                *(input + i) = iir_recursive_single(*(input + i), this->input, this->output,
+                                     this->abegin(), this->bbegin(),
+                                     this->asize, this->bsize);
+            }
+        }
+};
