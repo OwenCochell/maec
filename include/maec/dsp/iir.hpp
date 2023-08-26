@@ -208,7 +208,7 @@ class IIRFilter {
         auto bend() { return this->bcoes.end(); }
 
         /**
-         * @brief Filters the given signal.
+         * @brief Filters the given signal in place.
          * 
          * We run the signal through the IIR filter in place.
          * We utilize the the coefficients and previous
@@ -229,6 +229,34 @@ class IIRFilter {
                 *(input + i) = iir_recursive_single(*(input + i), this->input, this->output,
                                      this->abegin(), this->bbegin(),
                                      this->asize, this->bsize);
+            }
+        }
+
+        /**
+         * @brief Filters the given signal out of place.
+         *
+         * We run the signal through the IIR filter out of place.
+         * We utilize the coefficients and the previous 
+         * input/output values for this operation. 
+         *
+         * @tparam I Input iterator type
+         * @tparam O Output iterator type
+         * @param input Input iterator
+         * @param size Size of signal
+         * @param output Output iterator
+         */
+        template<typename I, typename O>
+        void process(I input, int size, O output) {
+
+            // Loop over each value in the signal:
+
+            for (int i = 0; i < size; ++i) {
+
+                // Run signal through IIR filter:
+
+                *(output + i) = iir_recursive_single(
+                    *(input + i), this->input, this->output, this->abegin(),
+                    this->bbegin(), this->asize, this->bsize);
             }
         }
 };
