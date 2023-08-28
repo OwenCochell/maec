@@ -201,10 +201,18 @@ class IIRFilter {
          * You can use this iterator to populate the B coefficient
          * vector with your values.
          * 
-         * @return Iterator for B coefficient vector
+         * @return Start iterator for B coefficient vector
          */
         auto bbegin() { return this->bcoes.begin(); }
 
+        /**
+         * @brief Retrieves an end iterator for the B coefficient vector
+         * 
+         * You can use this iterator to determine when you have traversed
+         * the entire A coefficient vector.
+         * 
+         * @return auto End iterator for B coefficient vector
+         */
         auto bend() { return this->bcoes.end(); }
 
         /**
@@ -260,3 +268,17 @@ class IIRFilter {
             }
         }
 };
+
+/**
+ * This section contains classes for creating IIR
+ * filter coefficients.
+ * 
+ * These classes can create and populate vectors
+ * holding the A and B coefficients.
+ * They also offer methods for configuring the 
+ * IIRFilter class automaticaly, so you don't have to!
+ * 
+ * These configure classes can be created and discarded
+ * as you see fit, it is not recommended to keep them around
+ * once they have been used.
+ */
