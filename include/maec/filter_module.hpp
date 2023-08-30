@@ -20,8 +20,7 @@
 
 #include "audio_module.hpp"
 
-/// Types of filters:
-enum class FilterType { LowPass, HighPass, BandPass, BandReject };
+#include "dsp/const.hpp"
 
 /**
  * @brief A base class for filters

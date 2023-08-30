@@ -17,6 +17,9 @@
 
 #include <deque>
 #include <vector>
+#include <cmath>
+
+#include "dsp/const.hpp"
 
 /**
  * @brief Preforms a recursive IIR filter on a single input
@@ -118,14 +121,14 @@ class IIRFilter {
         std::vector<T> bcoes;
 
         /// Number of A coefficients
-        int asize;
+        int asize = 0;
 
         /// Number of B coefficients
-        int bsize;
+        int bsize = 0;
 
     public:
 
-        IIRFilter() =delete;
+        IIRFilter() =default;
 
         IIRFilter(int asize, int bsize) : asize(asize), bsize(bsize) { this->reserve(); }
 
@@ -169,11 +172,25 @@ class IIRFilter {
         int get_asize() const { return this->asize; }
 
         /**
+         * @brief Sets the number of A coefficients
+         * 
+         * @param size New number of A coefficients
+         */
+        void set_asize(int size) { this->asize = size; }
+
+        /**
          * @brief Gets the number of B coefficients
          * 
          * @return Number of B coefficients
          */
         int get_bsize() const { return this->bsize; }
+
+        /**
+         * @brief Sets the number of B coefficients
+         * 
+         * @param size New number of B coefficients
+         */
+        void set_bsize(int size) { this->bsize = size; }
 
         /**
          * @brief Retrieves a start iterator for the A coefficient vector 
@@ -214,6 +231,38 @@ class IIRFilter {
          * @return auto End iterator for B coefficient vector
          */
         auto bend() { return this->bcoes.end(); }
+
+        /**
+         * @brief Sets the A coefficient at the given index
+         * 
+         * @param index A coefficient index
+         * @param value Value to set
+         */
+        void set_a(int index, T value) { this->acoes[index] = value; }
+
+        /**
+         * @brief Gets the A coefficient at the given index
+         * 
+         * @param index A coefficient index
+         * @return T Coefficient at the given index
+         */
+        T get_a(int index) const { return this->acoes[index]; }
+
+        /**
+         * @brief Sets the B coefficient at the given index
+         * 
+         * @param index B coefficient index
+         * @param value Value to set
+         */
+        void set_b(int index, T value) { this->bcoes[index] = value; }
+
+        /**
+         * @brief gets the B coefficient at the given index
+         * 
+         * @param index B coefficient index
+         * @return T Coefficient at the given index
+         */
+        T get_b(int index) const { return this->bcoes[index]; }
 
         /**
          * @brief Filters the given signal in place.
@@ -270,15 +319,250 @@ class IIRFilter {
 };
 
 /**
- * This section contains classes for creating IIR
- * filter coefficients.
+ * This section contains classes representing the various IIR filters.
  * 
- * These classes can create and populate vectors
- * holding the A and B coefficients.
- * They also offer methods for configuring the 
- * IIRFilter class automaticaly, so you don't have to!
+ * Each class inherits from the IIRFilter class and a base class that defines
+ * some attributes all filters must implement and utilize.
+ * Some filters may have some special configuration parameters,
+ * so refer to the documentation for each filter for more information.
  * 
- * These configure classes can be created and discarded
- * as you see fit, it is not recommended to keep them around
- * once they have been used.
  */
+
+/**
+ * @brief Class that represents an IIR filter implementation
+ * 
+ * This class offers some base functionality that all IIR filters must implement.
+ * We describe the frequency cutoffs, sample rate, and number of coefficients.
+ * We also describe some methods for generating the coefficients.
+ * 
+ * This class aims to standardize and simplify the implementation of IIR filters!
+ * 
+ * @tparam T Type of value to work with
+ */
+template <typename T>
+class BaseIIRImplementation : public IIRFilter<T> {
+
+    private:
+
+        /// Sample rate
+        int sample_rate;
+
+        /// Lower frequency cutoff
+        double freq_high = 0.;
+
+        /// Upper frequency cutoff
+        double freq_low = 0.;
+
+        /// Filter type
+        FilterType type;
+
+    public:
+
+        /**
+         * @brief Gets the high fraction cutoff
+         * 
+         * This determines the stop fraction for the filter,
+         * and it should be represented as a fraction of the sample rate.
+         * 
+         * @return double High fraction cutoff
+         */
+        double get_frac_high() const { return this->freq_high; }
+
+        /**
+         * @brief Sets the high fraction cutoff
+         * 
+         * This determines the stop frequency for the filter,
+         * and it should be represented as a fraction of the sample rate.
+         * 
+         * @param freq New high fraction cutoff
+         */
+        void set_frac_high(double freq) { this->freq_high = freq; }
+
+        /**
+         * @brief Gets the low fraction cutoff
+         * 
+         * This determines the start fraction for the filter,
+         * and it should be represented as a fraction of the sample rate.
+         * 
+         * @return double Low fraction cutoff
+         */
+        double get_frac_low() const { return this->freq_low; }
+
+        /**
+         * @brief Gets the low fraction cutoff
+         * 
+         * This determines the start fraction for the filter,
+         * and it should be represented as a fraction of the sample rate.
+         * 
+         * @param freq New low fraction cutoff
+         */
+        void set_frac_low(double freq) { this->freq_low = freq; }
+
+        /**
+         * @brief Gets the high frequency in hertz
+         * 
+         * The high frequency determines the stop frequency for the filter.
+         * 
+         * @return double High frequency in hertz
+         */
+        double get_freq_high() const { return this->freq_high * this->sample_rate; }
+
+        /**
+         * @brief Sets the high frequency in hertz
+         * 
+         * The high frequency determines the stop frequency for the filter.
+         * 
+         * @param freq High frequency in hertz
+         */
+        void set_freq_high(double freq) { this->freq_high = freq / this->sample_rate; }
+
+        /**
+         * @brief Gets the low frequency in hertz
+         * 
+         * The low frequency determines the start frequency for the filter.
+         * 
+         * @return double Low frequency in hertz
+         */
+        double get_freq_low() const { return this->freq_low * this->sample_rate; }
+
+        /**
+         * @brief Sets the low frequency in hertz
+         * 
+         * The low frequency determines the start frequency for the filter.
+         *
+         * @param freq Low frequency in hertz
+         */
+        void set_freq_low(double freq) { this->freq_low = freq / this->sample_rate; }
+
+        /**
+         * @brief Gets the sample rate
+         * 
+         * @return int Sample rate
+         */
+        int get_sample_rate() const { return this->sample_rate; }
+
+        /**
+         * @brief Sets the sample rate
+         * 
+         * @param rate New sample rate
+         */
+        void set_sample_rate(int rate) { this->sample_rate = rate; }
+
+        /**
+         * @brief Gets the filter type of this filter
+         * 
+         * This value determines the type of filter we are using,
+         * be in low pass, high pass, band pass, or band stop.
+         * 
+         * @return FilterType Type of filter we are implementing
+         */
+        FilterType get_type() const { return this->type; }
+
+        /**
+         * @brief Sets the filter type of this filter
+         * 
+         * This value determines the type of filter we are using,
+         * be in low pass, high pass, band pass, or band stop.
+         * 
+         * @param type New filter type
+         */
+        void set_type(FilterType type) { this->type = type; }
+
+        /**
+         * @brief Function that generates the coefficients for the filter
+         * 
+         * This function should be used to configure and generate the necessary coefficients.
+         * How these coefficients are generated depends on the type of filter we are using,
+         * and will vary from filter to filter!
+         * 
+         * Child classes should implement and call the parent function,
+         * as we automatically configure and reserve the IIRFilter class.
+         */
+        virtual void generate_coefficients() {
+
+            // Reserve the IIRFilter class:
+
+            this->reserve();
+        }
+};
+
+/**
+ * @brief Implementation of a single pole filter
+ * 
+ * Single pole filters are very similar to analog single resistor capacitor circuits.
+ * They are pretty good at DC removal, high frequency noise suppression,
+ * wave shaping and smoothing, ect.
+ * They preform pretty well in the time domain,
+ * but do not preform well in the frequency domain.
+ * 
+ * @tparam T Type to work with
+ */
+template <typename T>
+class SinglePole : public BaseIIRImplementation<T> {
+
+    public:
+
+        /**
+         * @brief Converts a frequency fraction to a value
+         * 
+         * This function converts a frequency fraction to a value,
+         * that being the X value used to calculate the coefficients.
+         * This function is used internally by the generate_coefficients() function,
+         * so it is unecessary to touch this function.
+         * 
+         * @param freq Frequency fraction to convert
+         * @return double New X value
+         */
+        double frac_to_x(double freq) { return std::exp(-2 * M_PI * freq); }
+
+        /**
+         * @brief Generates the coefficients for this filter
+         * 
+         */
+        void generate_coefficients() {
+
+            // Determine if we are a low pass filter:
+
+            if (this->get_type() == FilterType::LowPass) {
+
+                // Reserve the sizes:
+
+                this->set_asize(1);
+                this->set_bsize(1);
+
+                this->reserve();
+
+                // Determine the X value:
+
+                double xval = this->frac_to_x(this->get_freq_high());
+
+                // Generate A & B coefficients:
+
+                this->set_a(0, 1.0 - xval);
+                this->set_b(0, xval);
+            }
+
+            // Determine if we are a high pass filter:
+
+            if (this->get_type() == FilterType::HighPass) {
+
+                // Reserve the sizes:
+
+                this->set_asize(2);
+                this->set_bsize(1);
+
+                this->reserve();
+
+                // Determine the x value:
+
+                double xval = this->frac_to_x(this->get_freq_low());
+
+                // Generate A & B coefficients:
+
+                this->set_a(0, (1 + xval) / 2);
+                this->set_a(1, -(1 + xval) / 2);
+
+                this->set_b(0, this->get_freq_low());
+            }
+        }
+};
