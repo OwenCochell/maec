@@ -26,10 +26,12 @@
 using AudioChannel = std::vector<long double>;
 
 /**
- * @brief Base class for AudioIterators
+ * @brief Base class for maec Iterators
  * 
  * This class implements some useful operations and features
- * that are required for iterators.
+ * that are required for maec iterators.
+ * maec iterators are special components that all maec
+ * classes MUST implement and utilize!
  * We implement random access iterators,
  * so all of the operators are implemented and working.
  * 
@@ -46,7 +48,7 @@ using AudioChannel = std::vector<long double>;
  * @tparam T The typename this iterator will iterate over
  */
 template <class C, typename T>
-class BaseAudioIterator {
+class BaseMAECIterator {
 
     private:
 
@@ -500,7 +502,7 @@ class AudioBuffer {
          * without data from other channels mixed in.
          */
         template <typename T>
-        class SeqIterator : public BaseAudioIterator<SeqIterator<T>, T> {
+        class SeqIterator : public BaseMAECIterator<SeqIterator<T>, T> {
 
             public:
 
@@ -682,7 +684,7 @@ class AudioBuffer {
          * TODO: See if we should add extra methods, like in SeqIterator...
          */
         template <typename T>
-        class InterIterator : public BaseAudioIterator<InterIterator<T>, T> {
+        class InterIterator : public BaseMAECIterator<InterIterator<T>, T> {
 
             public:
 
@@ -1136,6 +1138,76 @@ class AudioBuffer {
          * @return AudioBuffer::SeqIterator<long double> 
          */
         AudioBuffer::SeqIterator<long double> end() { return this->send(); }
+};
+
+/**
+ * @brief A ring buffer for storing arbitrary data.
+ * 
+ * A ring buffer (AKA circular buffer) is a data structure
+ * that allows for data to be stored as if it where stored end-to-end.
+ * If the array pointer reaches the end of the buffer,
+ * then it wraps back around to the start of the buffer.
+ * For example, consider this sequence:
+ * 
+ * 1, 2, 3, 4, 5, 6
+ * ^
+ * 
+ * And assume the pointer is at the start of the buffer.
+ * If we advance the pointer, it will iterate through the buffer as excepted:
+ * However, if the pointer is at the end of the buffer:
+ * 
+ * 1, 2, 3, 4, 5, 6
+ *                ^
+ * Then the next advance will wrap around to the start of the buffer:
+ * 
+ * 1, 2, 3, 4, 5, 6
+ * ^
+ * 
+ * See here for more info:
+ * https://en.wikipedia.org/wiki/Circular_buffer
+ * 
+ * This can be useful for many applications!
+ * We use this class a bit throughout the library.
+ * This class implements MAEC iterators,
+ * along with some helper functions for seeking,
+ * advancing/rewinding, setting/retrieving values, etc.
+ */
+template <typename T>
+class RingBuffer {
+
+    private:
+
+        /// The current index of the buffer (This will wrap around to zero)
+        int index = 0;
+
+        /// Size of this circular buffer
+        int size = 0;
+
+        /// The underlying buffer
+        std::vector<T> buff;
+
+    protected:
+
+        /**
+         * @brief Normalizes the given index to be within the bounds of the buffer
+         *
+         * We determine the given index falls within the bounds of the buffer.
+         * We utilize the modulo operator to wrap the index around to the start of the buffer. 
+         *
+         * @param i 
+         * @return 
+         */
+        int normalize_index(int nindex) const { return nindex % this->size; }
+
+    public:
+
+        /**
+         * @brief Retrieves the value at the current index
+         * 
+         * @param i Index to retrieve
+         * @return T& Value at index
+         */
+        T& operator[](int nindex) { return this->buff[this->normalize_index(nindex)]; }
 };
 
 /// Alias for a unique pointer to an AudioBuffer
