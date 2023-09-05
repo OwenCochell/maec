@@ -455,16 +455,6 @@ class BaseMAECIterator {
  */
 class AudioBuffer {
 
-    private:
-
-        /// Sample rate in Hertz
-        double sample_rate = SAMPLE_RATE;
-
-    protected:
-
-        /// The underlying vector of audio data
-        std::vector<AudioChannel> buff;
-
     public:
 
         /**
@@ -632,7 +622,7 @@ class AudioBuffer {
                  * 
                  * ALSO FIGURE OUT NAMING SYSTEM!
                  * 
-                 * WHat is a position? Sample? Index?
+                 * What is a position? Sample? Index?
                  * The only thing I know for sure is channel...
                  * 
                  * @return int The position of the iterator in the current channel
@@ -712,7 +702,7 @@ class AudioBuffer {
                  * @param buff AudioBuffer we are iterating over
                  * @param pos Starting position
                  */
-                explicit InterIterator(AudioBuffer *buff, int pos=0) { this->buff = buff; this->set_index(pos); }
+                explicit InterIterator(AudioBuffer *buff, int pos=0) : buff(buff) { this->set_index(pos); }
 
                 /**
                  * @brief Determines the pointer for this iterator
@@ -848,7 +838,7 @@ class AudioBuffer {
          * 
          * @param vect Vector of samples
          */
-        explicit AudioBuffer(std::vector<long double> vect);
+        explicit AudioBuffer(std::vector<long double> &vect);
 
         /**
          * @brief Construct a new Audio Buffer object
@@ -863,7 +853,7 @@ class AudioBuffer {
          * 
          * @param vect Vector of channels
          */
-        explicit AudioBuffer(std::vector<AudioChannel> vect) : buff(std::move(vect)) {}
+        explicit AudioBuffer(const std::vector<AudioChannel> &vect) : buff(vect) {}
 
         /**
          * @brief Set the Sample Rate of this buffer
@@ -1138,6 +1128,21 @@ class AudioBuffer {
          * @return AudioBuffer::SeqIterator<long double> 
          */
         AudioBuffer::SeqIterator<long double> end() { return this->send(); }
+
+    private:
+
+        /// Sample rate in Hertz
+        double sample_rate = SAMPLE_RATE;
+
+        /// The underlying vector of audio data
+        std::vector<AudioChannel> buff;
+
+        /// Various friend defintions
+        // TODO: Make this class more generic? (i.e. not just for long doubles)
+        friend class AudioBuffer::SeqIterator<long double>;
+        friend class AudioBuffer::SeqIterator<const long double>;
+        friend class AudioBuffer::InterIterator<long double>;
+        friend class AudioBuffer::InterIterator<const long double>;
 };
 
 /**
@@ -1175,17 +1180,6 @@ class AudioBuffer {
 template <typename T>
 class RingBuffer {
 
-    private:
-
-        /// The current index of the buffer (This will wrap around to zero)
-        int index = 0;
-
-        /// Size of this circular buffer
-        int size = 0;
-
-        /// The underlying buffer
-        std::vector<T> buff;
-
     protected:
 
         /**
@@ -1194,12 +1188,130 @@ class RingBuffer {
          * We determine the given index falls within the bounds of the buffer.
          * We utilize the modulo operator to wrap the index around to the start of the buffer. 
          *
-         * @param i 
-         * @return 
+         * @param nindex Index to normalize
+         * @return Normalized index
          */
-        int normalize_index(int nindex) const { return nindex % this->size; }
+        int normalize_index(int nindex) const { return nindex % this->size(); }
 
     public:
+
+        /**
+         * @brief An iterator that iterators over the ring buffer.
+         * 
+         * As expected with ring buffers, when we reach the end of the buffer,
+         * we wrap around to the start of the buffer.
+         * This allows you to iterate over a buffer forever!
+         * We will continue to loop if you keep advancing the iterator.
+         *
+         * @tparam T Type of data to iterate over
+         */
+        class RingIterator : public BaseMAECIterator<RingBuffer<T>::RingIterator, T> {
+
+            public:
+
+                /**
+                 * @brief Default constructor for this iterator
+                 * 
+                 * ! WARNING !
+                 * 
+                 * Using this method will create an iterator 
+                 * with an invalid configuration!
+                 * THIS WILL LEAD TO BREAKAGE!
+                 * 
+                 * It is only recommended to use this if you 
+                 * want to create a dummy iterator TO BE OVERRIDEN LATER!
+                 * 
+                 */
+                RingIterator() =default;
+
+                /**
+                 * @brief Construct a new RingIterator object
+                 * 
+                 * We need to know the RingBuffer to iterate over,
+                 * and the starting position.
+                 * 
+                 * @param buff RingBuffer we are iterating over
+                 * @param pos Starting position
+                 */
+                explicit RingIterator(RingBuffer<T>* nbuff, int pos=0) : buff(nbuff) { this->set_index(pos); }
+
+                /**
+                 * @brief Determines the value we are pointing to
+                 * 
+                 * We simply normalize the given index and determine the pointer to work with.
+                 * This method is called automatically where necessary.
+                 * 
+                 */
+                void resolve_pointer() { this->set_pointer(this->buff->buff.data() + this->buff->normalize_index(this->get_index())); }
+
+            private:
+
+                /// The buffer we are iterating over
+                RingBuffer<T>* buff = nullptr;
+        };
+
+        /**
+         * @brief Default constructor
+         * 
+         */
+        RingBuffer() =default;
+
+        /**
+         * @brief Construct a new RingBuffer object
+         * 
+         * This constructor allows you to specify the size of the buffer,
+         * and we will automatically configure ourselves to use that size.
+         * 
+         * @param nsize Size to use for this buffer
+         */
+        explicit RingBuffer(int nsize) { this->reserve(nsize); }
+
+        /**
+         * @brief Constructs a new RingBuffer object using existing data 
+         * 
+         * This constructor creates a new RingBuffer using data that already exists.
+         * Simply pass a vector of data to this constructor,
+         * and we will create a new RingBuffer with that data.
+         * 
+         * @param other Data to use for this buffer
+         */
+        explicit RingBuffer(const std::vector<T> &other) : buff(other) { this->bsize = other.size(); }
+
+        /**
+         * @brief Retrieves the size of this buffer
+         * 
+         * @return int Size of this buffer
+         */
+        int size() const { return this->bsize; }
+
+        /**
+         * @brief Reserves the given size for this buffer
+         * 
+         * We ensure the underlying vector has enough space for the given size.
+         * We also keep the size of the buffer for determining any indexes.
+         * 
+         * @param nsize New size of circular buffer
+         */
+        void reserve(int nsize) { this->buff.reserve(nsize); this->bsize = nsize; }
+
+        /**
+         * @brief Gets the start iterator for the ring buffer
+         * 
+         * You can treat this iterator like any other iterator,
+         * and can pass it to STD algorithms!
+         * 
+         * @return Start iterator
+         */
+        RingBuffer::RingIterator begin() { return RingBuffer::RingIterator(this, 0); }
+
+        /**
+         * @brief Gets the end iterator for the ring buffer
+         * 
+         * You can use this iterator to determine when you have reached the end of the buffer.
+         * 
+         * @return RingBuffer::RingIterator<T> Stop iterator
+         */
+        RingBuffer::RingIterator end() { return RingBuffer::RingIterator(this, this->size()); }
 
         /**
          * @brief Retrieves the value at the current index
@@ -1208,6 +1320,17 @@ class RingBuffer {
          * @return T& Value at index
          */
         T& operator[](int nindex) { return this->buff[this->normalize_index(nindex)]; }
+
+    private:
+
+        /// Size of this ring buffer
+        int bsize = 0;
+
+        /// The underlying buffer
+        std::vector<T> buff;
+
+        /// Friend definition for iterators
+        friend class RingIterator;
 };
 
 /// Alias for a unique pointer to an AudioBuffer

@@ -9,11 +9,12 @@
  * 
  */
 
-#include <algorithm>
 #include "audio_buffer.hpp"
 
+#include <algorithm>
+
 AudioBuffer::AudioBuffer(int size, int channels) {
-     
+
     // Create the underlying vector:
 
     this->buff.reserve(channels);
@@ -36,7 +37,7 @@ AudioBuffer::AudioBuffer(int size, int channels) {
     }
 }
 
-AudioBuffer::AudioBuffer(AudioChannel vect) {
+AudioBuffer::AudioBuffer(AudioChannel &vect) {
 
     // First, reserve the underlying buffer with a size of 1:
 
@@ -53,12 +54,11 @@ void squish_seq(AudioBuffer* buff, It iter, Func op) {
     // Copy the content over:
 
     std::transform(buff->ibegin(), buff->send(), iter, op);
-
 }
 
 template<typename It, typename Func>
 void squish_null(AudioBuffer* buff, const It& iter, Func op) {}
 
-float mf_float(long double val) { return float(val); }
+float mf_float(long double val) { return static_cast<float>(val); }
 
 long double mf_null(long double val) { return val; }
