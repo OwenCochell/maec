@@ -26,6 +26,7 @@ add_library(${PROJECT_NAME}
     src/dsp/window.cpp
     src/dsp/kernel.cpp
     src/dsp/iir.cpp
+    src/dsp/buffer.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

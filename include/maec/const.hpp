@@ -13,8 +13,7 @@
 
 #pragma once
 
-/// Default sample rate
-const int SAMPLE_RATE = 44100;
+#include "dsp/const.hpp"
 
 /// Default buffer size
 const int BUFF_SIZE = 440;

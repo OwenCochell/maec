@@ -12,5 +12,8 @@
 
 #pragma once
 
+/// Default sample rate
+const int SAMPLE_RATE = 44100;
+
 /// Filter types:
 enum class FilterType { LowPass, HighPass, BandPass, BandReject };

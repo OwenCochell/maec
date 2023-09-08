@@ -27,23 +27,23 @@ using AudioChannel = std::vector<long double>;
 
 /**
  * @brief Base class for maec Iterators
- * 
+ *
  * This class implements some useful operations and features
  * that are required for maec iterators.
  * maec iterators are special components that all maec
  * classes MUST implement and utilize!
  * We implement random access iterators,
  * so all of the operators are implemented and working.
- * 
+ *
  * Any iterators using this class are STL compatable!
  * You can pass any iterators to STL methods that expect them.
  * One useful application of this is the algorithms library,
  * which defines many operations that are useful for working with arrays and sequences.
- * 
+ *
  * This is a framework class!
  * It will not work properly on it's own.
  * We use upside down inheritance to add this functionality without virtual functions!
- *  
+ *
  * @tparam C The class that derives from this class.
  * @tparam T The typename this iterator will iterate over
  */
