@@ -301,9 +301,9 @@ class BaseMAECIterator {
      *
      * @return int The current index
      */
-    operator int() const {
+    operator int() const {  // NOLINT - Casting to other types for iteration impossible if explicit
         return this->get_index();
-    }  // NOLINT - Casting to other types for iteration impossible if explicit
+    }
 
     /**
      * @brief Determines if the given iterator is equivalent
@@ -524,34 +524,34 @@ class Buffer {
    public:
     /**
      * @brief An iterator that iterates over signal data sequentially
-     *
+     * 
      * This iterator iterates over the signal data sequentially,
      * meaning that it gets iterates over all signal data in a channel
      * before moving on to the next channel, in order of channels.
-     *
+     * 
      * For example, if we have the following signal data:
-     *
+     * 
      * [0] - 1, 2, 3,
      * [1] - 4, 5, 6,
      * [2] - 7, 8, 9,
-     *
+     * 
      * Where [n] represents the nth channel, and the numbers
      * are the samples in each channel.
-     *
+     * 
      * This iterator will return the following values:
-     *
+     * 
      * 1, 2, 3, 4, 5, 6, 7, 8, 9
-     *
+     * 
      * We talk about the index of this iterator in the documentation.
      * This iterator uses that value to determine which sample to return.
      * You can think of this as the index of the sample in the final squished
      * vector. Fro example, if I wanted to get sample '8' in channel 2 index 1,
      * then I would use index 7 (see squished vector above).
-     *
+     * 
      * This iterator contains some useful helper methods
      * for determining the index of the iterator,
      * so you don't have to do the calculations yourself.
-     *
+     * 
      * This iterator is useful if we need to apply the same operation to each
      * channel, and the order of each channel is important, or if we need the
      * 'pure' signal data without data from other channels mixed in.
@@ -704,42 +704,43 @@ class Buffer {
 
     /**
      * @brief An iterator that iterates over signal data in an interleaved manner
-     *
+     * 
      * This iterator iterates over signal data in an interleaved manner,
      * meaning that it iterates over each sample in each channel that occurs at
      * the same time before moving on to the next sample.
-     *
+     * 
      * For example, if we have the following signal:
-     *
+     * 
      * [1] - 1, 2, 3,
      * [2] - 4, 5, 6,
      * [3] - 7, 8, 9,
-     *
+     * 
      * Where [n] represents the nth channel, and the numbers
      * are the samples in each channel.
-     *
+     * 
      * This iterator will return the following values:
-     *
+     * 
      * 1, 4, 7, 2, 5, 8, 3, 6, 9
-     *
+     * 
      * We talk about the index of this iterator in the documentation.
      * This iterator uses that value to determine which sample to return.
      * You can think of this as the index of the sample in the final squished
      * vector. Fro example, if I wanted to get sample '8' in channel 2 index 1,
      * then I would use index 5 (see squished vector above).
-     *
+     * 
      * This iterator contains some useful helper methods
      * for determining the index of the iterator,
      * so you don't have to do the calculations yourself.
-     *
+     * 
      * This iterator is useful if we need to apply the same operation to each
      * channel, and the order of each channel is not important. This format is a
      * very popular format for outputting signal data, as many libraries
      * represent signals in this format.
-     *
+     * 
      * TODO: See if we should add extra methods, like in SeqIterator...
      */
-    class InterIterator : public BaseMAECIterator<InterIterator, T> {
+    template <typename V>
+    class InterIterator : public BaseMAECIterator<InterIterator<V>, V> {
 
        public:
         /**
@@ -887,7 +888,7 @@ class Buffer {
 
     /**
      * @brief No default constructor!
-     *
+     * 
      * We require at least the channel number and buffer size be specified
      *
      */
@@ -938,9 +939,10 @@ class Buffer {
      * This vector is two dimensional,
      * meaning that it is a vector of channels
      * that contain samples.
+     * Each sub-vector MUST be the same size!
      *
      * We automatically determine the channels number and size this
-     * Buffer using the given vector
+     * Buffer using the given vector.
      *
      * @param vect Vector of channels
      */
@@ -954,6 +956,20 @@ class Buffer {
         // Reserve the data:
 
         this->reserve();
+
+        // Iterate over each channel and copy the data:
+
+        for (int i = 0; i < this->channels(); i++) {
+
+            // Iterate over each sample in this channel:
+
+            for (int j = 0; j < this->size(); j++) {
+
+                // Copy it over:
+
+                this->buff[j * this->channels() + i] = vect[i][j];
+            }
+        }
     }
 
     /**
@@ -1074,7 +1090,7 @@ class Buffer {
      * @param sample Sample to get value from
      * @return Channel at the given channel and sample
      */
-    T at(int channel, int sample) const { return this->buff[channel * sample]; }
+    T& at(int channel, int sample) const { return this->buff[channel * sample]; }
 
     /**
      * @brief Gets a value at the given position
@@ -1082,7 +1098,7 @@ class Buffer {
      * @param value Index to get value at
      * @return Value at given position
      */
-    T at(int value) const { return this->buff[value]; }
+    T& at(int value) const { return this->buff[value]; }
 
     /**
      * @brief Gets the start sequential iterator for this buffer
@@ -1155,6 +1171,7 @@ class Buffer {
      * @return Buffer::SeqIterator<const long double>
      */
     Buffer::SeqIterator scbegin() {
+        // TODO: Fix this
         return Buffer::SeqIterator(this);
     }
 
@@ -1169,6 +1186,7 @@ class Buffer {
      * @return Buffer::SeqIterator<const long double>
      */
     Buffer::SeqIterator scend() {
+        // TODO: Fix this
         return Buffer::SeqIterator(
             this, static_cast<int>(this->buff[0].size() * this->buff.size()));
     }
@@ -1186,8 +1204,8 @@ class Buffer {
      *
      * @return Buffer::InterIterator
      */
-    Buffer::InterIterator ibegin() {
-        return Buffer::InterIterator(this);
+    Buffer::InterIterator<T> ibegin() {
+        return Buffer::InterIterator<T>(this);
     }
 
     /**
@@ -1198,8 +1216,8 @@ class Buffer {
      *
      * @return Buffer::InterIterator
      */
-    Buffer::InterIterator iend() {
-        return Buffer::InterIterator(
+    Buffer::InterIterator<T> iend() {
+        return Buffer::InterIterator<T>(
             this, static_cast<int>(this->buff[0].size() * this->buff.size()));
     }
 
@@ -1213,10 +1231,9 @@ class Buffer {
      *
      * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
      */
-    std::reverse_iterator<Buffer::InterIterator> irbegin() {
-        return std::reverse_iterator<Buffer::InterIterator>(
-            Buffer::InterIterator(
-                this,
+    std::reverse_iterator<Buffer::InterIterator<T>> irbegin() {
+        return std::reverse_iterator(
+            Buffer::InterIterator<T>(this,
                 static_cast<int>(this->buff[0].size() * this->buff.size()) -1));
     }
 
@@ -1228,7 +1245,7 @@ class Buffer {
      *
      * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
      */
-    std::reverse_iterator<Buffer::InterIterator> irend() { return std::reverse_iterator<Buffer::InterIterator>( Buffer<T>::InterIterator(this)); }
+    std::reverse_iterator<Buffer::InterIterator<T>> irend() { return std::reverse_iterator( Buffer<T>::InterIterator<T>(this)); }
 
     /**
      * @brief Gets the constant start interleaved iterator for this buffer
@@ -1240,7 +1257,8 @@ class Buffer {
      *
      * @return Buffer::InterIterator<const long double>
      */
-    Buffer::InterIterator icbegin() { return Buffer::InterIterator(this); }
+    Buffer::InterIterator<const T> icbegin() {
+        return Buffer::InterIterator<const T>(this); }
 
     /**
      * @brief Gets the end constant iterator for this buffer
@@ -1252,7 +1270,8 @@ class Buffer {
      *
      * @return Buffer::InterIterator<const long double>
      */
-    Buffer::InterIterator icend() { return Buffer::InterIterator(this, static_cast<int>(this->buff[0].size() * this->buff.size())); }
+    Buffer::InterIterator<const T> icend() {
+        return Buffer::InterIterator<const T>(this, static_cast<int>(this->buff[0].size() * this->buff.size())); }
 
    private:
     /// Sample rate in Hertz
@@ -1269,7 +1288,8 @@ class Buffer {
 
     /// Various friend defintions
     friend class Buffer::SeqIterator;
-    friend class Buffer::InterIterator;
+    friend class Buffer::InterIterator<T>;
+    friend class Buffer::InterIterator<const T>;
 };
 
 /**
