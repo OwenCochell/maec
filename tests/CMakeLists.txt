@@ -21,7 +21,7 @@ set(TEST_FILES
     dsp/ft_test.cpp
     dsp/window_test.cpp
     dsp/kernel_test.cpp
-    dsp/buffer.cpp
+    dsp/buffer_test.cpp
 )
 
 # Enable testing for the project

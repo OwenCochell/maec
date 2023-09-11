@@ -80,11 +80,16 @@ TEST(BufferTest, ConstructMulti) {
 
     // Check split format is valid:
 
-    auto iter = buff.sbegin();
+    auto iter1 = buff.sbegin();
+    iter1.set_channel(0);
+    auto iter2 = buff.sbegin();
+    iter2.set_channel(1);
+    auto iter3 = buff.sbegin();
+    iter3.set_channel(2);
 
-    ASSERT_TRUE(std::equal(chan1.begin(), chan1.end(), (iter++)->begin()));
-    ASSERT_TRUE(std::equal(chan2.begin(), chan2.end(), (iter++)->begin()));
-    ASSERT_TRUE(std::equal(chan3.begin(), chan3.end(), (iter++)->begin()));
+    ASSERT_TRUE(std::equal(chan1.begin(), chan1.end(), iter1));
+    ASSERT_TRUE(std::equal(chan2.begin(), chan2.end(), iter2));
+    ASSERT_TRUE(std::equal(chan3.begin(), chan3.end(), iter3));
 }
 
 /**
