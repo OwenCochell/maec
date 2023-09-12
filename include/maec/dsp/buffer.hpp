@@ -607,8 +607,7 @@ class Buffer {
                                     this->buff->size()) %
                    this->buff->channels();
 #else
-            return static_cast<int>(this->get_index() /
-                                    this->buff->size());
+            return static_cast<int>(this->get_index() / this->buff->channels());
 #endif
         }
 
@@ -646,7 +645,7 @@ class Buffer {
          */
         void resolve_pointer() {
             this->set_pointer(
-                (this->buff->buff.data() + this->get_index() + this->get_channel() * this->buff->size()));
+                this->buff->buff.data() + (this->get_channel() * this->buff->channels() + this->get_sample()));
         }
 
         /**
@@ -957,17 +956,17 @@ class Buffer {
 
         this->reserve();
 
-        // Iterate over each channel and copy the data:
+        // Iterate over the number of samples:
 
-        for (int i = 0; i < this->channels(); i++) {
+        for (int i = 0; i < this->size(); ++i) {
 
-            // Iterate over each sample in this channel:
+            // Iterate over the number of channels:
 
-            for (int j = 0; j < this->size(); j++) {
+            for (int j = 0; j < this->channels(); ++j) {
 
-                // Copy it over:
+                // Push the value to the back of the buffer:
 
-                this->buff[j * this->channels() + i] = vect[i][j];
+                this->buff.push_back(vect[j][i]);
             }
         }
     }
@@ -1090,7 +1089,7 @@ class Buffer {
      * @param sample Sample to get value from
      * @return Channel at the given channel and sample
      */
-    T& at(int channel, int sample) const { return this->buff[channel * sample]; }
+    T& at(int channel, int sample) { return this->buff[channel * sample]; }
 
     /**
      * @brief Gets a value at the given position
@@ -1098,7 +1097,7 @@ class Buffer {
      * @param value Index to get value at
      * @return Value at given position
      */
-    T& at(int value) const { return this->buff[value]; }
+    T& at(int value) { return this->buff[value]; }
 
     /**
      * @brief Gets the start sequential iterator for this buffer
@@ -1127,7 +1126,7 @@ class Buffer {
      */
     Buffer::SeqIterator send() {
         return Buffer::SeqIterator(
-            this, static_cast<int>(this->buff[0].size() * this->buff.size()));
+            this, static_cast<int>(this->buff.size()));
     }
 
     /**
@@ -1218,7 +1217,7 @@ class Buffer {
      */
     Buffer::InterIterator<T> iend() {
         return Buffer::InterIterator<T>(
-            this, static_cast<int>(this->buff[0].size() * this->buff.size()));
+            this, static_cast<int>(this->buff.size()));
     }
 
     /**

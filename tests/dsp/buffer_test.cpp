@@ -310,7 +310,7 @@ TEST(BufferTest, SequentialIterRead) {
 
         // Ensure this value is correct:
 
-        ASSERT_EQ(val, data.at(iter.get_channel()).at(iter.get_sample()));  // TODO: This is wrong
+        ASSERT_EQ(val, data.at(iter.get_channel()).at(iter.get_sample()));
 
         // Finally, ensure data is valid against known good set:
 
@@ -334,11 +334,12 @@ TEST(BufferTest, InterleavedIterWrite) {
 
         // Change the current value:
 
-        *iter = 99;
+        *iter = 99.;
 
         // Ensure that the value is 99:
 
-        ASSERT_TRUE(buff.at(iter.get_channel())->at(iter.get_sample()) == 99);  // TODO: This is wrong
+        ASSERT_DOUBLE_EQ(*iter, 99.);
+        ASSERT_DOUBLE_EQ(buff.at(iter.get_index()), 99.0);
     }
 
     // Now, use an algorithm method:
@@ -366,11 +367,12 @@ TEST(BufferTest, SequentialIterWrite) {
 
         // Change the current value:
 
-        *iter = 99;
+        *iter = 99.0;
 
         // Ensure that the value is 99:
 
-        ASSERT_TRUE(buff.at(iter.get_channel())->at(iter.get_position()) == 99);
+        ASSERT_DOUBLE_EQ(*iter, 99.);
+        ASSERT_DOUBLE_EQ(buff.at(iter.get_index()), 99.);
     }
 
     // Now, use an algorithm method:
