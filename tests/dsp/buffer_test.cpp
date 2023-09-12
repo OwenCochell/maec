@@ -10,7 +10,6 @@
  */
 
 // TODO:
-// Test reverse iterators
 // Test constant iterators
 // Move generic iterators to new tests
 
@@ -43,6 +42,8 @@ TEST(BufferTest, Construct) {
     // Ensure channel count is valid:
 
     ASSERT_EQ(buff.channels(), 1);
+    ASSERT_EQ(buff.size(), 1);
+    ASSERT_EQ(buff.total_size(), 1);
 }
 
 /**
@@ -58,6 +59,8 @@ TEST(BufferTest, ConstructSingle) {
     // Ensure channel number is valid:
 
     ASSERT_EQ(buff.channels(), 1);
+    ASSERT_EQ(buff.size(), chan1.size());
+    ASSERT_EQ(buff.total_size(), 1 * chan1.size());
 
     // Ensure single channel is valid:
 
@@ -77,6 +80,8 @@ TEST(BufferTest, ConstructMulti) {
     // Ensure channel number if valid:
 
     ASSERT_EQ(buff.channels(), data.size());
+    ASSERT_EQ(buff.size(), chan1.size());
+    ASSERT_EQ(buff.total_size(), data.size() * chan1.size());
 
     // Check split format is valid:
 
@@ -116,24 +121,63 @@ TEST(BufferTest, SampleRate) {
 }
 
 /**
- * @brief Ensures the Buffer size method works correctly
+ * @brief Ensures data can be retrieved from the buffer correctly
+ * 
+*/
+TEST(BufferTest, Retrieval) {
+
+    // Construct a multi channel buffer:
+
+    Buffer buff(data);
+
+    // First, ensure channel / sample retrieval works:
+
+    for (int chan = 0; chan < buff.channels(); ++chan) {
+
+        // Iterate over samples:
+
+        for (int samp = 0; samp < buff.size(); ++samp) {
+
+            // Ensure value is accurate:
+
+            ASSERT_DOUBLE_EQ(buff.at(chan, samp), data.at(chan).at(samp));
+        }
+    }
+
+    // Now, ensure interleaved retrieval works:
+
+    for (int i = 0; i < buff.total_size(); ++i) {
+
+        ASSERT_DOUBLE_EQ(buff.at(i), idata.at(i));
+    }
+}
+
+/**
+ * @brief Ensures the getters and setters for channel/sample size work
  * 
  */
-TEST(BufferTest, Size) {
+TEST(BufferTest, ChannelSize) {
 
-    // Create the Buffer:
+    // Create a buffer with 10 samples and 5 channels:
 
-    Buffer<long double> buff(1, 1);
+    Buffer<long double> buff(10, 5);
 
-    // Ensure the size is valid:
+    // Ensure constructor works:
 
-    ASSERT_EQ(buff.size(), 1);
+    ASSERT_EQ(buff.size(), 10);
+    ASSERT_EQ(buff.channels(), 5);
+    ASSERT_EQ(buff.total_size(), 10 * 5);
 
-    // Do some other constructor stuff:
+    // Change the values:
 
-    Buffer<long double> buff2(data);
+    buff.set_channels(9);
+    buff.set_size(7);
 
-    ASSERT_EQ(buff2.size(), 10);
+    // Ensure these values are in place:
+
+    ASSERT_EQ(buff.size(), 7);
+    ASSERT_EQ(buff.channels(), 9);
+    ASSERT_EQ(buff.total_size(), 9 * 7);
 }
 
 /**
@@ -319,6 +363,62 @@ TEST(BufferTest, SequentialIterRead) {
 }
 
 /**
+ * @brief Ensures we can read data sequentially backwards 
+ * 
+ */
+TEST(BufferTest, SequentialIterReadReverse) {
+
+    // Create a buffer:
+
+    Buffer buff(data);
+
+    // Iterate over it backwards:
+
+    auto biter = sdata.rbegin();
+    int traversed = 0;
+
+    for (auto iter = buff.srbegin(); iter != buff.srend(); ++iter) {
+
+        // Ensure current value works:
+
+        ASSERT_DOUBLE_EQ(*iter, *biter);
+
+        ++biter;
+        ++traversed;
+    }
+
+    // Ensure we iterated over enough values:
+
+    ASSERT_EQ(traversed, sdata.size());
+}
+
+TEST(BufferTest, InterleavedIterReadReverse) {
+
+    // Create a buffer:
+
+    Buffer buff(data);
+
+    // Iterate over it backwards:
+
+    auto biter = idata.rbegin();
+    int traversed = 0;
+
+    for (auto iter = buff.irbegin(); iter != buff.irend(); ++iter) {
+
+        // Ensure current value works:
+
+        ASSERT_DOUBLE_EQ(*iter, *biter);
+
+        ++biter;
+        ++traversed;
+    }
+
+    // Ensure we iterated over enough values:
+
+    ASSERT_EQ(traversed, idata.size());
+}
+
+/**
  * @brief Ensures the Buffer interleaved iterator write operations work correctly
  * 
  */
@@ -332,14 +432,18 @@ TEST(BufferTest, InterleavedIterWrite) {
 
     for(auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
+        // Determine the new value:
+
+        const long double val = 10. * iter.get_index() + 1;
+
         // Change the current value:
 
-        *iter = 99.;
+        *iter = val;
 
         // Ensure that the value is 99:
 
-        ASSERT_DOUBLE_EQ(*iter, 99.);
-        ASSERT_DOUBLE_EQ(buff.at(iter.get_index()), 99.0);
+        ASSERT_DOUBLE_EQ(*iter, val);
+        ASSERT_DOUBLE_EQ(buff.at(iter.get_index()), val);
     }
 
     // Now, use an algorithm method:
@@ -365,14 +469,18 @@ TEST(BufferTest, SequentialIterWrite) {
 
     for(auto iter = buff.sbegin(); iter != buff.send(); ++iter) {
 
+        // Determine the new value:
+
+        const long double val = 10. * iter.get_index() + 1;
+
         // Change the current value:
 
-        *iter = 99.0;
+        *iter = val;
 
-        // Ensure that the value is 99:
+        // Ensure that the value is the set value:
 
-        ASSERT_DOUBLE_EQ(*iter, 99.);
-        ASSERT_DOUBLE_EQ(buff.at(iter.get_index()), 99.);
+        ASSERT_DOUBLE_EQ(*iter, val);
+        ASSERT_DOUBLE_EQ(buff.at(iter.get_channel(), iter.get_sample()), val);
     }
 
     // Now, use an algorithm method:

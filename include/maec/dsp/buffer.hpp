@@ -607,7 +607,7 @@ class Buffer {
                                     this->buff->size()) %
                    this->buff->channels();
 #else
-            return static_cast<int>(this->get_index() / this->buff->channels());
+            return static_cast<int>(this->get_index() / this->buff->size());
 #endif
         }
 
@@ -645,7 +645,7 @@ class Buffer {
          */
         void resolve_pointer() {
             this->set_pointer(
-                this->buff->buff.data() + (this->get_channel() * this->buff->channels() + this->get_sample()));
+                this->buff->buff.data() + (this->get_channel() + this->buff->channels() * this->get_sample()));
         }
 
         /**
@@ -797,7 +797,7 @@ class Buffer {
          * @return int The current channel
          */
         int get_channel() const {
-            return this->get_index() % this->buff->buff.size();
+            return this->get_index() % this->buff->channels();
         }
 
         /**
@@ -809,7 +809,7 @@ class Buffer {
          */
         int get_sample() const {
             return static_cast<int>(this->get_index() /
-                                    this->buff->buff.size());
+                                    this->buff->channels());
         }
 
         /**
@@ -1008,7 +1008,7 @@ class Buffer {
      *
      * @return Size of each channel
      */
-    std::size_t size() { return this->csize; }
+    std::size_t size() const { return this->csize; }
 
     /**
      * @brief Sets the size of each individual channel
@@ -1089,7 +1089,7 @@ class Buffer {
      * @param sample Sample to get value from
      * @return Channel at the given channel and sample
      */
-    T& at(int channel, int sample) { return this->buff[channel * sample]; }
+    T& at(int channel, int sample) { return this->buff[channel + this->channels() * sample]; }
 
     /**
      * @brief Gets a value at the given position
@@ -1143,7 +1143,7 @@ class Buffer {
         return std::reverse_iterator<Buffer::SeqIterator>(
             Buffer::SeqIterator(
                 this,
-                static_cast<int>(this->buff[0].size() * this->buff.size()) - 1));
+                this->total_size()));
     }
 
     /**
@@ -1233,7 +1233,7 @@ class Buffer {
     std::reverse_iterator<Buffer::InterIterator<T>> irbegin() {
         return std::reverse_iterator(
             Buffer::InterIterator<T>(this,
-                static_cast<int>(this->buff[0].size() * this->buff.size()) -1));
+                this->total_size()));
     }
 
     /**
