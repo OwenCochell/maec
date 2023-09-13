@@ -7,13 +7,18 @@
  * 
  * @copyright Copyright (c) 2023
  * 
- * This file contains constants that are used in various places.
+ * This file contains constants
+ * to be used in maec components.
  * 
  */
 
 #pragma once
 
 #include "dsp/const.hpp"
+
+/**
+ * Constants
+ */
 
 /// Default buffer size
 const int BUFF_SIZE = 440;

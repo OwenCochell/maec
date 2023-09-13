@@ -8,7 +8,6 @@ set(TEST_FILES
     constant_oscillator_test.cpp
     module_mixers.cpp
     fund_oscillator_test.cpp
-    #audio_buffer_test.cpp
     sink_module_test.cpp
     alsa_module_test.cpp
     meta_module_test.cpp

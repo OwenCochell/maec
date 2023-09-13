@@ -21,7 +21,7 @@ void Counter::process() {
 
     // Increment the number of samples encountered:
 
-    this->m_samples += static_cast<int>(this->buff->size()) * this->buff->get_channel_count();
+    this->m_samples += static_cast<int>(this->buff->size()) * this->buff->channels();
 }
 
 void LatencyModule::reset() {
@@ -66,12 +66,12 @@ void LatencyModule::meta_process() {
 
     // Get size of buffer:
 
-    int samples = static_cast<int>(this->buff->size() * this->buff->get_channel_count());
+    int samples = static_cast<int>(this->buff->size() * this->buff->channels());
 
     // Update chain timer:
 
     this->timer.set_samplerate(static_cast<int>(this->buff->get_samplerate()));
-    this->timer.set_channels(this->buff->get_channel_count());
+    this->timer.set_channels(this->buff->channels());
     this->timer.add_sample(samples);
 
     // Save the time:

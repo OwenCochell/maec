@@ -9,10 +9,6 @@
  * 
  */
 
-// TODO:
-// Test constant iterators
-// Move generic iterators to new tests
-
 #include "dsp/buffer.hpp"
 
 #include <gtest/gtest.h>
@@ -28,6 +24,196 @@ std::vector<std::vector<long double>> data = {chan1, chan2, chan3};
 
 std::vector<long double> idata = {0,10,20,1,11,21,2,12,22,3,13,23,4,14,24,5,15,25,6,16,26,7,17,27,8,18,28,9,19,29};
 std::vector<long double> sdata = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29};
+
+/**
+ * @brief A generic iterator for testing the functionality of the MAEC iterators
+ * 
+ * We simply iterate over a vector.
+ * Not very impressive, but it serves the purpose of testing.
+ * 
+ */
+class GenericIterator : public BaseMAECIterator<GenericIterator, long double> {
+
+    public:
+
+        explicit GenericIterator(const std::vector<long double>& nbuf) : buff(nbuf) {}
+
+        void resolve_pointer() {
+
+            // Just set the pointer to the current index:
+
+            this->set_pointer(this->buff.data() + this->get_index());
+        }
+
+    private:
+
+        /// Buffer we are iterating over
+        std::vector<long double> buff;
+};
+
+/**
+ * @brief Ensures the MAEC basic iterator operations work correctly
+ *
+ */
+TEST(IteratorTest, BasicIterOperations) {
+
+    // Create an iterator:
+
+    GenericIterator iter1(idata);
+
+    // First, ensure default index methods work:
+
+    iter1.set_index(2);
+
+    ASSERT_EQ(iter1.get_index(), 2);
+
+    // Next, check subscripting operators, forward:
+
+    ASSERT_EQ(iter1[7], idata.at(7));
+    ASSERT_EQ(iter1.get_index(), 7);
+
+    // And backward:
+
+    ASSERT_EQ(iter1[2], idata.at(2));
+    ASSERT_EQ(iter1.get_index(), 2);
+
+    // Next, ensure increments work:
+
+    iter1++;
+    ASSERT_EQ(iter1.get_index(), 3);
+
+    ++iter1;
+    ASSERT_EQ(iter1.get_index(), 4);
+
+    // Ensure decrements work:
+    // (Also test iterator to int conversion going forward)
+
+    iter1--;
+    ASSERT_EQ(iter1, 3);
+
+    --iter1;
+    ASSERT_EQ(iter1, 2);
+
+    // Now, alter index via operators:
+
+    iter1 = iter1 + 5;
+    ASSERT_EQ(iter1, 7);
+
+    iter1 = iter1 - 5;
+    ASSERT_EQ(iter1, 2);
+
+    iter1 += 6;
+    ASSERT_EQ(iter1, 8);
+
+    iter1 -= 6;
+    ASSERT_EQ(iter1, 2);
+
+    // Finally, do the same as above but with iterators:
+
+    GenericIterator iter2(idata);
+    iter2 += 3;
+
+    iter1 = iter1 + iter2;
+    ASSERT_EQ(iter1, 5);
+
+    iter1 = iter1 - iter2;
+    ASSERT_EQ(iter1, 2);
+
+    iter1 += iter2;
+    ASSERT_EQ(iter1, 5);
+
+    iter1 -= iter2;
+    ASSERT_EQ(iter1, 2);
+}
+
+/**
+ * @brief Ensures the MAEC basic iterator comparison operations work correctly
+ *
+ */
+TEST(IteratorTest, BasicIterComparison) {
+
+    // Create two iterators:
+
+    GenericIterator iter1(idata);
+    auto iter2 = iter1 + 5;
+
+    // Checks when iter1 < iter2
+
+    ASSERT_TRUE(iter1 < iter2);
+    ASSERT_FALSE(iter1 > iter2);
+    ASSERT_TRUE(iter1 <= iter2);
+    ASSERT_FALSE(iter1 >= iter2);
+    ASSERT_FALSE(iter1 == iter2);
+    ASSERT_TRUE(iter1 != iter2);
+
+    // Checks when iter1 > iter2
+
+    iter1 = iter1 + 10;
+
+    ASSERT_FALSE(iter1 < iter2);
+    ASSERT_TRUE(iter1 > iter2);
+    ASSERT_FALSE(iter1 <= iter2);
+    ASSERT_TRUE(iter1 >= iter2);
+    ASSERT_FALSE(iter1 == iter2);
+    ASSERT_TRUE(iter1 != iter2);
+
+    // Checks when iter1 == iter2
+
+    iter2 = iter2 + 5;
+
+    ASSERT_FALSE(iter1 < iter2);
+    ASSERT_FALSE(iter1 > iter2);
+    ASSERT_TRUE(iter1 <= iter2);
+    ASSERT_TRUE(iter1 >= iter2);
+    ASSERT_TRUE(iter1 == iter2);
+    ASSERT_FALSE(iter1 != iter2);
+}
+
+TEST(IteratorTest, BasicIterRead) {
+
+    // Create an iterator:
+
+    GenericIterator iter(idata);
+
+    // Iterate until completion:
+
+    for (int i = 0; i < idata.size(); ++i) {
+
+        // Ensure current value is accurate:
+
+        ASSERT_EQ(iter[i], idata.at(i));
+
+        // Reset the index:
+
+        iter.set_index(0);
+
+        ASSERT_EQ(*(iter + i), idata.at(i));
+    }
+}
+
+TEST(IteratorTest, BasicIterWrite) {
+
+    // Create an interator:
+
+    GenericIterator iter(idata);
+
+    // Iterate until completion:
+
+    for (int i = 0; i < idata.size(); ++i) {
+
+        // Determine new value to set:
+
+        long double val = i + 1;
+
+        // Write new value:
+
+        iter[i] = val;
+
+        // Ensure value is correct:
+
+        ASSERT_EQ(iter[i], val);
+    }
+}
 
 /**
  * @brief Ensures the default Buffer constructor works
@@ -181,132 +367,6 @@ TEST(BufferTest, ChannelSize) {
 }
 
 /**
- * @brief Ensures the MAEC basic iterator operations work correctly
- * 
- */
-TEST(BufferTest, BasicIterOperations) {
-
-    // Create an audio buffer:
-
-    Buffer buff(data);
-
-    // Create an iterator to work with:
-
-    auto iter1 = buff.ibegin();
-
-    // First, ensure default index methods work:
-
-    iter1.set_index(2);
-
-    ASSERT_EQ(iter1.get_index(), 2);
-
-    // Next, check subscripting operators, forward:
-
-    ASSERT_EQ(iter1[7], idata.at(7));
-    ASSERT_EQ(iter1.get_index(), 7);
-
-    // And backward:
-
-    ASSERT_EQ(iter1[2], idata.at(2));
-    ASSERT_EQ(iter1.get_index(), 2);
-
-    // Next, ensure increments work:
-
-    iter1++;
-    ASSERT_EQ(iter1.get_index(), 3);
-
-    ++iter1;
-    ASSERT_EQ(iter1.get_index(), 4);
-
-    // Ensure decrements work:
-    // (Also test iterator to int conversion going forward)
-
-    iter1--;
-    ASSERT_EQ(iter1, 3);
-
-    --iter1;
-    ASSERT_EQ(iter1, 2);
-
-    // Now, alter index via operators:
-
-    iter1 = iter1 + 5;
-    ASSERT_EQ(iter1, 7);
-
-    iter1 = iter1 - 5;
-    ASSERT_EQ(iter1, 2);
-
-    iter1 += 6;
-    ASSERT_EQ(iter1, 8);
-
-    iter1 -= 6;
-    ASSERT_EQ(iter1, 2);
-
-    // Finally, do the same as above but with iterators:
-
-    auto iter2 = buff.ibegin() + 3;
-
-    iter1 = iter1 + iter2;
-    ASSERT_EQ(iter1, 5);
-
-    iter1 = iter1 - iter2;
-    ASSERT_EQ(iter1, 2);
-
-    iter1 += iter2;
-    ASSERT_EQ(iter1, 5);
-
-    iter1 -= iter2;
-    ASSERT_EQ(iter1, 2);
-}
-
-/**
- * @brief Ensures the MAEC basic iterator comparison operations work correctly
- * 
- */
-TEST(BufferTest, BasicIterComparison) {
-
-    // Create an audio buffer:
-
-    Buffer buff(data);
-
-    // Get two iterators
-    // (Type should be irrelevant, both share the same features)
-
-    auto iter1 = buff.ibegin();
-    auto iter2 = buff.ibegin() + 5;
-
-    // Checks when iter1 < iter2
-
-    ASSERT_TRUE(iter1 < iter2);
-    ASSERT_FALSE(iter1 > iter2);
-    ASSERT_TRUE(iter1 <= iter2);
-    ASSERT_FALSE(iter1 >= iter2);
-    ASSERT_FALSE(iter1 == iter2);
-    ASSERT_TRUE(iter1 != iter2);
-
-    // Checks when iter1 > iter2
-
-    iter1 = iter1 + 10;
-
-    ASSERT_FALSE(iter1 < iter2);
-    ASSERT_TRUE(iter1 > iter2);
-    ASSERT_FALSE(iter1 <= iter2);
-    ASSERT_TRUE(iter1 >= iter2);
-    ASSERT_FALSE(iter1 == iter2);
-    ASSERT_TRUE(iter1 != iter2);
-
-    // Checks when iter1 == iter2
-
-    iter2 = iter2 + 5;
-
-    ASSERT_FALSE(iter1 < iter2);
-    ASSERT_FALSE(iter1 > iter2);
-    ASSERT_TRUE(iter1 <= iter2);
-    ASSERT_TRUE(iter1 >= iter2);
-    ASSERT_TRUE(iter1 == iter2);
-    ASSERT_FALSE(iter1 != iter2);
-}
-
-/**
  * @brief Ensures the Buffer interleaved iterator read operations work correctly
  * 
  */
@@ -392,6 +452,10 @@ TEST(BufferTest, SequentialIterReadReverse) {
     ASSERT_EQ(traversed, sdata.size());
 }
 
+/**
+ * @brief Ensures we can read data sequentially backwards
+ * 
+ */
 TEST(BufferTest, InterleavedIterReadReverse) {
 
     // Create a buffer:
@@ -416,6 +480,46 @@ TEST(BufferTest, InterleavedIterReadReverse) {
     // Ensure we iterated over enough values:
 
     ASSERT_EQ(traversed, idata.size());
+}
+
+/**
+ * @brief Ensures we can read from interleaved constant iterators
+ * 
+ */
+TEST(BufferTest, InterleavedConstant) {
+
+    // Create a buffer:
+
+    Buffer buff(data);
+
+    // Iterate over it:
+
+    for (auto iter = buff.icbegin(); iter != buff.icend(); ++iter) {
+
+        // Read the value:
+
+        ASSERT_DOUBLE_EQ(*iter, data.at(iter.get_channel()).at(iter.get_sample()));
+    }
+}
+
+/**
+ * @brief Ensures we can read from sequential constant iterators
+ * 
+ */
+TEST(BufferTest, SequencialConstant) {
+
+    // Create a buffer:
+
+    Buffer buff(data);
+
+    // Iterate over it:
+
+    for (auto iter = buff.scbegin(); iter != buff.scend(); ++iter) {
+
+        // Read the value:
+
+        ASSERT_DOUBLE_EQ(*iter, data.at(iter.get_channel()).at(iter.get_sample()));
+    }
 }
 
 /**

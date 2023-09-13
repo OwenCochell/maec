@@ -11,7 +11,7 @@
  * for representing data to be processed.
  * We include support for multi-dimensional signals,
  * iterating over multi-dimensional data,
- * basic matrix operations, etc.
+ * useful buffer implementations, etc.
  */
 
 #pragma once
@@ -556,7 +556,8 @@ class Buffer {
      * channel, and the order of each channel is important, or if we need the
      * 'pure' signal data without data from other channels mixed in.
      */
-    class SeqIterator : public BaseMAECIterator<SeqIterator, T> {
+    template <typename V>
+    class SeqIterator : public BaseMAECIterator<SeqIterator<V>, V> {
 
        public:
         /**
@@ -919,7 +920,7 @@ class Buffer {
      * @param vect Vector of samples
      * @param channels Number of channels
      */
-    explicit Buffer(const std::vector<long double>& vect, int channels = 1) : buff(vect) {
+    explicit Buffer(const std::vector<T>& vect, int channels = 1) : buff(vect) {
 
         // First, set the size and channels:
 
@@ -1112,8 +1113,8 @@ class Buffer {
      *
      * @return Buffer::SeqIterator<long double>
      */
-    Buffer::SeqIterator sbegin() {
-        return Buffer::SeqIterator(this);
+    Buffer::SeqIterator<T> sbegin() {
+        return Buffer::SeqIterator<T>(this);
     }
 
     /**
@@ -1124,9 +1125,9 @@ class Buffer {
      *
      * @return Buffer::SeqIterator<long double>
      */
-    Buffer::SeqIterator send() {
-        return Buffer::SeqIterator(
-            this, static_cast<int>(this->buff.size()));
+    Buffer::SeqIterator<T> send() {
+        return Buffer::SeqIterator<T>(
+            this, this->buff.size());
     }
 
     /**
@@ -1139,10 +1140,9 @@ class Buffer {
      *
      * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
      */
-    std::reverse_iterator<Buffer::SeqIterator> srbegin() {
-        return std::reverse_iterator<Buffer::SeqIterator>(
-            Buffer::SeqIterator(
-                this,
+    std::reverse_iterator<Buffer::SeqIterator<T>> srbegin() {
+        return std::reverse_iterator<Buffer::SeqIterator<T>>(
+            Buffer::SeqIterator<T>(this,
                 this->total_size()));
     }
 
@@ -1154,9 +1154,9 @@ class Buffer {
      *
      * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
      */
-    std::reverse_iterator<Buffer::SeqIterator> srend() {
-        return std::reverse_iterator<Buffer::SeqIterator>(
-            Buffer::SeqIterator(this));
+    std::reverse_iterator<Buffer::SeqIterator<T>> srend() {
+        return std::reverse_iterator<Buffer::SeqIterator<T>>(
+            Buffer::SeqIterator<T>(this));
     }
 
     /**
@@ -1169,9 +1169,8 @@ class Buffer {
      *
      * @return Buffer::SeqIterator<const long double>
      */
-    Buffer::SeqIterator scbegin() {
-        // TODO: Fix this
-        return Buffer::SeqIterator(this);
+    Buffer::SeqIterator<const T> scbegin() {
+        return Buffer::SeqIterator<const T>(this);
     }
 
     /**
@@ -1182,12 +1181,11 @@ class Buffer {
      *
      * Again, we are constant, so values can't be edited using this iterator.
      *
-     * @return Buffer::SeqIterator<const long double>
+     * @return Buffer::SeqIterator<const T>
      */
-    Buffer::SeqIterator scend() {
-        // TODO: Fix this
-        return Buffer::SeqIterator(
-            this, static_cast<int>(this->buff[0].size() * this->buff.size()));
+    Buffer::SeqIterator<const T> scend() {
+        return Buffer::SeqIterator<const T>(
+            this, static_cast<int>(this->total_size()));
     }
 
     /**
@@ -1270,7 +1268,7 @@ class Buffer {
      * @return Buffer::InterIterator<const long double>
      */
     Buffer::InterIterator<const T> icend() {
-        return Buffer::InterIterator<const T>(this, static_cast<int>(this->buff[0].size() * this->buff.size())); }
+        return Buffer::InterIterator<const T>(this, this->total_size()); }
 
    private:
     /// Sample rate in Hertz
@@ -1286,7 +1284,8 @@ class Buffer {
     int csize = 0;
 
     /// Various friend defintions
-    friend class Buffer::SeqIterator;
+    friend class Buffer::SeqIterator<T>;
+    friend class Buffer::SeqIterator<const T>;
     friend class Buffer::InterIterator<T>;
     friend class Buffer::InterIterator<const T>;
 };
@@ -1492,84 +1491,3 @@ class RingBuffer {
     /// Friend definition for iterators
     friend class RingIterator;
 };
-
-/**
- * @brief Components that squish and split audio buffers.
- *
- * Audio buffers are great for representing audio information
- * in the MAEC environment.
- *
- * However, if we wish to translate this data to another
- * dsp library (i.e, ALSA), these buffers are NOT compatable.
- * Therefore, it is necessary to offer methods to convert Buffers
- * to compatable structures and vice versa.
- *
- * A 'squishier' is a component that takes multiple channels and
- * converts it into a single data stream.
- * For example, signals with three channels can be squished
- * by representing the data in an interleaved format.
- * Most squishers will take a buffer and will return a compatable
- * data structure, such as a vector.
- *
- * A 'splitter' is a component that takes a single data stream and
- * converts it into multiple channels.
- * For example, signals in interleaved format
- * can be split into multiple separate channels.
- * Most squishers will take a vector and convert it into an Buffer.
- *
- * Squishers and splitters support format conversion,
- * which means that the format of the incoming container (be it long double,
- * float, int, ect) can be converted into another format during the copy
- * operation. This saves us some time, as otherwise we would have do two copy
- * operations. We can just go ahead and get both out of the way in one
- * operation.
- */
-
-/**
- * @brief Converts a given Buffer into a squished interleaved vector
- *
- * We take the data contained in the buffer and squish it.
- * The final vector will be in interleaved format.
- *
- * We require an iterator that is the destination
- * for this data.
- *
- * @param buff Buffer to work with
- * @param iter Input iterator of the output vector
- */
-template <typename T, typename It, typename Func>
-void squish_inter(Buffer<T>* buff, const It& iter, Func oper) {
-    std::transform(buff->ibegin(), buff->iend(), iter, oper);
-}
-
-/**
- * @brief Converts a given Buffer into a squished sequential vector
- *
- * We take the data contained in the buffer and squish it.
- * The final vector will be in sequential format.
- *
- * We require the iterator that is the destination
- * for this signal.
- *
- * @param buff Buffer to work with
- * @param iter Input iterator of the output vector
- */
-template <typename T, typename It, typename Func>
-void squish_seq(Buffer<T>* buff, const It& iter, Func oper);
-
-/**
- * @brief Does nothing!
- *
- * This squishier does nothing!
- * This can be great if you don't want any modules
- * to do squishing operations.
- *
- * @param buff Buffer to ignore
- * @param iter Input iterator to ignore
- */
-template <typename T, typename It, typename Func>
-void squish_null(Buffer<T>* buff, const It& iter, Func oper);
-
-float mf_float(long double val);
-
-long double mf_null(long double val);

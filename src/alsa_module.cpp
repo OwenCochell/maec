@@ -330,7 +330,7 @@ void ALSASink::process() {
 
     // First, define our temporary vector:
 
-    std::vector<float> temp(buff->size() * buff->get_channel_count());
+    std::vector<float> temp(buff->size() * buff->channels());
 
     auto tthing = buff->size();
 
