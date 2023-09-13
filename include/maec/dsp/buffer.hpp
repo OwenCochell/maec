@@ -22,7 +22,7 @@
 #include <utility>
 #include <vector>
 
-#include "dsp/const.hpp"
+#include "const.hpp"
 
 /**
  * @brief Base class for maec Iterators
@@ -897,8 +897,7 @@ class Buffer {
     /**
      * @brief Construct a new Audio Buffer object
      *
-     * @param size The size of each channel, AKA the number of samples per
-     * channel
+     * @param size The size of each channel, AKA the number of samples per channel
      * @param channels The number of channels in this buffer, by default 1
      */
     explicit Buffer(int size, int channels = 1) : csize(size), nchannels(channels) {
@@ -1058,9 +1057,8 @@ class Buffer {
      * See: https://cplusplus.com/reference/vector/vector/reserve/
      * For more info.
      * 
-     * We utilize the channel and channel size to do this operation.
-     * 
-     * @param size Size to pre-allocate
+     * We utilize the channel number and channel size for this operation.
+     * Usually, this operation is preformed automatically.
      */
     void reserve() { buff.reserve(this->total_size()); }
 
@@ -1270,6 +1268,30 @@ class Buffer {
     Buffer::InterIterator<const T> icend() {
         return Buffer::InterIterator<const T>(this, this->total_size()); }
 
+    /**
+     * @brief Default start iterator
+     * 
+     * The default start iterator simply returns an
+     * InterIterator.
+     * 
+     * @return InterIterator
+     */
+    Buffer::InterIterator<T> begin() {
+        return this->ibegin();
+    }
+
+    /**
+     * @brief Default stop iterator
+     * 
+     * The default stop iterator simply returns
+     * an InterIterator.
+     * 
+     * @return InterIterator 
+     */
+    Buffer::InterIterator<T> end() {
+        return this->iend();
+    }
+
    private:
     /// Sample rate in Hertz
     double sample_rate = SAMPLE_RATE;
@@ -1277,11 +1299,11 @@ class Buffer {
     /// The underlying vector of audio data
     std::vector<T> buff;
 
-    /// Number of channels in this buffer
-    int nchannels = 0;
-
     /// Size of each channel
     int csize = 0;
+
+    /// Number of channels in this buffer
+    int nchannels = 0;
 
     /// Various friend defintions
     friend class Buffer::SeqIterator<T>;

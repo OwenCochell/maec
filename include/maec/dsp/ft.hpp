@@ -23,8 +23,7 @@
 #include <complex>
 #include <iterator>
 
-#include "audio_buffer.hpp"
-#include "dsp/util.hpp"
+#include "util.hpp"
 
 /**
  * @brief Cosine basis function
@@ -362,20 +361,6 @@ void inv_dft(R real, U nonreal, int size, O output) {
 }
 
 /**
- * @brief Preforms an Inverse DFT
- * 
- * This function is identical to the normal inv_dft() function,
- * with the exception that we take a unique pointer to an AudioBuffer
- * containing the real and non-real parts.
- * We also return a unique pointer to an AudioBuffer containing results.
- * 
- * @param real Pointer to Real part
- * @param nonreal Pointer Non-real part
- * @return Pointer to buffer containing result
- */
-BufferPointer inv_dft(BufferPointer real, BufferPointer nonreal);
-
-/**
  * @brief Preforms a Discreet Fourier Transform
  * 
  * We compute the DFT using the given input signal.
@@ -416,19 +401,6 @@ void dft(I input, int size, R real, U nonreal) {
         }
     }
 }
-
-/**
- * @brief Preforms a Discreet Fourier Transform
- * 
- * This function is identical to the dft() function,
- * with the exception that we take a BufferPointer containing the input signal,
- * and return the result as a BufferPointer,
- * with the real part existing in channel 0 and the non-real part existing in channel 1.
- * 
- * @param input Pointer to input signal
- * @return Pointer to AudioBuffer containing real and non-real parts
- */
-BufferPointer dft(BufferPointer input);
 
 /**
  * This section defines functions for calculating

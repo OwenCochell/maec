@@ -151,7 +151,6 @@ void SincFilter::generate_kernel() {
         // We need to create another kernel:
 
         AudioBuffer hkern(final_size);
-        hkern.reserve(final_size);
 
         // Create low pass filter:
 

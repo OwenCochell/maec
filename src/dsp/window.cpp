@@ -13,7 +13,7 @@
 
 #include <cmath>
 
-long double window_rectangle(int num, int size) {
+long double window_rectangle(int, int) {  //NOLINT: Parameters not used in function
 
     // Just return 1!
 

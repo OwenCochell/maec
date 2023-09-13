@@ -284,7 +284,7 @@ TEST(ExponentialRampTest, Value) {
 
             if (last != -1) {
 
-                // Ensure delta is correct, should always be bigger:
+                // Ensure delta is correct, should always be bigger
                 // Not a super great way to ensure this ramp is truly exponential,
                 // but as long as the delta keeps getting higher than it is close enough (for now)
 

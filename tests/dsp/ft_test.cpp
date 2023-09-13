@@ -267,42 +267,6 @@ TEST(DFT, Known) {
 }
 
 /**
- * @brief Tests that the DFT works with AudioBuffers
- * 
- */
-TEST(DFT, KnownBuffer) {
-
-    // Create AudioBuffers for known data:
-
-    auto dbuff = std::make_unique<AudioBuffer>(ft_data);
-
-    // Sed buffer through algorithm:
-
-    auto fbuff = dft(std::move(dbuff));
-
-    // Check parts to ensure accuracy:
-
-    auto real_iter = fbuff->chbegin()->begin();
-    auto nonreal_iter = (fbuff->chbegin()+1)->begin();
-
-    for (int i = 0; i < fbuff->size(); ++i) {
-
-        // Check real part
-
-        ASSERT_DOUBLE_EQ(*real_iter, reals.at(i));
-
-        // Check non-real part
-
-        ASSERT_DOUBLE_EQ(*nonreal_iter, nonreals.at(i));
-
-        // Increment iterators
-
-        ++real_iter;
-        ++nonreal_iter;
-    }
-}
-
-/**
  * @brief Tests that the inverse DFT works with known data
  * 
  */
@@ -338,37 +302,6 @@ TEST(DFT, InvKnown) {
         // Ensure returned data is accurate:
 
         ASSERT_NEAR(ft_data.at(i), output.at(i), 0.00001);
-    }
-}
-
-/**
- * @brief Tests that the inverse DFT works with AudioBuffers
- * 
- */
-TEST(DFT, InvKnownBuffer) {
-
-    // Create AudioBuffers for real and non-real parts:
-
-    auto real = std::make_unique<AudioBuffer>(reals);
-    auto nonreal = std::make_unique<AudioBuffer>(nonreals);
-
-    // Do operation
-
-    auto bdata = inv_dft(std::move(real), std::move(nonreal));
-
-    // Ensure data is accurate:
-
-    auto data_iter = bdata->ibegin();
-
-    for(int i = 0; i < bdata->size(); ++i) {
-
-        // Ensure current data is accurate:
-
-        ASSERT_NEAR(*data_iter, ft_data.at(i), 0.00001);
-
-        // Increment iterator:
-
-        ++data_iter;
     }
 }
 
