@@ -892,13 +892,7 @@ class Buffer {
         Buffer<T>* buff = nullptr;
     };
 
-    /**
-     * @brief No default constructor!
-     * 
-     * We require at least the channel number and buffer size be specified
-     *
-     */
-    Buffer() = delete;
+    Buffer() =default;
 
     /**
      * @brief Construct a new Audio Buffer object
@@ -909,7 +903,7 @@ class Buffer {
      * @param size The size of each channel, AKA the number of samples per channel
      * @param channels The number of channels in this buffer, by default 1
      */
-    explicit Buffer(int size, int channels = 1) : csize(size), nchannels(channels) {
+    explicit Buffer(int size, int channels = 1) : buff(size * channels), csize(size), nchannels(channels) {
 
         // Reserve the buffer with the given info:
 

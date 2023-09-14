@@ -58,7 +58,6 @@ void ConstantEnvelope::process() {
     // Set the time:
 
     this->get_timer()->add_sample(static_cast<int>(this->buff->size()));
-
 }
 
 void SetValue::process() {
@@ -86,7 +85,6 @@ void SetValue::process() {
     // Set the time:
 
     this->get_timer()->add_sample(static_cast<int>(size));
-
 }
 
 void ExponentialRamp::process() {
@@ -97,11 +95,18 @@ void ExponentialRamp::process() {
 
     // Iterate over values in buffer:
 
-    for (auto iter = this->buff->ibegin(); static_cast<unsigned int>(iter.get_index()) < this->buff->size(); ++iter) {
+    for (auto iter = this->buff->ibegin();
+         static_cast<unsigned int>(iter.get_index()) < this->buff->size();
+         ++iter) {
 
         // Determine value at current time:
 
-        *iter = this->get_start_value() * std::pow<long double, long double>(this->val_divide(), static_cast<long double>(this->get_time_inc() - this->get_start_time()) / static_cast<long double>(this->time_diff()));
+        *iter = this->get_start_value() *
+                std::pow<long double, long double>(
+                    this->val_divide(),
+                    static_cast<long double>(this->get_time_inc() -
+                                             this->get_start_time()) /
+                        static_cast<long double>(this->time_diff()));
     }
 }
 
@@ -113,13 +118,18 @@ void LinearRamp::process() {
 
     // Iterate over values in buffer:
 
-    for (auto iter = this->buff->ibegin(); static_cast<unsigned int>(iter.get_index()) < this->buff->size(); ++iter) {
+    for (auto iter = this->buff->ibegin();
+         static_cast<unsigned int>(iter.get_index()) < this->buff->size();
+         ++iter) {
 
         // Determine value at current time:
 
-        *iter = this->get_start_value() + this->val_diff() * (static_cast<long double>(this->get_time_inc() - this->get_start_time()) / static_cast<long double>(this->time_diff()));
+        *iter = this->get_start_value() +
+                this->val_diff() *
+                    (static_cast<long double>(this->get_time_inc() -
+                                              this->get_start_time()) /
+                     static_cast<long double>(this->time_diff()));
     }
-
 }
 
 void ChainEnvelope::add_envelope(BaseEnvelope* env) {
@@ -142,7 +152,6 @@ void ChainEnvelope::add_envelope(BaseEnvelope* env) {
     // Optimize?
 
     this->optimize();
-
 }
 
 void ChainEnvelope::optimize() {
@@ -175,7 +184,6 @@ void ChainEnvelope::optimize() {
     // Finally, add envelope to the back:
 
     this->create_internal(static_cast<int>(this->envs.size()));
-
 }
 
 void ChainEnvelope::create_internal(int index) {
@@ -225,7 +233,6 @@ void ChainEnvelope::create_internal(int index) {
     // Add this envelope to the internal list:
 
     this->inter.push_back(std::move(interp));
-
 }
 
 void ChainEnvelope::next_envelope() {
@@ -237,7 +244,6 @@ void ChainEnvelope::next_envelope() {
     // Set their chain timer to ours:
 
     *(this->current->get_timer()) = *(this->get_timer());
-
 }
 
 void ChainEnvelope::process() {
