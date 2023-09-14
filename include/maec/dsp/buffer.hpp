@@ -411,14 +411,14 @@ class BaseMAECIterator {
 
 /**
  * @brief Class for holding signal data
- *
+ * 
  * This class allows for arbitrary signal data to be stored,
  * worked with, and recalled for later use.
- *
+ * 
  * We will support some common buffer operations,
  * and will provide a standardized method for accessing
  * and working with signal data.
- *
+ * 
  * This class has the ability to represent multi-channel signal data!
  * This can also be interpreted as a collection or rows and columns,
  * with each channel being a row and sample in each channel being a column.
@@ -427,29 +427,35 @@ class BaseMAECIterator {
  * but we also provide methods and iterators to offer easy access into this data.
  * You could also implement this buffer as a type of matrix pretty easily.
  * 
+ * This buffer offers methods to determine the capacity of the vector
+ * if every channel and sample was filled in.
+ * It is recommended to NEVER iterate over a buffer that is only
+ * partially full, or if one channel has more samples than another.
+ * This will lead to a lot of problems! Please avoid this scenario.
+ * 
  * Multi channel signals can be represented in a number of ways.
  * Conventionally, it can be represented as a vector of vectors,
  * with each sub-vector representing a channel.
  * We will call this the 'split' format, as each channel is split into its own
  * vector.
- *
+ * 
  * Suppose we have the following multi-channel signal:
- *
+ * 
  * [1] - 1,2,3
  * [2] - 4,5,6
  * [3] - 7,8,9
- *
+ * 
  * Where [n] is the nth channel, and the numbers are the samples.
  * Each channel is concurrent, meaning that each sample is encountered
  * in each channel at the same time.
  * To represent this data using in a split format, we would have:
- *
+ * 
  * [
  *  [1,2,3],
  *  [4,5,6],
  *  [7,8,9]
  * ]
- *
+ * 
  * Where each [] represents a vector. Again, numbers are samples.
  * To access the 2nd sample of the 3rd channel, we would index the vector as
  * follows:
@@ -605,10 +611,10 @@ class Buffer {
             // MSVC release mode and all other compilers don't have an issue
             // with this line
             return static_cast<int>(this->get_index() /
-                                    this->buff->size()) %
+                                    this->buff->channel_capacity()) %
                    this->buff->channels();
 #else
-            return static_cast<int>(this->get_index() / this->buff->size());
+            return static_cast<int>(this->get_index() / this->buff->channel_capacity());
 #endif
         }
 
@@ -624,7 +630,7 @@ class Buffer {
          * @param channel Channel to move to.
          */
         void set_channel(int channel) {
-            this->set_index(channel * this->buff->size());
+            this->set_index(channel * this->buff->channel_capacity());
         }
 
         /**
@@ -675,7 +681,7 @@ class Buffer {
          * @param sample Index of the position within the given channel
          */
         void set_position(int channel, int sample) {
-            this->set_index(channel * this->buff->size() + sample);
+            this->set_index(channel * this->buff->channel_capacity() + sample);
         }
 
         /**
@@ -695,7 +701,7 @@ class Buffer {
          * 
          * @return int The sample of the iterator in the current channel
          */
-        int get_sample() const { return static_cast<int>(this->get_index() % this->buff->size()); }
+        int get_sample() const { return static_cast<int>(this->get_index() % this->buff->channel_capacity()); }
 
        private:
         /// Audio Buffer we are iterating over
@@ -896,6 +902,9 @@ class Buffer {
 
     /**
      * @brief Construct a new Audio Buffer object
+     * 
+     * Please be aware, this vector will be empty!
+     * You will need to fill it with you own data for things to work correctly.
      *
      * @param size The size of each channel, AKA the number of samples per channel
      * @param channels The number of channels in this buffer, by default 1
@@ -924,7 +933,7 @@ class Buffer {
         // First, set the size and channels:
 
         this->set_channels(channels);
-        this->set_size(vect.size() / channels);
+        this->set_channel_capacity(vect.size() / channels);
 
         // Next, reserve:
 
@@ -950,7 +959,7 @@ class Buffer {
         // First, set the number of channels and channel size
 
         this->set_channels(vect.size());
-        this->set_size(vect[0].size());
+        this->set_channel_capacity(vect[0].size());
 
         // Reserve the data:
 
@@ -958,7 +967,7 @@ class Buffer {
 
         // Iterate over the number of samples:
 
-        for (int i = 0; i < this->size(); ++i) {
+        for (int i = 0; i < this->channel_capacity(); ++i) {
 
             // Iterate over the number of channels:
 
@@ -1002,29 +1011,44 @@ class Buffer {
 
     /**
      * @brief Gets the size of this buffer.
-     *
-     * We report the size of the individual channels,
-     * not the number of channels or total size;
-     *
+     * 
+     * We report the absolute size of this buffer,
+     * that being the number of values currently present.
+     * 
      * @return Size of each channel
      */
-    std::size_t size() const { return this->csize; }
+    std::size_t size() const { return this->buff.size(); }
 
     /**
-     * @brief Sets the size of each individual channel
-     *
-     * We set the size of the individual channels.
-     *
-     * @param nsize Size of individual channels
+     * @brief Gets the capacity of each channel
+     * 
+     * We report the capacity of each individual channel,
+     * that being the number of samples present in each channel.
+     * 
+     * @return Capacity of each channel
      */
-    void set_size(std::size_t nsize) { this->csize = nsize; }
+    std::size_t channel_capacity() const { return this->csize; }
+
+    /**
+     * @brief Sets the capacity of each individual channel
+     * 
+     * We set the capacity of the individual channels.
+     * This value does not determine the channel size
+     * currently present in the buffer,
+     * but instead refers to the expected number of channels present.
+     * 
+     * @param nsize Capacity of each channel
+     */
+    void set_channel_capacity(std::size_t nsize) { this->csize = nsize; }
 
     /**
      * @brief Gets the number of channels in this buffer
-     *
+     * 
      * We report the number of channels,
      * not the channel size or total size.
-     *
+     * This does not report the actual number of channels present,
+     * but instead reports the expected number of channels.
+     * 
      * @return Number of channels
      */
     std::size_t channels() const { return this->nchannels; }
@@ -1032,19 +1056,22 @@ class Buffer {
     /**
      * @brief Sets the number of channels
      *
+     * Again, this only sets our understanding of the number of channels,
+     * and does not set any content in the buffer.
+     * 
      * @param nchannels Number of channels to set
      */
     void set_channels(std::size_t nchannels) { this->nchannels = nchannels; }
 
     /**
-     * @brief Gets the total size of the buffer.
+     * @brief Gets the total capacity of the buffer.
      * 
      * We determine this value by multiplying the number of channels
-     * and the channel size.
+     * and the channel capacity.
      * 
-     * @return Total buffer size
+     * @return Total buffer capacity
      */
-    std::size_t total_size() const { return this->csize * this->nchannels; }
+    std::size_t total_capacity() const { return this->csize * this->nchannels; }
 
     /**
      * @brief Pre-allocates the buffer to a certain size
@@ -1060,7 +1087,7 @@ class Buffer {
      * We utilize the channel number and channel size for this operation.
      * Usually, this operation is preformed automatically.
      */
-    void reserve() { buff.reserve(this->total_size()); }
+    void reserve() { buff.reserve(this->total_capacity()); }
 
     /**
      * @brief Shrinks the vector to it's current size
@@ -1097,6 +1124,43 @@ class Buffer {
      * @return Value at given position
      */
     T& at(int value) { return this->buff[value]; }
+
+    /**
+     * @brief Adds a value to the buffer
+     * 
+     * We push a value to the back of the buffer.
+     * Please be aware, that we have no understanding of channels
+     * or channel sizes!
+     * You will need to provide your information in interleaved format
+     * if you are working with multiple channels.
+     * 
+     * @param val Value to add to buffer
+     */
+    void push_back(const T& val) { this->buff.push_back(val); }
+
+    /**
+     * @brief Fills the rest of the buffer with a value
+     * 
+     * This will add zeros to the buffer until we reach the total capacity.
+     * If we are at the current capacity,
+     * then we will simply do nothing.
+     * 
+     * By default, we fill the buffer with zeros,
+     * but you can set this value to be anything you want.
+     * 
+     * @param val Value to fill the buffer with
+     */
+    void fill(const T& val = 0) {
+
+        // Iterate over the total capacity:
+
+        for (int i = this->size(); i < this->total_capacity(); ++i) {
+
+            // Add this value to the buffer:
+
+            this->push_back(val);
+        }
+    }
 
     /**
      * @brief Gets the start sequential iterator for this buffer
@@ -1141,7 +1205,7 @@ class Buffer {
     std::reverse_iterator<Buffer::SeqIterator<T>> srbegin() {
         return std::reverse_iterator<Buffer::SeqIterator<T>>(
             Buffer::SeqIterator<T>(this,
-                this->total_size()));
+                this->size()));
     }
 
     /**
@@ -1183,7 +1247,7 @@ class Buffer {
      */
     Buffer::SeqIterator<const T> scend() {
         return Buffer::SeqIterator<const T>(
-            this, static_cast<int>(this->total_size()));
+            this, static_cast<int>(this->size()));
     }
 
     /**
@@ -1229,7 +1293,7 @@ class Buffer {
     std::reverse_iterator<Buffer::InterIterator<T>> irbegin() {
         return std::reverse_iterator(
             Buffer::InterIterator<T>(this,
-                this->total_size()));
+                this->size()));
     }
 
     /**
@@ -1266,7 +1330,7 @@ class Buffer {
      * @return Buffer::InterIterator<const long double>
      */
     Buffer::InterIterator<const T> icend() {
-        return Buffer::InterIterator<const T>(this, this->total_size()); }
+        return Buffer::InterIterator<const T>(this, this->size()); }
 
     /**
      * @brief Default start iterator

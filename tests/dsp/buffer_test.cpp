@@ -169,6 +169,10 @@ TEST(IteratorTest, BasicIterComparison) {
     ASSERT_FALSE(iter1 != iter2);
 }
 
+/**
+ * @brief Ensures BaseMAECIterator can correctly read
+ * 
+ */
 TEST(IteratorTest, BasicIterRead) {
 
     // Create an iterator:
@@ -191,6 +195,10 @@ TEST(IteratorTest, BasicIterRead) {
     }
 }
 
+/**
+ * @brief Ensures BaseMAECIterator can correctly write
+ * 
+ */
 TEST(IteratorTest, BasicIterWrite) {
 
     // Create an interator:
@@ -228,8 +236,8 @@ TEST(BufferTest, Construct) {
     // Ensure channel count is valid:
 
     ASSERT_EQ(buff.channels(), 1);
-    ASSERT_EQ(buff.size(), 1);
-    ASSERT_EQ(buff.total_size(), 1);
+    ASSERT_EQ(buff.channel_capacity(), 1);
+    ASSERT_EQ(buff.total_capacity(), 1);
 }
 
 /**
@@ -245,8 +253,8 @@ TEST(BufferTest, ConstructSingle) {
     // Ensure channel number is valid:
 
     ASSERT_EQ(buff.channels(), 1);
-    ASSERT_EQ(buff.size(), chan1.size());
-    ASSERT_EQ(buff.total_size(), 1 * chan1.size());
+    ASSERT_EQ(buff.channel_capacity(), chan1.size());
+    ASSERT_EQ(buff.total_capacity(), 1 * chan1.size());
 
     // Ensure single channel is valid:
 
@@ -266,8 +274,8 @@ TEST(BufferTest, ConstructMulti) {
     // Ensure channel number if valid:
 
     ASSERT_EQ(buff.channels(), data.size());
-    ASSERT_EQ(buff.size(), chan1.size());
-    ASSERT_EQ(buff.total_size(), data.size() * chan1.size());
+    ASSERT_EQ(buff.channel_capacity(), chan1.size());
+    ASSERT_EQ(buff.total_capacity(), data.size() * chan1.size());
 
     // Check split format is valid:
 
@@ -309,7 +317,7 @@ TEST(BufferTest, SampleRate) {
 /**
  * @brief Ensures data can be retrieved from the buffer correctly
  * 
-*/
+ */
 TEST(BufferTest, Retrieval) {
 
     // Construct a multi channel buffer:
@@ -322,7 +330,7 @@ TEST(BufferTest, Retrieval) {
 
         // Iterate over samples:
 
-        for (int samp = 0; samp < buff.size(); ++samp) {
+        for (int samp = 0; samp < buff.channel_capacity(); ++samp) {
 
             // Ensure value is accurate:
 
@@ -332,9 +340,67 @@ TEST(BufferTest, Retrieval) {
 
     // Now, ensure interleaved retrieval works:
 
-    for (int i = 0; i < buff.total_size(); ++i) {
+    for (int i = 0; i < buff.total_capacity(); ++i) {
 
         ASSERT_DOUBLE_EQ(buff.at(i), idata.at(i));
+    }
+}
+
+/**
+ * @brief Ensures a fill operation works correctly
+ * 
+ */
+TEST(BufferTest, Fill) {
+
+    // Create an empty buffer:
+
+    Buffer<int> buff(10, 3);
+
+    // Fill with zeros:
+
+    buff.fill();
+
+    // Ensure each value is zero:
+
+    for (int i = 0; i < buff.total_capacity(); ++i) {
+
+        // Ensure current value is zero:
+
+        ASSERT_EQ(0, buff.at(i));
+    }
+}
+
+TEST(BufferTest, FillPartial) {
+
+    // Create a partial buffer:
+
+    Buffer<long double> buff(chan1);
+
+    // Make the capacity bigger:
+
+    buff.set_channel_capacity(10);
+    buff.set_channels(3);
+
+    // Now, fill with zero:
+
+    buff.fill();
+
+    // Iterate over the first section:
+
+    for (int i = 0; i < chan1.size(); ++i) {
+
+        // Ensure value is accurate:
+
+        ASSERT_DOUBLE_EQ(buff.at(i), chan1.at(i));
+    }
+
+    // Now, ensure the rest is filled with zeros:
+
+    for (int i = chan1.size(); i < buff.total_capacity(); ++i) {
+
+        // Ensure value is zero:
+
+        ASSERT_DOUBLE_EQ(buff.at(i), 0);
     }
 }
 
@@ -350,20 +416,20 @@ TEST(BufferTest, ChannelSize) {
 
     // Ensure constructor works:
 
-    ASSERT_EQ(buff.size(), 10);
+    ASSERT_EQ(buff.channel_capacity(), 10);
     ASSERT_EQ(buff.channels(), 5);
-    ASSERT_EQ(buff.total_size(), 10 * 5);
+    ASSERT_EQ(buff.total_capacity(), 10 * 5);
 
     // Change the values:
 
     buff.set_channels(9);
-    buff.set_size(7);
+    buff.set_channel_capacity(7);
 
     // Ensure these values are in place:
 
-    ASSERT_EQ(buff.size(), 7);
+    ASSERT_EQ(buff.channel_capacity(), 7);
     ASSERT_EQ(buff.channels(), 9);
-    ASSERT_EQ(buff.total_size(), 9 * 7);
+    ASSERT_EQ(buff.total_capacity(), 9 * 7);
 }
 
 /**

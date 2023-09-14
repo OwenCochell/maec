@@ -103,7 +103,6 @@ void ExponentialRamp::process() {
 
         *iter = this->get_start_value() * std::pow<long double, long double>(this->val_divide(), static_cast<long double>(this->get_time_inc() - this->get_start_time()) / static_cast<long double>(this->time_diff()));
     }
-
 }
 
 void LinearRamp::process() {
