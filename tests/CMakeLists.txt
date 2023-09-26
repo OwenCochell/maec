@@ -21,6 +21,7 @@ set(TEST_FILES
     dsp/window_test.cpp
     dsp/kernel_test.cpp
     dsp/buffer_test.cpp
+    dsp/matrix_test.cpp
 )
 
 # Enable testing for the project
