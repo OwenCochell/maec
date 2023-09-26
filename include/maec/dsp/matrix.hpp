@@ -54,7 +54,7 @@
 template <typename A, typename B, typename T = typename std::iterator_traits<A>::value_type>
 T dot_product(A aiter, B biter, int num) {
 
-    T done = 0;
+    int done = 0;
 
     // Iterate over each value in the provided iterators:
 
@@ -68,8 +68,69 @@ T dot_product(A aiter, B biter, int num) {
     return done;
 }
 
+/**
+ * @brief Preforms a matrix multiplication on the provided buffers.
+ * 
+ * Given two buffers, the matrix product will be computed and placed
+ * in the out buffer.
+ * We will automatically size and configure the out buffer for you!
+ * 
+ * The matrix multiplication can be described as computing the dot product
+ * of each row and column for each value in the out array.
+ * Consider these matrixes A and B:
+ * 
+ * A:
+ * 1 2 3
+ * 4 5 6
+ * 7 8 9
+ * 
+ * B:
+ * 10 20 30
+ * 40 50 60
+ * 70 80 90
+ * 
+ * To compute the value at value <0,0>
+ * (that is, row zero column zero)
+ * in the output:
+ * 
+ * dot(row(A, 0), col(B, 0))
+ * 1*10 + 2*40 + 3*70 = 300
+ * 
+ * Where row() and col() are functions that return
+ * a vector of the row or column of the provided matrix.
+ * Now, something more random, like <2, 1>:
+ * 
+ * dot(row(A, 2), col(B, 1))
+ * 7*20 + 8*50 + 9*80 = 1260
+ * 
+ * At the end of the day, to compute the position of the output
+ * matrix at any position <r, c> will be:
+ * 
+ * dot(row(A, r), row(B, c))
+ * 
+ * We utilize the Buffer methods to retrieve the row and column
+ * of the input matrixes.
+ * Also, if the provided matrixes have a different number of rows and columns,
+ * then this operation will fail!
+ * The number of rows in A MUST equal the number of columns in B!
+ * 
+ * This operation is NOT communicative!
+ * You may get very different results if you switch the order of A and B.
+ * 
+ * @tparam T Type of input matrix A
+ * @tparam U Type of input matrix B
+ * @tparam V Type of output matrix
+ * @param buf1 Input matrix A
+ * @param buf2 Output matrix B
+ * @param out Matrix to store result in
+ */
 template <typename T, typename U, typename V>
 void matrix_mult(const Buffer<T>& buf1, const Buffer<U>& buf2, Buffer<V>& out) {
+
+    // Configure the out buffer to match our size:
+
+    out.set_channels(buf2.channels());
+    out.set_channel_capacity(buf1.channel_capacity());
 
     // Iterate over the rows:
 
@@ -77,14 +138,14 @@ void matrix_mult(const Buffer<T>& buf1, const Buffer<U>& buf2, Buffer<V>& out) {
 
         // Iterate over the cols:
 
-        for (int col = 0; col < buf2.channels(); ++buf2) {
+        for (int col = 0; col < buf2.channels(); ++col) {
 
-            // Grab the vectors:
+            // Grab the iterators:
 
-            auto rowv = buf1.sbegin();
-            auto colv = buf2.ibegin();
+            auto rowv = buf1.scbegin();
+            auto colv = buf2.icbegin();
 
-            // Set the vector position:
+            // Set the iterator position:
 
             rowv.set_channel(row);
             colv.set_sample(col);

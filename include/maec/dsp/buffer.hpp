@@ -1225,7 +1225,7 @@ class Buffer {
      *
      * @return Buffer::SeqIterator<const long double>
      */
-    Buffer::SeqIterator<const T> scbegin() {
+    Buffer::SeqIterator<const T> scbegin() const {
         return Buffer::SeqIterator<const T>(this);
     }
 
@@ -1239,7 +1239,7 @@ class Buffer {
      *
      * @return Buffer::SeqIterator<const T>
      */
-    Buffer::SeqIterator<const T> scend() {
+    Buffer::SeqIterator<const T> scend() const {
         return Buffer::SeqIterator<const T>(
             this, static_cast<int>(this->size()));
     }
@@ -1310,7 +1310,7 @@ class Buffer {
      *
      * @return Buffer::InterIterator<const long double>
      */
-    Buffer::InterIterator<const T> icbegin() {
+    Buffer::InterIterator<const T> icbegin() const {
         return Buffer::InterIterator<const T>(this); }
 
     /**
@@ -1323,7 +1323,7 @@ class Buffer {
      *
      * @return Buffer::InterIterator<const long double>
      */
-    Buffer::InterIterator<const T> icend() {
+    Buffer::InterIterator<const T> icend() const {
         return Buffer::InterIterator<const T>(this, this->size()); }
 
     /**
