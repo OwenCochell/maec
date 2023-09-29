@@ -35,6 +35,8 @@ TEST(Matrix, DotProduct) {
 
     a_same.cbegin();
 
+    auto thing = b_same.cbegin();
+
     // Create a buffer for output:
 
     Buffer<int> out;

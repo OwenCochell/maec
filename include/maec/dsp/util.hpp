@@ -16,6 +16,35 @@
 #include <iterator>
 #include <complex>
 
+/**
+ * @brief A component that chooses between types based upon a flag
+ * 
+ * Simply provide a bool, and this component
+ * will select a type based upon it.
+ * If true is provided, then the type provided to True will be used.
+ * If false is provided, then the type provided to False will be used.
+ * 
+ * You can access the type under the 'type' attribute.
+ * 
+ * @tparam flag Boolean to decide which type to use
+ * @tparam True Type to select if True
+ * @tparam False Type to select if False
+ */
+template <bool flag, typename True, typename False>
+struct ChooseType;
+
+template<typename True, typename False>
+struct ChooseType<true, True, False> {
+    
+    using type = True;
+};
+
+template<typename True, typename False>
+struct ChooseType<false, True, False> {
+
+    using type = False;
+};
+
 template <typename I>
 void bit_reverse(int size, I iter) {
 

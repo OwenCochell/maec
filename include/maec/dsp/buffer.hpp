@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "const.hpp"
+#include "util.hpp"
 
 /**
  * @brief Base class for maec Iterators
@@ -48,7 +49,7 @@
  * @tparam C The class that derives from this class.
  * @tparam T The typename this iterator will iterate over
  */
-template <class C, typename T>
+template <class C, typename T, bool IsConst = false>
 class BaseMAECIterator {
 
    private:
@@ -78,6 +79,8 @@ class BaseMAECIterator {
     using value_type = T;
     using pointer = T*;
     using reference = T&;
+
+    using iterator_type = typename ChooseType<IsConst, const C, C>::type;
 
     /**
      * @brief Sets the index to the given value.
@@ -120,6 +123,8 @@ class BaseMAECIterator {
      * @return int Current index
      */
     int get_index() const { return this->index; }
+
+    operator BaseMAECIterator<C, const T>() const;
 
     /**
      * @brief Pre-increments the iterator
@@ -217,9 +222,15 @@ class BaseMAECIterator {
      * @param num Number to add to the current index
      * @return C A new iterator with the new index
      */
-    C operator+(const int& num) {
-        C tmp = static_cast<C&>(*this);
+    iterator_type operator+(const int& num) const {
+
+        // Make a non-const copy:
+        C tmp = static_cast<const iterator_type&>(*this);
+
+        // Increment value:
         tmp += num;
+
+        // Return value:
         return tmp;
     }
 
@@ -231,8 +242,8 @@ class BaseMAECIterator {
      * @param num Number to add to the current index
      * @return C A new iterator with the new index
      */
-    C operator+(const unsigned int& num) {
-        C tmp = static_cast<C&>(*this);
+    iterator_type operator+(const unsigned int& num) const {
+        C tmp = static_cast<const iterator_type&>(*this);
         tmp += num;
         return tmp;
     }
@@ -245,8 +256,8 @@ class BaseMAECIterator {
      * @param num Number to add to the current index
      * @return C A new iterator with the new index
      */
-    C operator+(const int64_t& num) {
-        C tmp = static_cast<C&>(*this);
+    iterator_type operator+(const int64_t& num) const {
+        C tmp = static_cast<const iterator_type&>(*this);
         tmp += num;
         return tmp;
     }
@@ -260,8 +271,8 @@ class BaseMAECIterator {
      * @param iter Iterator to add
      * @return C A new iterator with the new index
      */
-    C operator+(const C& iter) {
-        C tmp = static_cast<C&>(*this);
+    iterator_type operator+(const C& iter) const {
+        C tmp = static_cast<const iterator_type&>(*this);
         tmp += iter.get_index();
         return tmp;
     }
@@ -273,9 +284,15 @@ class BaseMAECIterator {
      * @param num Number to subtract our index from
      * @return C A new iterator with the new index
      */
-    C operator-(const int& num) {
-        C tmp = static_cast<C&>(*this);
+    iterator_type operator-(const int& num) const {
+
+        // Make non-const copy:
+        C tmp = static_cast<const iterator_type&>(*this);
+
+        // Make changes:
         tmp -= num;
+
+        // Return copy:
         return tmp;
     }
 
@@ -288,8 +305,8 @@ class BaseMAECIterator {
      * @param iter Iterator to subtract
      * @return C A new iterator with the new index
      */
-    C operator-(const C& iter) {
-        C tmp = static_cast<C&>(*this);
+    iterator_type operator-(const iterator_type& iter) const {
+        C tmp = static_cast<const iterator_type&>(*this);
         tmp -= iter.get_index();
         return tmp;
     }
@@ -314,7 +331,7 @@ class BaseMAECIterator {
      * @return true If the two iterators are equivalent
      * @return false If the two iterators are not equivalent
      */
-    bool operator==(const C& cmp) {
+    bool operator==(const C& cmp) const {
         return this->get_index() == cmp.get_index();
     }
 
@@ -327,7 +344,7 @@ class BaseMAECIterator {
      * @return true If the two iterators are not equivalent
      * @return false If the two iterators are equivalent
      */
-    bool operator!=(const C& cmp) { return !(*this == cmp); }
+    bool operator!=(const C& cmp) const { return !(*this == cmp); }
 
     /**
      * @brief Determines if the we are less than the given iterator
@@ -336,7 +353,7 @@ class BaseMAECIterator {
      * @return true If we are less than the given iterator
      * @return false If we are equal or greater than the given iterator
      */
-    bool operator<(const C& second) {
+    bool operator<(const C& second) const {
         return this->get_index() < second.get_index();
     }
 
@@ -347,7 +364,7 @@ class BaseMAECIterator {
      * @return true If we are greater than the given iterator
      * @return false If we are less than or equal to the given iterator
      */
-    bool operator>(const C& second) {
+    bool operator>(const C& second) const {
         return this->get_index() > second.get_index();
     }
 
@@ -358,7 +375,7 @@ class BaseMAECIterator {
      * @return true If we are less than or equal to the given iterator
      * @return false If we are greater than the given iterator
      */
-    bool operator<=(const C& second) {
+    bool operator<=(const C& second) const {
         return this->get_index() <= second.get_index();
     }
 
@@ -369,7 +386,7 @@ class BaseMAECIterator {
      * @return true If we are greater than or equal to the given iterator
      * @return false If we are less than or equal to the given iterator
      */
-    bool operator>=(const C& second) {
+    bool operator>=(const C& second) const {
         return this->get_index() >= second.get_index();
     }
 
@@ -382,7 +399,7 @@ class BaseMAECIterator {
      * @param val New index to set
      * @return reference Current value
      */
-    reference operator[](int val) {
+    reference operator[](int val) const {
         this->set_index(val);
         return *(this->point);
     }
@@ -562,8 +579,8 @@ class Buffer {
      * channel, and the order of each channel is important, or if we need the
      * 'pure' signal data without data from other channels mixed in.
      */
-    template <typename V>
-    class SeqIterator : public BaseMAECIterator<SeqIterator<V>, V> {
+    template <typename V, bool IsConst = false>
+    class SeqIterator : public BaseMAECIterator<Buffer::SeqIterator<V, IsConst>, V, IsConst> {
 
        public:
         /**
@@ -745,8 +762,8 @@ class Buffer {
      * 
      * TODO: See if we should add extra methods, like in SeqIterator...
      */
-    template <typename V>
-    class InterIterator : public BaseMAECIterator<InterIterator<V>, V> {
+    template <typename V, bool IsConst = false>
+    class InterIterator : public BaseMAECIterator<InterIterator<V, IsConst>, V, IsConst> {
 
        public:
         /**
@@ -1225,8 +1242,8 @@ class Buffer {
      *
      * @return Buffer::SeqIterator<const long double>
      */
-    Buffer::SeqIterator<const T> scbegin() const {
-        return Buffer::SeqIterator<const T>(this);
+    Buffer::SeqIterator<const T, true> scbegin() const {
+        return Buffer::SeqIterator<const T, true>(this);
     }
 
     /**
@@ -1239,8 +1256,8 @@ class Buffer {
      *
      * @return Buffer::SeqIterator<const T>
      */
-    Buffer::SeqIterator<const T> scend() const {
-        return Buffer::SeqIterator<const T>(
+    Buffer::SeqIterator<const T, true> scend() const {
+        return Buffer::SeqIterator<const T, true>(
             this, static_cast<int>(this->size()));
     }
 
@@ -1310,8 +1327,8 @@ class Buffer {
      *
      * @return Buffer::InterIterator<const long double>
      */
-    Buffer::InterIterator<const T> icbegin() const {
-        return Buffer::InterIterator<const T>(this); }
+    Buffer::InterIterator<const T, true> icbegin() const {
+        return Buffer::InterIterator<const T, true>(this); }
 
     /**
      * @brief Gets the end constant iterator for this buffer
@@ -1323,8 +1340,8 @@ class Buffer {
      *
      * @return Buffer::InterIterator<const long double>
      */
-    Buffer::InterIterator<const T> icend() const {
-        return Buffer::InterIterator<const T>(this, this->size()); }
+    Buffer::InterIterator<const T, true> icend() const {
+        return Buffer::InterIterator<const T, true>(this, this->size()); }
 
     /**
      * @brief Default start iterator
@@ -1365,9 +1382,9 @@ class Buffer {
 
     /// Various friend defintions
     friend class Buffer::SeqIterator<T>;
-    friend class Buffer::SeqIterator<const T>;
+    friend class Buffer::SeqIterator<const T, true>;
     friend class Buffer::InterIterator<T>;
-    friend class Buffer::InterIterator<const T>;
+    friend class Buffer::InterIterator<const T, true>;
 };
 
 /**

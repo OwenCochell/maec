@@ -52,7 +52,7 @@
  * @return Scalar result of dot product
  */
 template <typename A, typename B, typename T = typename std::iterator_traits<A>::value_type>
-T dot_product(A aiter, B biter, int num) {
+T dot_product(const A& aiter, const B& biter, int num) {
 
     int done = 0;
 
@@ -62,7 +62,7 @@ T dot_product(A aiter, B biter, int num) {
 
         // Grab the value from each iterator and compute:
 
-        done += aiter[i] * biter[i];
+        done += *(aiter+i) * *(biter+i);
     }
 
     return done;
