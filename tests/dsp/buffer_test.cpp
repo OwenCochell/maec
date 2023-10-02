@@ -38,11 +38,11 @@ class GenericIterator : public BaseMAECIterator<GenericIterator, long double> {
 
         explicit GenericIterator(const std::vector<long double>& nbuf) : buff(nbuf) {}
 
-        void resolve_pointer() {
+        long double* resolve_pointer(int index) {
 
             // Just set the pointer to the current index:
 
-            this->set_pointer(this->buff.data() + this->get_index());
+            return this->buff.data() + index;
         }
 
     private:

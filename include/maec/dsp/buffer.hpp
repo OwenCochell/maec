@@ -110,7 +110,7 @@ class BaseMAECIterator {
      */
     void set_index(int iindex) {
         this->index = iindex;
-        static_cast<C*>(this)->resolve_pointer();
+        point = static_cast<C*>(this)->resolve_pointer(this->index);
     }
 
     /**
@@ -400,8 +400,8 @@ class BaseMAECIterator {
      * @return reference Current value
      */
     reference operator[](int val) const {
-        this->set_index(val);
-        return *(this->point);
+
+        return static_cast<iterator_type*>(this)->resolve_pointer(val);
     }
 
     /**
@@ -619,21 +619,7 @@ class Buffer {
          *
          * @return int Channel we are on
          */
-        int get_channel() const {
-
-#ifdef _DEBUG
-            // This section is specific to MSVC debug mode,
-            // as without the modulo we get safe iterator errors,
-            // causing broken functionality.
-            // MSVC release mode and all other compilers don't have an issue
-            // with this line
-            return static_cast<int>(this->get_index() /
-                                    this->buff->channel_capacity()) %
-                   this->buff->channels();
-#else
-            return static_cast<int>(this->get_index() / this->buff->channel_capacity());
-#endif
-        }
+        int get_channel() const { return this->get_channel(this->get_index()); }
 
         /**
          * @brief Set the Channel we are on
@@ -667,9 +653,8 @@ class Buffer {
          * and return it many times.
          *
          */
-        void resolve_pointer() {
-            this->set_pointer(
-                this->buff->buff.data() + (this->get_channel() + this->buff->channels() * this->get_sample()));
+        V* resolve_pointer(int index) {
+            return this->buff->buff.data() + (this->get_channel(index) + this->buff->channels() * this->get_sample(index));
         }
 
         /**
@@ -718,9 +703,46 @@ class Buffer {
          * 
          * @return int The sample of the iterator in the current channel
          */
-        int get_sample() const { return static_cast<int>(this->get_index() % this->buff->channel_capacity()); }
+        int get_sample() const { this->get_sample(this->get_index()); }
 
        private:
+        /**
+         * @brief Gets the sample of this iterator
+         *
+         * As stated above, this value is the location of the sample
+         * in relation to the channels and samples within them.
+         *
+         * This method will return the sample of the iterator
+         * in the current channel.
+         * Using the above example, if your index is 7,
+         * then this method will return 1, as that is the index
+         * of the sample in the channel we are working with.
+         *
+         * To get the channel we are working with, use get_channel().
+         * This is needed if you want a full understanding of the sample!
+         *
+         * @return int The sample of the iterator in the current channel
+         */
+        int get_sample(int index) const {
+            return static_cast<int>(index %
+                                    this->buff->channel_capacity());
+        }
+
+        int get_channel(int index) const {
+#ifdef _DEBUG
+            // This section is specific to MSVC debug mode,
+            // as without the modulo we get safe iterator errors,
+            // causing broken functionality.
+            // MSVC release mode and all other compilers don't have an issue
+            // with this line
+            return static_cast<int>(index /
+                                    this->buff->channel_capacity()) %
+                   this->buff->channels();
+#else
+            return static_cast<int>(index /
+                                    this->buff->channel_capacity());
+#endif
+        }
         /// Audio Buffer we are iterating over
         Buffer<T>* buff = nullptr;
     };
@@ -811,7 +833,7 @@ class Buffer {
          * and return it many times.
          *
          */
-        void resolve_pointer() { this->set_pointer((this->buff->buff.data() + this->get_index())); }
+        V* resolve_pointer(int index) { return this->buff->buff.data() + index; }
 
         /**
          * @brief Gets the current channel we are on
@@ -821,7 +843,7 @@ class Buffer {
          * @return int The current channel
          */
         int get_channel() const {
-            return this->get_index() % this->buff->channels();
+            return this->get_channel(this->get_index());
         }
 
         /**
@@ -832,8 +854,8 @@ class Buffer {
          * @return int Current sample
          */
         int get_sample() const {
-            return static_cast<int>(this->get_index() /
-                                    this->buff->channels());
+
+            this->get_sample(this->get_index());
         }
 
         /**
@@ -905,6 +927,28 @@ class Buffer {
         }
 
        private:
+        /**
+         * @brief Gets the current channel we are on
+         *
+         * Gets the current channel number we are on.
+         *
+         * @return int The current channel
+         */
+        int get_channel(int index) const {
+            return index % this->buff->channels();
+        }
+
+        /**
+         * @brief Get the current sample we are on
+         *
+         * Gets the current sample we are on.
+         *
+         * @return int Current sample
+         */
+        int get_sample(int index) const {
+            return static_cast<int>(index / this->buff->channels());
+        }
+
         /// Buffer we are iterating over
         Buffer<T>* buff = nullptr;
     };
@@ -1446,8 +1490,9 @@ class RingBuffer {
      *
      * @tparam T Type of data to iterate over
      */
+    template <typename V, bool IsConst = false>
     class RingIterator
-        : public BaseMAECIterator<RingBuffer<T>::RingIterator, T> {
+        : public BaseMAECIterator<RingBuffer::RingIterator<V, IsConst>, V, IsConst> {
 
        public:
         /**
@@ -1485,9 +1530,8 @@ class RingBuffer {
          * with. This method is called automatically where necessary.
          *
          */
-        void resolve_pointer() {
-            this->set_pointer(this->buff->buff.data() +
-                              this->buff->normalize_index(this->get_index()));
+        T* resolve_pointer(int index) {
+            return this->buff->buff.data() + this->buff->normalize_index(index);
         }
 
        private:
@@ -1552,8 +1596,8 @@ class RingBuffer {
      *
      * @return Start iterator
      */
-    RingBuffer::RingIterator begin() {
-        return RingBuffer::RingIterator(this, 0);
+    RingBuffer::RingIterator<T> begin() {
+        return RingBuffer::RingIterator<T>(this, 0);
     }
 
     /**
@@ -1564,8 +1608,8 @@ class RingBuffer {
      *
      * @return RingBuffer::RingIterator<T> Stop iterator
      */
-    RingBuffer::RingIterator end() {
-        return RingBuffer::RingIterator(this, this->size());
+    RingBuffer::RingIterator<T> end() {
+        return RingBuffer::RingIterator<T>(this, this->size());
     }
 
     /**
@@ -1586,5 +1630,5 @@ class RingBuffer {
     std::vector<T> buff;
 
     /// Friend definition for iterators
-    friend class RingIterator;
+    friend class RingIterator<T>;
 };
