@@ -346,7 +346,7 @@ class SetValue : public BaseEnvelope {
  * We exponentially ramp to a value over a given time period.
  * Here is the formula for this operation:
  * 
- * v(t) = V0 * ((V1 / V0) ^ ((t - T0) - (T1 - T0)))
+ * v(t) = V0 * ((V1 / V0) * ((t - T0) - (T1 - T0)))
  * 
  * t = current time
  * V0 = start value
@@ -374,7 +374,7 @@ class ExponentialRamp : public BaseEnvelope {
  * We linearly ramp to a value over a given time period.
  * Here is the formula for this operation:
  * 
- * v(t) = V0 + (V1 - V0) ^ ((t - T0) / (T1 - T0))
+ * v(t) = V0 + (V1 - V0) * ((t - T0) / (T1 - T0))
  * 
  * t = current time
  * V0 = start value

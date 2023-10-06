@@ -32,17 +32,17 @@ std::vector<long double> sdata = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
  * Not very impressive, but it serves the purpose of testing.
  * 
  */
-class GenericIterator : public BaseMAECIterator<GenericIterator, long double> {
+class GenericIterator : public BaseMAECIterator<GenericIterator, long double, false> {
 
     public:
 
         explicit GenericIterator(const std::vector<long double>& nbuf) : buff(nbuf) {}
 
-        long double* resolve_pointer(int index) {
+        long double& resolve_pointer(int index) {
 
             // Just set the pointer to the current index:
 
-            return this->buff.data() + index;
+            return *(this->buff.data() + index);
         }
 
     private:
@@ -70,7 +70,7 @@ TEST(IteratorTest, BasicIterOperations) {
     // Next, check subscripting operators, forward:
 
     ASSERT_EQ(iter1[7], idata.at(7));
-    ASSERT_EQ(iter1.get_index(), 7);
+    ASSERT_EQ(iter1.get_index(), 2);
 
     // And backward:
 

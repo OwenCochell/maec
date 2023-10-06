@@ -76,9 +76,14 @@ class BaseMAECIterator {
 
     using iterator_category = std::random_access_iterator_tag;
     using difference_type = std::ptrdiff_t;
+
     using value_type = T;
     using pointer = T*;
     using reference = T&;
+
+    using const_value_type = const T;
+    using const_pointer = const T*;
+    using const_reference = const T&;
 
     using iterator_type = typename ChooseType<IsConst, const C, C>::type;
 
@@ -110,7 +115,7 @@ class BaseMAECIterator {
      */
     void set_index(int iindex) {
         this->index = iindex;
-        point = static_cast<C*>(this)->resolve_pointer(this->index);
+        point = &(static_cast<iterator_type*>(this)->resolve_pointer(this->index));
     }
 
     /**
@@ -124,16 +129,14 @@ class BaseMAECIterator {
      */
     int get_index() const { return this->index; }
 
-    operator BaseMAECIterator<C, const T>() const;
-
     /**
      * @brief Pre-increments the iterator
      *
      * @return C&
      */
-    C& operator++() {
+    iterator_type& operator++() {
         this->set_index(this->get_index() + 1);
-        return static_cast<C&>(*this);
+        return static_cast<iterator_type&>(*this);
     }
 
     /**
@@ -141,8 +144,8 @@ class BaseMAECIterator {
      *
      * @return C
      */
-    C operator++(int) {
-        C tmp = static_cast<C&>(*this);
+    iterator_type operator++(int) {
+        iterator_type tmp = static_cast<iterator_type&>(*this);
         ++(*this);
         return tmp;
     }
@@ -152,9 +155,9 @@ class BaseMAECIterator {
      *
      * @return C&
      */
-    C& operator--() {
+    iterator_type& operator--() {
         this->set_index(this->get_index() - 1);
-        return static_cast<C&>(*this);
+        return static_cast<iterator_type&>(*this);
     }
 
     /**
@@ -162,8 +165,8 @@ class BaseMAECIterator {
      *
      * @return C
      */
-    C operator--(int) {
-        C tmp = static_cast<C&>(*this);
+    iterator_type operator--(int) {
+        iterator_type tmp = static_cast<iterator_type&>(*this);
         --(*this);
         return tmp;
     }
@@ -174,9 +177,9 @@ class BaseMAECIterator {
      * @param num Number to add to current index
      * @return C& This iterator
      */
-    C& operator+=(const int& num) {
+    iterator_type& operator+=(const int& num) {
         this->set_index(this->get_index() + num);
-        return static_cast<C&>(*this);
+        return static_cast<iterator_type&>(*this);
     }
 
     /**
@@ -187,9 +190,9 @@ class BaseMAECIterator {
      * @param num Number to add to current index
      * @return C& This iterator
      */
-    C& operator+=(const unsigned int& num) {
+    iterator_type& operator+=(const unsigned int& num) {
         this->set_index(this->get_index() + num);
-        return static_cast<C&>(*this);
+        return static_cast<iterator_type&>(*this);
     }
 
     /**
@@ -200,9 +203,9 @@ class BaseMAECIterator {
      * @param num Number to add to current index
      * @return C& This iterator
      */
-    C& operator+=(const int64_t& num) {
+    iterator_type& operator+=(const int64_t& num) {
         this->set_index(this->get_index() + static_cast<int>(num));
-        return static_cast<C&>(*this);
+        return static_cast<iterator_type&>(*this);
     }
 
     /**
@@ -211,9 +214,9 @@ class BaseMAECIterator {
      * @param num Number to add to the current index
      * @return C& This iterator
      */
-    C& operator-=(const int& num) {
+    iterator_type& operator-=(const int& num) {
         this->set_index(this->get_index() - num);
-        return static_cast<C&>(*this);
+        return static_cast<iterator_type&>(*this);
     }
 
     /**
@@ -225,7 +228,7 @@ class BaseMAECIterator {
     iterator_type operator+(const int& num) const {
 
         // Make a non-const copy:
-        C tmp = static_cast<const iterator_type&>(*this);
+        C tmp = static_cast<const C&>(*this);
 
         // Increment value:
         tmp += num;
@@ -243,7 +246,7 @@ class BaseMAECIterator {
      * @return C A new iterator with the new index
      */
     iterator_type operator+(const unsigned int& num) const {
-        C tmp = static_cast<const iterator_type&>(*this);
+        iterator_type tmp = static_cast<const iterator_type&>(*this);
         tmp += num;
         return tmp;
     }
@@ -257,7 +260,7 @@ class BaseMAECIterator {
      * @return C A new iterator with the new index
      */
     iterator_type operator+(const int64_t& num) const {
-        C tmp = static_cast<const iterator_type&>(*this);
+        iterator_type tmp = static_cast<const iterator_type&>(*this);
         tmp += num;
         return tmp;
     }
@@ -272,7 +275,7 @@ class BaseMAECIterator {
      * @return C A new iterator with the new index
      */
     iterator_type operator+(const C& iter) const {
-        C tmp = static_cast<const iterator_type&>(*this);
+        iterator_type tmp = static_cast<const iterator_type&>(*this);
         tmp += iter.get_index();
         return tmp;
     }
@@ -287,7 +290,7 @@ class BaseMAECIterator {
     iterator_type operator-(const int& num) const {
 
         // Make non-const copy:
-        C tmp = static_cast<const iterator_type&>(*this);
+        C tmp = static_cast<const C&>(*this);
 
         // Make changes:
         tmp -= num;
@@ -306,7 +309,7 @@ class BaseMAECIterator {
      * @return C A new iterator with the new index
      */
     iterator_type operator-(const iterator_type& iter) const {
-        C tmp = static_cast<const iterator_type&>(*this);
+        iterator_type tmp = static_cast<const iterator_type&>(*this);
         tmp -= iter.get_index();
         return tmp;
     }
@@ -331,7 +334,7 @@ class BaseMAECIterator {
      * @return true If the two iterators are equivalent
      * @return false If the two iterators are not equivalent
      */
-    bool operator==(const C& cmp) const {
+    bool operator==(const iterator_type& cmp) const {
         return this->get_index() == cmp.get_index();
     }
 
@@ -344,7 +347,7 @@ class BaseMAECIterator {
      * @return true If the two iterators are not equivalent
      * @return false If the two iterators are equivalent
      */
-    bool operator!=(const C& cmp) const { return !(*this == cmp); }
+    bool operator!=(const iterator_type& cmp) const { return !(*this == cmp); }
 
     /**
      * @brief Determines if the we are less than the given iterator
@@ -353,7 +356,7 @@ class BaseMAECIterator {
      * @return true If we are less than the given iterator
      * @return false If we are equal or greater than the given iterator
      */
-    bool operator<(const C& second) const {
+    bool operator<(const iterator_type& second) const {
         return this->get_index() < second.get_index();
     }
 
@@ -364,7 +367,7 @@ class BaseMAECIterator {
      * @return true If we are greater than the given iterator
      * @return false If we are less than or equal to the given iterator
      */
-    bool operator>(const C& second) const {
+    bool operator>(const iterator_type& second) const {
         return this->get_index() > second.get_index();
     }
 
@@ -375,7 +378,7 @@ class BaseMAECIterator {
      * @return true If we are less than or equal to the given iterator
      * @return false If we are greater than the given iterator
      */
-    bool operator<=(const C& second) const {
+    bool operator<=(const iterator_type& second) const {
         return this->get_index() <= second.get_index();
     }
 
@@ -386,7 +389,7 @@ class BaseMAECIterator {
      * @return true If we are greater than or equal to the given iterator
      * @return false If we are less than or equal to the given iterator
      */
-    bool operator>=(const C& second) const {
+    bool operator>=(const iterator_type& second) const {
         return this->get_index() >= second.get_index();
     }
 
@@ -399,7 +402,21 @@ class BaseMAECIterator {
      * @param val New index to set
      * @return reference Current value
      */
-    reference operator[](int val) const {
+    const_reference operator[](int val) const {
+
+        return static_cast<iterator_type*>(this)->resolve_pointer(val);
+    }
+
+    /**
+     * @brief Subscripting operator
+     *
+     * We basically just set the index to the given value,
+     * and return the current value.
+     *
+     * @param val New index to set
+     * @return reference Current value
+     */
+    reference operator[](int val) {
 
         return static_cast<iterator_type*>(this)->resolve_pointer(val);
     }
@@ -583,6 +600,8 @@ class Buffer {
     class SeqIterator : public BaseMAECIterator<Buffer::SeqIterator<V, IsConst>, V, IsConst> {
 
        public:
+        using BufferType = typename ChooseType<IsConst, const Buffer<T>, Buffer<T>>::type;
+
         /**
          * @brief Default constructor for this iterator
          *
@@ -607,7 +626,7 @@ class Buffer {
          * @param buff The Buffer we are iterating over
          * @param pos The index to start at
          */
-        explicit SeqIterator(Buffer* buff, int pos = 0) {
+        explicit SeqIterator(BufferType* buff, int pos = 0) {
             this->buff = buff;
             this->set_index(pos);
         }
@@ -653,8 +672,8 @@ class Buffer {
          * and return it many times.
          *
          */
-        V* resolve_pointer(int index) {
-            return this->buff->buff.data() + (this->get_channel(index) + this->buff->channels() * this->get_sample(index));
+        V& resolve_pointer(int index) const {
+            return *(this->buff->buff.data() + (this->get_channel(index) + this->buff->channels() * this->get_sample(index)));
         }
 
         /**
@@ -703,7 +722,7 @@ class Buffer {
          * 
          * @return int The sample of the iterator in the current channel
          */
-        int get_sample() const { this->get_sample(this->get_index()); }
+        int get_sample() const { return this->get_sample(this->get_index()); }
 
        private:
         /**
@@ -743,8 +762,9 @@ class Buffer {
                                     this->buff->channel_capacity());
 #endif
         }
+
         /// Audio Buffer we are iterating over
-        Buffer<T>* buff = nullptr;
+        BufferType* buff = nullptr;
     };
 
     /**
@@ -788,6 +808,8 @@ class Buffer {
     class InterIterator : public BaseMAECIterator<InterIterator<V, IsConst>, V, IsConst> {
 
        public:
+        using BufferType = typename ChooseType<IsConst, const Buffer<T>, Buffer<T>>::type;
+
         /**
          * @brief Default constructor for this iterator
          *
@@ -812,7 +834,7 @@ class Buffer {
          * @param buff Buffer we are iterating over
          * @param pos Starting position
          */
-        explicit InterIterator(Buffer* buff, int pos = 0) : buff(buff) {
+        explicit InterIterator(BufferType* buff, int pos = 0) : buff(buff) {
             this->set_index(pos);
         }
 
@@ -833,7 +855,7 @@ class Buffer {
          * and return it many times.
          *
          */
-        V* resolve_pointer(int index) { return this->buff->buff.data() + index; }
+        V& resolve_pointer(int index) const { return *(this->buff->buff.data() + index); }
 
         /**
          * @brief Gets the current channel we are on
@@ -855,7 +877,7 @@ class Buffer {
          */
         int get_sample() const {
 
-            this->get_sample(this->get_index());
+            return this->get_sample(this->get_index());
         }
 
         /**
@@ -950,7 +972,7 @@ class Buffer {
         }
 
         /// Buffer we are iterating over
-        Buffer<T>* buff = nullptr;
+        BufferType* buff = nullptr;
     };
 
     Buffer() =default;
@@ -1384,8 +1406,8 @@ class Buffer {
      *
      * @return Buffer::InterIterator<const long double>
      */
-    Buffer::InterIterator<const T, true> icend() const {
-        return Buffer::InterIterator<const T, true>(this, this->size()); }
+    InterIterator<const T, true> icend() const {
+        return InterIterator<const T, true>(this, this->size()); }
 
     /**
      * @brief Default start iterator
@@ -1530,8 +1552,8 @@ class RingBuffer {
          * with. This method is called automatically where necessary.
          *
          */
-        T* resolve_pointer(int index) {
-            return this->buff->buff.data() + this->buff->normalize_index(index);
+        T& resolve_pointer(int index) {
+            return *(this->buff->buff.data() + this->buff->normalize_index(index));
         }
 
        private:
