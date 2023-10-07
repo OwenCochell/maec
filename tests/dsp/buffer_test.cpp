@@ -51,6 +51,8 @@ class GenericIterator : public BaseMAECIterator<GenericIterator, long double, fa
         std::vector<long double> buff;
 };
 
+class ConstGenericIterator : public
+
 /**
  * @brief Ensures the MAEC basic iterator operations work correctly
  *
@@ -211,7 +213,7 @@ TEST(IteratorTest, BasicIterWrite) {
 
         // Determine new value to set:
 
-        long double val = i + 1;
+        const long double val = i + 1;
 
         // Write new value:
 
@@ -220,6 +222,14 @@ TEST(IteratorTest, BasicIterWrite) {
         // Ensure value is correct:
 
         ASSERT_EQ(iter[i], val);
+
+        // Now, write using a different method:
+
+        *(iter + i) = val + 1;
+
+        // Ensure new value is correct:
+
+        ASSERT_EQ(*(iter + i), val + 1);
     }
 }
 
