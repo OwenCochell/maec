@@ -36,22 +36,38 @@ class GenericIterator : public BaseMAECIterator<GenericIterator, long double, fa
 
     public:
 
-        explicit GenericIterator(const std::vector<long double>& nbuf) : buff(nbuf) {}
+        explicit GenericIterator(std::vector<long double>* nbuf) : buff(nbuf) {}
 
-        long double& resolve_pointer(int index) {
+        long double& resolve_pointer(int index) const {
 
             // Just set the pointer to the current index:
 
-            return *(this->buff.data() + index);
+            return *(this->buff->data() + index);
         }
 
     private:
 
         /// Buffer we are iterating over
-        std::vector<long double> buff;
+        std::vector<long double>* buff;
 };
 
-class ConstGenericIterator : public
+class ConstGenericIterator : public BaseMAECIterator<GenericIterator, long double, true> {
+    public:
+
+        explicit ConstGenericIterator(std::vector<long double>* nbuf) : buff(nbuf) {}
+
+        long double& resolve_pointer(int index) const {
+
+            // Just set the pointer to current index:
+
+            return *(this->buff->data() + index);
+        }
+
+    private:
+
+        /// Buffer we are iterating over
+        const std::vector<long double>* buff;
+};
 
 /**
  * @brief Ensures the MAEC basic iterator operations work correctly
@@ -61,7 +77,7 @@ TEST(IteratorTest, BasicIterOperations) {
 
     // Create an iterator:
 
-    GenericIterator iter1(idata);
+    GenericIterator iter1(&idata);
 
     // First, ensure default index methods work:
 
@@ -112,7 +128,7 @@ TEST(IteratorTest, BasicIterOperations) {
 
     // Finally, do the same as above but with iterators:
 
-    GenericIterator iter2(idata);
+    GenericIterator iter2(&idata);
     iter2 += 3;
 
     iter1 = iter1 + iter2;
@@ -136,7 +152,7 @@ TEST(IteratorTest, BasicIterComparison) {
 
     // Create two iterators:
 
-    GenericIterator iter1(idata);
+    GenericIterator iter1(&idata);
     auto iter2 = iter1 + 5;
 
     // Checks when iter1 < iter2
@@ -179,7 +195,7 @@ TEST(IteratorTest, BasicIterRead) {
 
     // Create an iterator:
 
-    GenericIterator iter(idata);
+    GenericIterator iter(&idata);
 
     // Iterate until completion:
 
@@ -187,13 +203,9 @@ TEST(IteratorTest, BasicIterRead) {
 
         // Ensure current value is accurate:
 
-        ASSERT_EQ(iter[i], idata.at(i));
+        ASSERT_DOUBLE_EQ(iter[i], idata.at(i));
 
-        // Reset the index:
-
-        iter.set_index(0);
-
-        ASSERT_EQ(*(iter + i), idata.at(i));
+        ASSERT_DOUBLE_EQ(*(iter + i), idata.at(i));
     }
 }
 
@@ -203,9 +215,13 @@ TEST(IteratorTest, BasicIterRead) {
  */
 TEST(IteratorTest, BasicIterWrite) {
 
+    // Copy test data:
+
+    std::vector<long double> tdata = idata;
+
     // Create an interator:
 
-    GenericIterator iter(idata);
+    GenericIterator iter(&tdata);
 
     // Iterate until completion:
 
@@ -221,7 +237,8 @@ TEST(IteratorTest, BasicIterWrite) {
 
         // Ensure value is correct:
 
-        ASSERT_EQ(iter[i], val);
+        ASSERT_DOUBLE_EQ(iter[i], val);
+        ASSERT_DOUBLE_EQ(iter[i], tdata[i]);
 
         // Now, write using a different method:
 
@@ -229,7 +246,31 @@ TEST(IteratorTest, BasicIterWrite) {
 
         // Ensure new value is correct:
 
-        ASSERT_EQ(*(iter + i), val + 1);
+        ASSERT_DOUBLE_EQ(*(iter + i), val + 1);
+        ASSERT_DOUBLE_EQ(*(iter + i), tdata[i]);
+    }
+}
+
+/**
+ * @brief Ensures BaseMAECIterator correctly respects constant iterators
+ * 
+ */
+TEST(IteratorTest, ConstantIterRead) {
+
+    // Create ConstantGenericIterator:
+
+    ConstGenericIterator iter(&idata);
+
+    // Iterate until complete:
+
+    for (int i = 0; i < idata.size(); ++i) {
+
+        // Ensure value is correct:
+
+        ASSERT_DOUBLE_EQ(iter[i], idata[i]);
+
+        ASSERT_DOUBLE_EQ(*(iter + i), idata[i]);
+
     }
 }
 

@@ -49,7 +49,7 @@
  * @tparam C The class that derives from this class.
  * @tparam T The typename this iterator will iterate over
  */
-template <class C, typename T, bool IsConst = false>
+template <class I, typename T, bool IsConst = false>
 class BaseMAECIterator {
 
    private:
@@ -77,6 +77,8 @@ class BaseMAECIterator {
     using iterator_category = std::random_access_iterator_tag;
     using difference_type = std::ptrdiff_t;
 
+    using iterator_type = typename ChooseType<IsConst, const I, I>::type;
+
     using value_type = T;
     using pointer = T*;
     using reference = T&;
@@ -84,8 +86,6 @@ class BaseMAECIterator {
     using const_value_type = const T;
     using const_pointer = const T*;
     using const_reference = const T&;
-
-    using iterator_type = typename ChooseType<IsConst, const C, C>::type;
 
     /**
      * @brief Sets the index to the given value.
@@ -132,7 +132,7 @@ class BaseMAECIterator {
     /**
      * @brief Pre-increments the iterator
      *
-     * @return C&
+     * @return iterator_type&
      */
     iterator_type& operator++() {
         this->set_index(this->get_index() + 1);
@@ -142,7 +142,7 @@ class BaseMAECIterator {
     /**
      * @brief Post-increments the iterator
      *
-     * @return C
+     * @return iterator_type
      */
     iterator_type operator++(int) {
         iterator_type tmp = static_cast<iterator_type&>(*this);
@@ -153,7 +153,7 @@ class BaseMAECIterator {
     /**
      * @brief Pre-decrements the iterator
      *
-     * @return C&
+     * @return iterator_type&
      */
     iterator_type& operator--() {
         this->set_index(this->get_index() - 1);
@@ -163,7 +163,7 @@ class BaseMAECIterator {
     /**
      * @brief Post-decrements the iterator
      *
-     * @return C
+     * @return iterator_type
      */
     iterator_type operator--(int) {
         iterator_type tmp = static_cast<iterator_type&>(*this);
@@ -175,7 +175,7 @@ class BaseMAECIterator {
      * @brief Adds the given number to this iterator
      *
      * @param num Number to add to current index
-     * @return C& This iterator
+     * @return iterator_type& This iterator
      */
     iterator_type& operator+=(const int& num) {
         this->set_index(this->get_index() + num);
@@ -188,7 +188,7 @@ class BaseMAECIterator {
      * Set plus operation for unsigned int
      *
      * @param num Number to add to current index
-     * @return C& This iterator
+     * @return iterator_type& This iterator
      */
     iterator_type& operator+=(const unsigned int& num) {
         this->set_index(this->get_index() + num);
@@ -201,7 +201,7 @@ class BaseMAECIterator {
      * Set plus operation for fixed size int64_t
      *
      * @param num Number to add to current index
-     * @return C& This iterator
+     * @return iterator_type& This iterator
      */
     iterator_type& operator+=(const int64_t& num) {
         this->set_index(this->get_index() + static_cast<int>(num));
@@ -228,9 +228,9 @@ class BaseMAECIterator {
     iterator_type operator+(const int& num) const {
 
         // Make a non-const copy:
-        C tmp = static_cast<const C&>(*this);
+        I tmp = static_cast<const I&>(*this);
 
-        // Increment value:
+        // Increment value m.knj:
         tmp += num;
 
         // Return value:
@@ -274,7 +274,7 @@ class BaseMAECIterator {
      * @param iter Iterator to add
      * @return C A new iterator with the new index
      */
-    iterator_type operator+(const C& iter) const {
+    iterator_type operator+(const I& iter) const {
         iterator_type tmp = static_cast<const iterator_type&>(*this);
         tmp += iter.get_index();
         return tmp;
@@ -290,7 +290,7 @@ class BaseMAECIterator {
     iterator_type operator-(const int& num) const {
 
         // Make non-const copy:
-        C tmp = static_cast<const C&>(*this);
+        I tmp = static_cast<const I&>(*this);
 
         // Make changes:
         tmp -= num;
