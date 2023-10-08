@@ -51,14 +51,6 @@
  */
 template <class I, typename T, bool IsConst = false>
 class BaseMAECIterator {
-
-   private:
-    /// Current pointer we are on
-    T* point = nullptr;
-
-    /// The current sample we are on
-    int index = 0;
-
    protected:
     /**
      * @brief Sets the pointer
@@ -79,13 +71,11 @@ class BaseMAECIterator {
 
     using iterator_type = typename ChooseType<IsConst, const I, I>::type;
 
-    using value_type = T;
-    using pointer = T*;
-    using reference = T&;
+    using value_type = typename ChooseType<IsConst, const T, T>::type;
+    using pointer = value_type*;
+    using reference = value_type&;
 
-    using const_value_type = const T;
-    using const_pointer = const T*;
-    using const_reference = const T&;
+    BaseMAECIterator() = default;
 
     /**
      * @brief Sets the index to the given value.
@@ -402,7 +392,7 @@ class BaseMAECIterator {
      * @param val New index to set
      * @return reference Current value
      */
-    const_reference operator[](int val) const {
+    reference operator[](int val) const {
 
         return static_cast<iterator_type*>(this)->resolve_pointer(val);
     }
@@ -441,6 +431,13 @@ class BaseMAECIterator {
      * @return pointer
      */
     pointer base() const { return this->point; }
+
+   private:
+    /// Current pointer we are on
+    pointer point = nullptr;
+
+    /// The current sample we are on
+    int index = 0;
 };
 
 /**
@@ -601,6 +598,7 @@ class Buffer {
 
        public:
         using BufferType = typename ChooseType<IsConst, const Buffer<T>, Buffer<T>>::type;
+        using reference = typename BaseMAECIterator<Buffer::SeqIterator<V, IsConst>, V, IsConst>::reference;
 
         /**
          * @brief Default constructor for this iterator
@@ -615,7 +613,7 @@ class Buffer {
          * want to create a dummy iterator TO BE OVERRIDEN LATER!
          *
          */
-        SeqIterator() =default;
+        SeqIterator() = default;
 
         /**
          * Constructor
@@ -672,7 +670,7 @@ class Buffer {
          * and return it many times.
          *
          */
-        V& resolve_pointer(int index) const {
+        reference resolve_pointer(int index) const {
             return *(this->buff->buff.data() + (this->get_channel(index) + this->buff->channels() * this->get_sample(index)));
         }
 
@@ -809,6 +807,7 @@ class Buffer {
 
        public:
         using BufferType = typename ChooseType<IsConst, const Buffer<T>, Buffer<T>>::type;
+        using reference = typename BaseMAECIterator<InterIterator<V, IsConst>, V, IsConst>::reference;
 
         /**
          * @brief Default constructor for this iterator
@@ -855,7 +854,7 @@ class Buffer {
          * and return it many times.
          *
          */
-        V& resolve_pointer(int index) const { return *(this->buff->buff.data() + index); }
+        reference resolve_pointer(int index) const { return *(this->buff->buff.data() + index); }
 
         /**
          * @brief Gets the current channel we are on
@@ -1308,8 +1307,8 @@ class Buffer {
      *
      * @return Buffer::SeqIterator<const long double>
      */
-    Buffer::SeqIterator<const T, true> scbegin() const {
-        return Buffer::SeqIterator<const T, true>(this);
+    Buffer::SeqIterator<T, true> scbegin() const {
+        return Buffer::SeqIterator<T, true>(this);
     }
 
     /**
@@ -1322,8 +1321,8 @@ class Buffer {
      *
      * @return Buffer::SeqIterator<const T>
      */
-    Buffer::SeqIterator<const T, true> scend() const {
-        return Buffer::SeqIterator<const T, true>(
+    Buffer::SeqIterator<T, true> scend() const {
+        return Buffer::SeqIterator<T, true>(
             this, static_cast<int>(this->size()));
     }
 
@@ -1393,8 +1392,8 @@ class Buffer {
      *
      * @return Buffer::InterIterator<const long double>
      */
-    Buffer::InterIterator<const T, true> icbegin() const {
-        return Buffer::InterIterator<const T, true>(this); }
+    Buffer::InterIterator<T, true> icbegin() const {
+        return Buffer::InterIterator<T, true>(this); }
 
     /**
      * @brief Gets the end constant iterator for this buffer
@@ -1406,8 +1405,8 @@ class Buffer {
      *
      * @return Buffer::InterIterator<const long double>
      */
-    InterIterator<const T, true> icend() const {
-        return InterIterator<const T, true>(this, this->size()); }
+    InterIterator<T, true> icend() const {
+        return InterIterator<T, true>(this, this->size()); }
 
     /**
      * @brief Default start iterator

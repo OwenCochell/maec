@@ -36,37 +36,49 @@ class GenericIterator : public BaseMAECIterator<GenericIterator, long double, fa
 
     public:
 
-        explicit GenericIterator(std::vector<long double>* nbuf) : buff(nbuf) {}
+        explicit GenericIterator(const std::vector<long double>& nbuf) : buff(nbuf) {}
 
-        long double& resolve_pointer(int index) const {
+        long double& resolve_pointer(int index) {
 
             // Just set the pointer to the current index:
 
-            return *(this->buff->data() + index);
+            return *(this->buff.data() + index);
         }
+
+        std::vector<long double>* get_buffer() { return &(this->buff); }
 
     private:
 
         /// Buffer we are iterating over
-        std::vector<long double>* buff;
+        std::vector<long double> buff;
 };
 
-class ConstGenericIterator : public BaseMAECIterator<GenericIterator, long double, true> {
+/**
+ * @brief A generic iterator for testing the functionality of MAEC iterators
+ * 
+ * We simply iterator over a vector.
+ * Again, not very impressive, but it serves the purpose of testing.
+ * This iterator is configured to be constant and read only.
+ * 
+ */
+class ConstGenericIterator : public BaseMAECIterator<ConstGenericIterator, long double, true> {
     public:
 
-        explicit ConstGenericIterator(std::vector<long double>* nbuf) : buff(nbuf) {}
+        explicit ConstGenericIterator(const std::vector<long double>& nbuf) : buff(nbuf) {}
 
-        long double& resolve_pointer(int index) const {
+        const long double& resolve_pointer(int index) const {
 
             // Just set the pointer to current index:
 
-            return *(this->buff->data() + index);
+            return *(this->buff.data() + index);
         }
 
-    private:
+        const std::vector<long double>* get_buffer() const { return &(this->buff); }
+
+       private:
 
         /// Buffer we are iterating over
-        const std::vector<long double>* buff;
+        const std::vector<long double> buff;
 };
 
 /**
@@ -77,7 +89,11 @@ TEST(IteratorTest, BasicIterOperations) {
 
     // Create an iterator:
 
-    GenericIterator iter1(&idata);
+    GenericIterator iter1(idata);
+
+    // Get a pointer to the internal buffer:
+
+    auto buff = iter1.get_buffer();
 
     // First, ensure default index methods work:
 
@@ -87,12 +103,12 @@ TEST(IteratorTest, BasicIterOperations) {
 
     // Next, check subscripting operators, forward:
 
-    ASSERT_EQ(iter1[7], idata.at(7));
+    ASSERT_EQ(iter1[7], buff->at(7));
     ASSERT_EQ(iter1.get_index(), 2);
 
     // And backward:
 
-    ASSERT_EQ(iter1[2], idata.at(2));
+    ASSERT_EQ(iter1[2], buff->at(2));
     ASSERT_EQ(iter1.get_index(), 2);
 
     // Next, ensure increments work:
@@ -128,7 +144,7 @@ TEST(IteratorTest, BasicIterOperations) {
 
     // Finally, do the same as above but with iterators:
 
-    GenericIterator iter2(&idata);
+    GenericIterator iter2(idata);
     iter2 += 3;
 
     iter1 = iter1 + iter2;
@@ -152,7 +168,7 @@ TEST(IteratorTest, BasicIterComparison) {
 
     // Create two iterators:
 
-    GenericIterator iter1(&idata);
+    GenericIterator iter1(idata);
     auto iter2 = iter1 + 5;
 
     // Checks when iter1 < iter2
@@ -195,7 +211,11 @@ TEST(IteratorTest, BasicIterRead) {
 
     // Create an iterator:
 
-    GenericIterator iter(&idata);
+    GenericIterator iter(idata);
+
+    // Get internal buffer:
+
+    auto* buff = iter.get_buffer();
 
     // Iterate until completion:
 
@@ -203,9 +223,9 @@ TEST(IteratorTest, BasicIterRead) {
 
         // Ensure current value is accurate:
 
-        ASSERT_DOUBLE_EQ(iter[i], idata.at(i));
+        ASSERT_DOUBLE_EQ(iter[i], buff->at(i));
 
-        ASSERT_DOUBLE_EQ(*(iter + i), idata.at(i));
+        ASSERT_DOUBLE_EQ(*(iter + i), buff->at(i));
     }
 }
 
@@ -215,13 +235,13 @@ TEST(IteratorTest, BasicIterRead) {
  */
 TEST(IteratorTest, BasicIterWrite) {
 
-    // Copy test data:
-
-    std::vector<long double> tdata = idata;
-
     // Create an interator:
 
-    GenericIterator iter(&tdata);
+    GenericIterator iter(idata);
+
+    // Get a pointer to the buffer:
+
+    auto* buff = iter.get_buffer();
 
     // Iterate until completion:
 
@@ -238,16 +258,19 @@ TEST(IteratorTest, BasicIterWrite) {
         // Ensure value is correct:
 
         ASSERT_DOUBLE_EQ(iter[i], val);
-        ASSERT_DOUBLE_EQ(iter[i], tdata[i]);
+        ASSERT_DOUBLE_EQ(iter[i], buff->at(i));
 
         // Now, write using a different method:
 
-        *(iter + i) = val + 1;
+        auto iter2 = iter + i;
+        auto buff2 = iter2.get_buffer();
+
+        *(iter2) = val + 1;
 
         // Ensure new value is correct:
 
-        ASSERT_DOUBLE_EQ(*(iter + i), val + 1);
-        ASSERT_DOUBLE_EQ(*(iter + i), tdata[i]);
+        ASSERT_DOUBLE_EQ(*(iter2), val + 1);
+        ASSERT_DOUBLE_EQ(*(iter2), buff2->at(i));
     }
 }
 
@@ -259,7 +282,11 @@ TEST(IteratorTest, ConstantIterRead) {
 
     // Create ConstantGenericIterator:
 
-    ConstGenericIterator iter(&idata);
+    ConstGenericIterator iter(idata);
+
+    // Get pointer to internal buffer:
+
+    auto* buff = iter.get_buffer();
 
     // Iterate until complete:
 
@@ -267,9 +294,9 @@ TEST(IteratorTest, ConstantIterRead) {
 
         // Ensure value is correct:
 
-        ASSERT_DOUBLE_EQ(iter[i], idata[i]);
+        ASSERT_DOUBLE_EQ(iter[i], buff->at(i));
 
-        ASSERT_DOUBLE_EQ(*(iter + i), idata[i]);
+        ASSERT_DOUBLE_EQ(*(iter + i), buff->at(i));
 
     }
 }
