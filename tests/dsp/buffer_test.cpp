@@ -12,7 +12,9 @@
 #include "dsp/buffer.hpp"
 
 #include <gtest/gtest.h>
+
 #include <algorithm>
+#include <utility>
 
 // Dummy data to work with
 
@@ -35,17 +37,15 @@ std::vector<long double> sdata = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
 class GenericIterator : public BaseMAECIterator<GenericIterator, long double, false> {
 
     public:
+    explicit GenericIterator(std::vector<long double> nbuf)
+        : buff(std::move(nbuf)) {}
 
-        explicit GenericIterator(const std::vector<long double>& nbuf) : buff(nbuf) {}
+    long double& resolve_pointer(int index) {
+        // Just set the pointer to the current index:
+        return this->buff[index];
+    }
 
-        long double& resolve_pointer(int index) {
-
-            // Just set the pointer to the current index:
-
-            return *(this->buff.data() + index);
-        }
-
-        std::vector<long double>* get_buffer() { return &(this->buff); }
+    std::vector<long double>* get_buffer() { return &(this->buff); }
 
     private:
 
@@ -63,14 +63,14 @@ class GenericIterator : public BaseMAECIterator<GenericIterator, long double, fa
  */
 class ConstGenericIterator : public BaseMAECIterator<ConstGenericIterator, long double, true> {
     public:
+     explicit ConstGenericIterator(std::vector<long double> nbuf)
+         : buff(std::move(nbuf)) {}
 
-        explicit ConstGenericIterator(const std::vector<long double>& nbuf) : buff(nbuf) {}
+     const long double& resolve_pointer(int index) const {
 
-        const long double& resolve_pointer(int index) const {
+         // Just set the pointer to current index:
 
-            // Just set the pointer to current index:
-
-            return *(this->buff.data() + index);
+         return *(this->buff.data() + index);
         }
 
         const std::vector<long double>* get_buffer() const { return &(this->buff); }
@@ -93,7 +93,7 @@ TEST(IteratorTest, BasicIterOperations) {
 
     // Get a pointer to the internal buffer:
 
-    auto buff = iter1.get_buffer();
+    auto* buff = iter1.get_buffer();
 
     // First, ensure default index methods work:
 
@@ -263,7 +263,7 @@ TEST(IteratorTest, BasicIterWrite) {
         // Now, write using a different method:
 
         auto iter2 = iter + i;
-        auto buff2 = iter2.get_buffer();
+        auto* buff2 = iter2.get_buffer();
 
         *(iter2) = val + 1;
 
@@ -286,7 +286,7 @@ TEST(IteratorTest, ConstantIterRead) {
 
     // Get pointer to internal buffer:
 
-    auto* buff = iter.get_buffer();
+    const auto* buff = iter.get_buffer();
 
     // Iterate until complete:
 
@@ -474,7 +474,7 @@ TEST(BufferTest, FillPartial) {
 
     // Now, ensure the rest is filled with zeros:
 
-    for (int i = chan1.size(); i < buff.total_capacity(); ++i) {
+    for (int i = static_cast<int>(chan1.size()); i < buff.total_capacity(); ++i) {
 
         // Ensure value is zero:
 
