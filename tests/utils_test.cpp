@@ -80,7 +80,6 @@ TEST(CollectionTest, AddGet) {
     coll.clear();
 
     ASSERT_EQ(0, coll.num_objects());
-
 }
 
 /**
@@ -113,5 +112,4 @@ TEST(CollectionTest, FreeRelease) {
     // Free the first object
 
     coll.free_object(0);
-
 }

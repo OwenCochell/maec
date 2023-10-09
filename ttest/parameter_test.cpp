@@ -10,6 +10,7 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <vector>
 #include <memory>
@@ -19,75 +20,72 @@
 #include "fund_oscillator.hpp"
 #include "meta_audio.hpp"
 
+TEST_CASE("Module Parameter Tests", "[param]") {
 
-TEST(ParamTest, Construct) {
+    // Construct the parameters:
 
-    ModuleParameter param;
-}
+    const ModuleParameter param;
+    ModuleParameter const_param(5.0);
 
-TEST(ParamTest, Constant) {
+    SECTION("Constant Parameter Functionality", "Ensure we can use constant parameters") {
 
-    // Create the parameter:
+        // Ensure we can get a value:
 
-    ModuleParameter param(5.0);
+        REQUIRE_THAT(const_param.get(), Catch::Matchers::WithinAbs(5., 0.0001));
 
-    // Ensure we can get a value:
+        // Now, change the value:
 
-    ASSERT_DOUBLE_EQ(5.0, param.get());
+        const_param.set_constant(3.0);
 
-    // Now, change the value:
+        // Test the values multiple times:
 
-    param.set_constant(3.0);
+        for(int i = 0; i < 20; ++i) {
 
-    // Test the values multiple times:
-
-    for(int i = 0; i < 20; ++i) {
-
-        ASSERT_DOUBLE_EQ(3.0, param.get());
+            REQUIRE_THAT(const_param.get(), Catch::Matchers::WithinAbs(3., 0.0001));
+        }
     }
-}
 
-TEST(ParamTest, Module) {
+    SECTION("Module Parameter Functionality", "Ensure we can bind modules to parameters") {
 
-    // Dummy data to utilize
+        // Dummy data to utilize
 
-    std::vector<long double> data = {1,2,3,4,5,6,7,8,9,10};
+        std::vector<long double> data = {1,2,3,4,5,6,7,8,9,10};
 
-    // Create a module to use:
+        // Create a module to use:
 
-    ConstantOscillator osc(3.0);
+        ConstantOscillator osc(3.0);
 
-    // Create a parameter:
+        // Create a parameter:
 
-    ModuleParameter param(&osc);
+        ModuleParameter mod_param(&osc);
 
-    // Ensure the value is accurate:
+        // Ensure the value is accurate:
 
-    ASSERT_DOUBLE_EQ(param.get(), 3.0);
+        REQUIRE_THAT(mod_param.get(), Catch::Matchers::WithinAbs(3.0, 0.0001));
 
-    // Do something a bit crazier:
+        // Do something a bit crazier:
 
-    SineOscillator sine(440.0);
+        const SineOscillator sine(440.0);
 
-    // Create a dummy module:
+        // Create a dummy module:
 
-    BufferModule src;
+        BufferModule src;
 
-    // Bind dummy data buffer:
+        // Bind dummy data buffer:
 
-    AudioBuffer buff(data);
+        AudioBuffer buff(data);
 
-    src.set_rbuffer(&buff);
+        src.set_rbuffer(&buff);
 
-    // Set the source module
+        // Set the source module
 
-    param.set_module(&src);
+        mod_param.set_module(&src);
 
-    // Now, ensure values are accurate:
-    // TODO: Use better module then constant oscillator...
+        // Now, ensure values are accurate:
 
-    for(int i = 0; i < 10 * 4; ++i) {
+        for(int i = 0; i < 10 * 4; ++i) {
 
-        ASSERT_DOUBLE_EQ(param.get(), data.at(i % 10));
+            REQUIRE_THAT(mod_param.get(), Catch::Matchers::WithinAbs(data.at(i % 10), 0.0001));
+        }
     }
 }

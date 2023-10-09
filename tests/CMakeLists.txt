@@ -40,7 +40,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 # Include Google Test directories
-include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+include_directories(${gtest_SOURCE_DIR}/include SYSTEM ${gtest_SOURCE_DIR})
 
 # adding the Tests_run target
 add_executable(Tests_run ${TEST_FILES})

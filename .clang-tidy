@@ -2,7 +2,7 @@
 Checks: "bugprone-*,clang-diagnostic-*,clang-analyzer-*,modernize-*,performance-*,readability-*,google-*,cppcoreguidelines-*,misc-*,performance-*,portability-*,
   -modernize-use-trailing-return-type,-modernize-use-nodiscard"
 FormatStyle: "file"
-HeaderFilterRegex: '.'
+HeaderFilterRegex: '.*'
 CheckOptions:
   - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
     value: '1'
