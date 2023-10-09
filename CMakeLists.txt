@@ -105,3 +105,7 @@ add_subdirectory(demos)
 # Add binaries in 'test':
 
 add_subdirectory(tests)
+
+# Add binaries in temp tests:
+
+add_subdirectory(ttest)
