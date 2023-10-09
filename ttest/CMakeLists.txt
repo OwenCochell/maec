@@ -6,6 +6,8 @@ set(TEST_FILES
     parameter_test.cpp
     module_mixers_test.cpp
     sink_module_test.cpp
+    utils_test.cpp
+    meta_module_test.cpp
 )
 
 # Enable testing for the project
