@@ -42,7 +42,6 @@ void DurationEnvelope::start() {
     // Next, start the enclosed envelope:
 
     this->env->start();
-
 }
 
 void ConstantEnvelope::process() {

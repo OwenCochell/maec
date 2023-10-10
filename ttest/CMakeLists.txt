@@ -8,13 +8,15 @@ set(TEST_FILES
     sink_module_test.cpp
     utils_test.cpp
     meta_module_test.cpp
+    fund_oscillator_test.cpp
+    envelope_test.cpp
 )
 
 # Enable testing for the project
 enable_testing()
 
-# Get Google Tests
 include(FetchContent)
+
 FetchContent_Declare(
   Catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
