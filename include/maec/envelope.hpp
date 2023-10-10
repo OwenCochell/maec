@@ -204,7 +204,6 @@ class BaseEnvelope : public SourceModule {
          * @return int 
          */
         int64_t remaining_samples() { return (this->get_stop_time() - this->get_timer()->get_time()) / this->get_timer()->get_npf(); }
-
 };
 
 /**
@@ -225,7 +224,6 @@ class BaseEnvelope : public SourceModule {
  * We then use this value to determine the start and stop value,
  * allowing you to define an envelope with a duration,
  * without having to worry about the absolute time information.
- * 
  * Most calls are just proxied to the envelope we are currently managing.
  * As of now, we are not configured for managing the envelope correctly!
  * The idea is that the envelope to be managed should be configured with necessary settings
@@ -662,5 +660,4 @@ class ADSREnvelope : public ChainEnvelope {
          * 
          */
         void finish() override;
-
 };
