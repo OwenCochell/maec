@@ -10,6 +10,7 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "meta_audio.hpp"
 #include "base_oscillator.hpp"
@@ -66,438 +67,313 @@ TEST_CASE("MetaLatency Test", "[meta]") {
     // Create latency module:
 
     LatencyModule late;
-}
 
-TEST(MetaLatencyTest, MetaProcess) {
+    // Create module to use for benchmarking:
 
-    // Create timer:
+    SineOscillator sine;
 
-    LatencyModule late;
+    SECTION("Default", "Ensure default values are accurate") {
 
-    // Attach module:
+        // Ensure initial values are zero:
 
-    ConstantOscillator osc(0.5);
-
-    // Bind the modules:
-
-    late.bind(&osc);
-
-    // Meta process:
-
-    late.meta_process();
-}
-
-TEST(MetaLatencyTest, TotalTime) {
-
-    // Create timer:
-
-    LatencyModule late;
-
-    // Attach module:
-
-    SineOscillator osc(440.0);
-
-    // Bind the modules:
-
-    late.bind(&osc);
-
-    // Get expected time:
-
-    ASSERT_EQ(late.expected(), 0);
-
-    // Start the module:
-
-    late.start();
-
-    // Meta process the module:
-
-    late.meta_process();
-
-    // Ensure start time is not zero:
-
-    ASSERT_GT(late.get_start_time(), 0);
-
-    // Get total time elapsed:
-
-    ASSERT_NEAR(late.elapsed(), get_time() - late.get_start_time(), 1000);
-
-    // Get expected time:
-
-    ASSERT_EQ(late.expected(), 440 * (NANO / 44100));
-}
-
-TEST(MetaLatencyTest, OperationTime) {
-
-    // Create timer:
-
-    LatencyModule late;
-
-    // Attach module:
-
-    ConstantOscillator osc;
-
-    // Bind the modules:
-
-    late.bind(&osc);
-
-    // Ensure initial values are zero:
-
-    ASSERT_EQ(late.time(), 0);
-    ASSERT_EQ(late.total_time(), 0);
-    //ASSERT_EQ(late.average_time(), 0);
+        REQUIRE(0 == late.time());
+        REQUIRE(0 == late.total_time());
+        REQUIRE(0 == late.latency());
+        REQUIRE(0 == late.sum_latency());
+        REQUIRE(0 == late.total_latency());
+        REQUIRE(0 == late.expected());
+    }
 
     // Meta process:
 
     late.start();
     late.meta_process();
 
-    // Get the elapsed time:
+    SECTION("Total Time", "Ensures our understanding of total time is accurate") {
 
-    int64_t total = late.time();
+        // Ensure start time is not zero:
 
-    ASSERT_LT(late.time(), late.elapsed());
-    ASSERT_EQ(late.time(), late.total_time());
-    ASSERT_EQ(late.time(), late.average_time());
+        REQUIRE(0 == late.get_start_time());
 
-    // Meta process once more:
+        // Get total time elapsed:
 
-    late.meta_process();
+        REQUIRE(std::abs(late.elapsed() - (get_time() - late.get_start_time())) < 1000);
 
-    total += late.time();
+        // Get expected time:
 
-    ASSERT_LT(late.time(), late.elapsed());
-    ASSERT_EQ(late.total_time(), total);
-    ASSERT_EQ(total / 2, late.average_time());
-}
+        REQUIRE(440 * (NANO / 44100) == late.expected());
+    }
 
-TEST(MetaLatencyTest, LatencyTime) {
+    SECTION("Operation Time", "Ensures our understanding of the operation time is accurate") {
 
-    // Create timer:
+        // Get the elapsed time:
 
-    LatencyModule late;
+        int64_t total = late.time();
 
-    // Attach module:
+        REQUIRE(late.time() < late.elapsed());
+        REQUIRE(late.time() == late.total_time());
+        REQUIRE(late.time() == late.average_time());
 
-    SineOscillator osc;
+        // Meta process once more:
 
-    // Bind the modules:
+        late.meta_process();
 
-    late.bind(&osc);
+        total += late.time();
 
-    // Ensure initial values are zero:
+        REQUIRE(late.time() < late.elapsed());
+        REQUIRE(late.total_time() == total);
+        REQUIRE(total / 2 == late.average_time());
+    }
 
-    ASSERT_EQ(late.latency(), 0);
-    ASSERT_EQ(late.sum_latency(), 0);
-    //ASSERT_EQ(late.average_latency(), 0);
-    ASSERT_EQ(late.total_latency(), 0);
+    SECTION("Latency Time", "Ensures our understanding of the latency time is accurate") {
 
-    // Meta process:
+        // Get the elapsed time:
 
-    late.start();
-    late.meta_process();
+        int64_t total = late.latency();
 
-    // Get the elapsed time:
+        REQUIRE(late.latency() < late.time());
+        REQUIRE(late.latency() == late.sum_latency());
+        REQUIRE(late.latency() == late.average_latency());
+        REQUIRE(late.total_latency() == late.total_time() - late.expected());
 
-    int64_t total = late.latency();
+        // Meta process once more:
 
-    ASSERT_LT(late.latency(), late.time());
-    ASSERT_EQ(late.latency(), late.sum_latency());
-    ASSERT_EQ(late.latency(), late.average_latency());
-    ASSERT_EQ(late.total_latency(), late.total_time() - late.expected());
+        late.meta_process();
 
-    // Meta process once more:
+        total += late.latency();
 
-    late.meta_process();
+        REQUIRE(late.latency() < late.time());
+        REQUIRE(late.sum_latency() == total);
+        REQUIRE(total / 2 == late.average_latency());
+        REQUIRE(late.total_latency() == late.total_time() - late.expected());
+    }
 
-    total += late.latency();
+    SECTION("Reset", "Ensures we can be reset") {
 
-    ASSERT_LT(late.latency(), late.time());
-    ASSERT_EQ(late.sum_latency(), total);
-    ASSERT_EQ(total / 2, late.average_latency());
-    ASSERT_EQ(late.total_latency(), late.total_time() - late.expected());
-}
+        // Reset the module:
 
-TEST(MetaLatencyTest, Reset) {
+        late.reset();
 
-    // Create timer:
+        // Ensure values are zero:
 
-    LatencyModule late;
+        REQUIRE(0 == late.time());
+        REQUIRE(0 == late.total_time());
+        REQUIRE(0 == late.average_time());
 
-    // Attach module:
-
-    ConstantOscillator osc(0.5);
-
-    // Bind the modules:
-
-    late.bind(&osc);
-
-    // Meta process:
-
-    late.meta_process();
-
-    // Reset the module:
-
-    late.reset();
-
-    // Ensure values are zero:
-
-    ASSERT_EQ(late.time(), 0);
-    ASSERT_EQ(late.total_time(), 0);
-    //ASSERT_EQ(late.average_time(), 0);
-
-    ASSERT_EQ(late.latency(), 0);
-    ASSERT_EQ(late.total_latency(), 0);
-    //ASSERT_EQ(late.average_latency(), 0);
-    ASSERT_EQ(late.sum_latency(), 0);
-}
-
-TEST(MetaBufferTest, Construct) {
-
-    BufferModule buff;
-}
-
-TEST(MetaBufferTest, GetSet) {
-
-    // Create a BufferModule:
-
-    BufferModule buff;
-
-    // Create a dummy buffer:
-
-    std::vector<long double> data = {1,2,3,4,5,6,7,8,9,10};
-
-    AudioBuffer rep(data);
-
-    // Attach the dummy data:
-
-    buff.set_rbuffer(&rep);
-
-    // Get dummy data:
-
-    ASSERT_EQ(&rep, buff.get_rbuffer());
-}
-
-TEST(MetaBufferTest, Process) {
-
-    // Create a dummy buffer:
-
-    std::vector<long double> data = {1,2,3,4,5,6,7,8,9,10};
-
-    AudioBuffer rep(data);
-
-    // Create a BufferModule:
-
-    BufferModule buff(&rep);
-
-    // Next, ensure data is accurate:
-
-    std::shared_ptr<AudioBuffer> tdata = nullptr;
-
-    for (int i = 0; i < 10*4; ++i) {
-
-        if (i % 10 == 0) {
-            // Process:
-
-            buff.meta_process();
-
-            tdata = buff.get_buffer();
-        }
-
-        ASSERT_DOUBLE_EQ(data.at(i % 10), *(tdata->ibegin() + (i % 10)));
+        REQUIRE(0 == late.latency());
+        REQUIRE(0 == late.total_latency());
+        REQUIRE(0 == late.average_latency());
+        REQUIRE(0 == late.sum_latency());
     }
 }
 
-/**
- * @brief Ensures the UniformBuffer module constructs properly
- * 
- */
-TEST(UniformBufferTest, Construct) {
+TEST_CASE("MetaBuffer Test", "[meta]") {
 
-    UniformBuffer uni;
+    // Construct a buffer module:
 
+    BufferModule buff;
+
+    // Create a dummy buffer:
+
+    std::vector<long double> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+    AudioBuffer rep(data);
+
+    SECTION("GetSet", "Ensures the getters and setters work properly") {
+
+        // Attach the dummy data:
+
+        buff.set_rbuffer(&rep);
+
+        // Get dummy data:
+
+        REQUIRE(&rep == buff.get_rbuffer());
+    }
+
+    SECTION("Process", "Ensures the process function works properly") {
+
+        // Attach the dummy data:
+
+        buff.set_rbuffer(&rep);
+
+        // Next, ensure data is accurate:
+
+        std::shared_ptr<AudioBuffer> tdata = nullptr;
+
+        for (int i = 0; i < 10 * 4; ++i) {
+
+            if (i % 10 == 0) {
+                // Process:
+
+                buff.meta_process();
+
+                tdata = buff.get_buffer();
+            }
+
+            REQUIRE_THAT(data.at(i % 10),
+                         Catch::Matchers::WithinAbs(tdata->at(i % 10), 0.0001));
+        }
+    }
 }
 
-/**
- * @brief Ensures UniformBuffer module handles equal input and output sizes
- * 
- */
-TEST(UniformBufferTest, SameSize) {
+TEST_CASE("UniformBuffer Test", "[meta]") {
 
-    // Create modules:
+    // Construct a UniformBuffer:
 
     UniformBuffer uni;
+
+    // Create a BufferModule:
 
     BufferModule mbuf;
 
-    // Configure modules:
+    SECTION("Same Size", "Ensures the UniformBuffer can return data of the same size") {
 
-    int size = 247;
+        // Configure modules:
 
-    mbuf.get_info()->out_buffer = size;
-    uni.get_info()->out_buffer = size;
+        int size = 247;
 
-    // Bind the modules:
+        mbuf.get_info()->out_buffer = size;
+        uni.get_info()->out_buffer = size;
 
-    uni.bind(&mbuf);
+        // Bind the modules:
 
-    // Create buffer:
+        uni.bind(&mbuf);
 
-    AudioBuffer buff(size);
-    auto iter = buff.ibegin();
+        // Create buffer:
 
-    for (int i = 0; i < size; ++i) {
+        AudioBuffer buff(size);
+        auto iter = buff.ibegin();
 
-        *iter++ = i;
-    }
+        for (int i = 0; i < size; ++i) {
 
-    // Set buffer:
+            *iter++ = i;
+        }
 
-    mbuf.set_rbuffer(&buff);
+        // Set buffer:
 
-    // Finally, meta process:
+        mbuf.set_rbuffer(&buff);
 
-    for (int i = 0; i < 4; ++i) {
+        // Finally, meta process:
 
-        // Meta process:
+        for (int i = 0; i < 4; ++i) {
 
-        uni.meta_process();
+            // Meta process:
 
-        // Grab the buffer:
+            uni.meta_process();
 
-        auto buff = uni.get_buffer();
+            // Grab the buffer:
 
-        // Ensure buffer is valid:
+            auto buff = uni.get_buffer();
 
-        iter = buff->ibegin();
+            // Ensure buffer is valid:
 
-        for (int j = 0; j < size; ++j) {
+            iter = buff->ibegin();
 
-            ASSERT_DOUBLE_EQ(*iter++, j);
+            for (int j = 0; j < size; ++j) {
+
+                REQUIRE_THAT(*iter++, Catch::Matchers::WithinAbs(j, 0.0001));
+            }
         }
     }
 
-}
+    SECTION("Smaller Size", "Ensures the UniformBuffer can return data of smaller size") {
 
-/**
- * @brief Ensures UniformBuffer handles smaller input buffer
- * 
- */
-TEST(UniformBufferTest, SamllerSize) {
+        // Configure modules:
 
-    // Create modules:
+        int osize = 100;
+        int isize = 20;
 
-    UniformBuffer uni;
+        mbuf.get_info()->out_buffer = isize;
+        uni.get_info()->out_buffer = osize;
 
-    BufferModule mbuff;
+        // Bind the modules:
 
-    // Configure modules:
+        uni.bind(&mbuf);
 
-    int osize = 100;
-    int isize = 20;
+        // Loop a certain number of times:
 
-    mbuff.get_info()->out_buffer = isize;
-    uni.get_info()->out_buffer = osize;
+        long double last = 0;
 
-    // Bind the modules:
+        // Create buffer:
 
-    uni.bind(&mbuff);
+        AudioBuffer buff(isize);
+        auto iter = buff.ibegin();
 
-    // Loop a certain number of times:
+        for (int i = 0; i < isize; ++i) {
 
-    long double last = 0;
+            *iter++ = i;
+        }
 
-    // Create buffer:
+        // Set buffer:
 
-    AudioBuffer buff(isize);
-    auto iter = buff.ibegin();
-
-    for (int i = 0; i < isize; ++i) {
-
-        *iter++ = i;
-    }
-
-    // Set buffer:
-
-    mbuff.set_rbuffer(&buff);
-
-    // Meta process:
-
-    uni.meta_process();
-
-    // Grab buffer:
-
-    auto obuff = uni.get_buffer();
-
-    // Ensure buffer is accurate:
-
-    for (auto iter = obuff->ibegin(); iter != obuff->iend(); ++iter) {
-
-        ASSERT_DOUBLE_EQ(*iter, iter.get_index() % isize);
-    }
-
-}
-
-/**
- * @brief Ensures UniformBuffer handles larger input buffer
- * 
- */
-TEST(UniformBufferTest, BiggerSize) {
-
-    // Create the modules:
-
-    UniformBuffer uni;
-    BufferModule mbuff;
-
-    // Configure the module:
-
-    int isize = 100;
-    int osize = 20;
-
-    uni.get_info()->out_buffer = osize;
-    mbuff.get_info()->out_buffer = isize;
-
-    // Bind the modules:
-
-    uni.bind(&mbuff);
-
-    // Create a buffer:
-
-    AudioBuffer buff(isize);
-    auto iter = buff.ibegin();
-
-    // Add values to buffer:
-
-    for (int j = 0; j < isize; ++j) {
-
-        *iter++ = j;
-    }
-
-    // Add buffer to module:
-
-    mbuff.set_rbuffer(&buff);
-
-    // Iterate a certain number of time:
-
-    for (int i = 0; i < (isize / 20); ++i) {
+        mbuf.set_rbuffer(&buff);
 
         // Meta process:
 
         uni.meta_process();
 
-        // Grab the buffer:
+        // Grab buffer:
 
         auto obuff = uni.get_buffer();
 
         // Ensure buffer is accurate:
 
-        for (auto tier = obuff->ibegin(); tier != obuff->iend(); ++tier) {
+        for (auto iter = obuff->ibegin(); iter != obuff->iend(); ++iter) {
 
-            // Check value:
-
-            ASSERT_DOUBLE_EQ(*tier, tier.get_index() + (i * osize));
-
+            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(iter.get_index() % isize, 0.0001));
         }
-
     }
 
+    SECTION("Bigger Size", "Ensures the UniformBuffer can return data of larger size") {
+
+        // Configure the module:
+
+        int isize = 100;
+        int osize = 20;
+
+        uni.get_info()->out_buffer = osize;
+        mbuf.get_info()->out_buffer = isize;
+
+        // Bind the modules:
+
+        uni.bind(&mbuf);
+
+        // Create a buffer:
+
+        AudioBuffer buff(isize);
+        auto iter = buff.ibegin();
+
+        // Add values to buffer:
+
+        for (int j = 0; j < isize; ++j) {
+
+            *iter++ = j;
+        }
+
+        // Add buffer to module:
+
+        mbuf.set_rbuffer(&buff);
+
+        // Iterate a certain number of time:
+
+        for (int i = 0; i < (isize / 20); ++i) {
+
+            // Meta process:
+
+            uni.meta_process();
+
+            // Grab the buffer:
+
+            auto obuff = uni.get_buffer();
+
+            // Ensure buffer is accurate:
+
+            for (auto tier = obuff->ibegin(); tier != obuff->iend(); ++tier) {
+
+                // Check value:
+
+                REQUIRE_THAT(*tier, Catch::Matchers::WithinAbs(tier.get_index() + (i * osize), 0.0001));
+            }
+        }
+    }
 }

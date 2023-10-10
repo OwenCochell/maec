@@ -69,8 +69,6 @@ TEST_CASE("BaseEnvelopeTest", "[env]") {
     }
 }
 
-// TODO: Add tests for DurationEnvelope start timeing
-
 TEST_CASE("DurationEnvelope Test", "[env]") {
 
     // Ensure we can construct a DurationEnvelope:
@@ -292,208 +290,200 @@ TEST_CASE("ExponentialRamp Test", "[env]") {
 
         REQUIRE_THAT(last, Catch::Matchers::WithinAbs(final_value, 0.05));
     }
+
+    SECTION("ValueLarge", "Ensures the returned values are correct with large inputs") {
+
+        // Seconds it will take to ramp to value:
+
+        int seconds = 120;
+
+        // Final value to ramp to:
+
+        long double final_value = 1;
+
+        // Set some values:
+
+        exp.set_start_value(SMALL);
+        exp.set_stop_time(NANO * seconds);
+        exp.set_stop_value(final_value);
+        exp.get_info()->out_buffer = 5000;
+        exp.get_timer()->set_samplerate(1000);
+
+        long double last = -1;
+        long double delta = 0;
+
+        for (int i = 0; i < seconds / 5; ++i) {
+
+            // Meta process:
+
+            exp.meta_process();
+
+            // Grab the buffer:
+
+            auto buff = exp.get_buffer();
+
+            // Ensure buffer is accurate
+
+            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+                // Ensure this value is bigger than the last:
+
+                REQUIRE(*iter > last);
+
+                if (last != -1) {
+
+                    // Ensure delta is correct, should always be bigger:
+                    // Not a super great way to ensure this ramp is truly
+                    // exponential, but as long as the delta keeps getting
+                    // higher than it is close enough (for now)
+
+                    REQUIRE(*iter - last > delta);
+
+                    delta = *iter - last;
+                }
+
+                last = *iter;
+            }
+        }
+
+        // Finally, ensure last value is very close to final:
+
+        REQUIRE_THAT(last, Catch::Matchers::WithinAbs(final_value, 0.05));
+    }
 }
 
-TEST(ExponentialRampTest, ValueLarge) {
+TEST_CASE("LinearRamp Test", "[env]") {
 
-    // Seconds it will take to ramp to value:
+    // Construct a LinearRamp:
 
-    int seconds = 120;
+    LinearRamp lin;
 
-    // Final value to ramp to:
+    SECTION("Value", "Ensures we produce correct values") {
 
-    long double final_value = 1;
+        // Create an envelope:
 
-    // Set some values:
+        LinearRamp lin;
 
-    exp.set_start_value(SMALL);
-    exp.set_stop_time(NANO * seconds);
-    exp.set_stop_value(final_value);
-    exp.get_info()->out_buffer = 5000;
-    exp.get_timer()->set_samplerate(1000);
+        // Seconds it will take to ramp to value:
 
-    long double last = -1;
-    long double delta = 0;
+        int seconds = 1;
 
-    for (int i = 0; i < seconds / 5; ++i) {
+        // Final value to ramp to:
 
-        // Meta process:
+        long double final_value = 1;
 
-        exp.meta_process();
+        // Set some values:
 
-        // Grab the buffer:
+        lin.set_start_value(SMALL);
+        lin.set_stop_time(NANO * seconds);
+        lin.set_stop_value(final_value);
+        lin.get_info()->out_buffer = 1000;
+        lin.get_timer()->set_samplerate(1000);
 
-        auto buff = exp.get_buffer();
+        long double last = 0;
+        long double delta = 0;
 
-        // Ensure buffer is accurate
+        for (int i = 0; i < seconds; ++i) {
 
-        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            // Meta process:
 
-            // Ensure this value is bigger than the last:
+            lin.meta_process();
 
-            ASSERT_GT(*iter, last);
+            // Grab the buffer:
 
-            if (last != -1) {
+            auto buff = lin.get_buffer();
 
-                // Ensure delta is correct, should always be bigger:
-                // Not a super great way to ensure this ramp is truly exponential,
-                // but as long as the delta keeps getting higher than it is close enough (for now)
+            // Ensure buffer is accurate
 
-                ASSERT_GT(*iter - last, delta);
+            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+                // Ensure this value is bigger than the last:
+
+                REQUIRE(*iter > last);
+
+                if (iter.get_index() > 1) {
+
+                    // Ensure the delta is the same
+                    // (or very close)
+
+                    REQUIRE_THAT(*iter - last, Catch::Matchers::WithinAbs(delta, 0.0001));
+                }
 
                 delta = *iter - last;
+                last = *iter;
             }
-
-            last = *iter;
-
         }
-    }
 
-    // Finally, ensure last value is very close to final:
+        // Finally, ensure last value is very close to final:
 
-    ASSERT_NEAR(last, final_value, 0.05);
-
-}
-
-TEST(LinearRampTest, Construct) {
-
-    LinearRamp lin;
-}
-
-TEST(LinearRampTest, Value) {
-
-    // Create an envelope:
-
-    LinearRamp lin;
-
-    // Seconds it will take to ramp to value:
-
-    int seconds = 1;
-
-    // Final value to ramp to:
-
-    long double final_value = 1;
-
-    // Set some values:
-
-    lin.set_start_value(SMALL);
-    lin.set_stop_time(NANO * seconds);
-    lin.set_stop_value(final_value);
-    lin.get_info()->out_buffer = 1000;
-    lin.get_timer()->set_samplerate(1000);
-
-    long double last = 0;
-    long double delta = 0;
-
-    for (int i = 0; i < seconds; ++i) {
-
-        // Meta process:
+        REQUIRE_THAT(last, Catch::Matchers::WithinAbs(final_value, 0.05));
 
         lin.meta_process();
 
-        // Grab the buffer:
-
         auto buff = lin.get_buffer();
-
-        // Ensure buffer is accurate
-
-        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
-
-            // Ensure this value is bigger than the last:
-
-            ASSERT_GT(*iter, last);
-
-            if (iter.get_index() > 1) {
-
-                // Ensure the delta is the same
-                // (or very close)
-
-                ASSERT_DOUBLE_EQ(*iter - last, delta);
-
-            }
-
-            delta = *iter - last;
-            last = *iter;
-
-        }
     }
 
-    // Finally, ensure last value is very close to final:
+    SECTION("Value Large", "Ensures we return correct values with large inputs") {
 
-    ASSERT_NEAR(last, final_value, 0.05);
+        // Seconds it will take to ramp to value:
 
-    lin.meta_process();
+        int seconds = 120;
 
-    auto buff = lin.get_buffer();
+        // Final value to ramp to:
 
+        long double final_value = 1;
 
-}
+        // Set some values:
 
-TEST(LinearRampTest, ValueLarge) {
+        lin.set_start_value(SMALL);
+        lin.set_stop_time(NANO * seconds);
+        lin.set_stop_value(final_value);
+        lin.get_info()->out_buffer = 5000;
+        lin.get_timer()->set_samplerate(1000);
 
-    // Create an envelope:
+        long double last = 0;
+        long double delta = 0;
 
-    LinearRamp lin;
+        for (int i = 0; i < seconds / 5; ++i) {
 
-    // Seconds it will take to ramp to value:
+            // Meta process:
 
-    int seconds = 120;
+            lin.meta_process();
 
-    // Final value to ramp to:
+            // Grab the buffer:
 
-    long double final_value = 1;
+            auto buff = lin.get_buffer();
 
-    // Set some values:
+            // Ensure buffer is accurate
 
-    lin.set_start_value(SMALL);
-    lin.set_stop_time(NANO * seconds);
-    lin.set_stop_value(final_value);
-    lin.get_info()->out_buffer = 5000;
-    lin.get_timer()->set_samplerate(1000);
+            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
-    long double last = 0;
-    long double delta = 0;
+                // Ensure this value is bigger than the last:
 
-    for (int i = 0; i < seconds / 5; ++i) {
+                REQUIRE(*iter > last);
 
-        // Meta process:
+                if (iter.get_index() > 1) {
 
-        lin.meta_process();
+                    // Ensure the delta is the same
+                    // (or very close)
 
-        // Grab the buffer:
+                    REQUIRE_THAT(*iter - last, Catch::Matchers::WithinAbs(delta, 0.0001));
+                }
 
-        auto buff = lin.get_buffer();
-
-        // Ensure buffer is accurate
-
-        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
-
-            // Ensure this value is bigger than the last:
-
-            ASSERT_GT(*iter, last);
-
-            if (iter.get_index() > 1) {
-
-                // Ensure the delta is the same
-                // (or very close)
-
-                ASSERT_NEAR(*iter - last, delta, 0.0001);
-
+                delta = *iter - last;
+                last = *iter;
             }
-
-            delta = *iter - last;
-            last = *iter;
-
         }
+
+        // Finally, ensure last value is very close to final:
+
+        REQUIRE_THAT(last, Catch::Matchers::WithinAbs(final_value, 0.05));
     }
-
-    // Finally, ensure last value is very close to final:
-
-    ASSERT_NEAR(last, final_value, 0.05);
-
 }
 
-TEST(SetValueTest, Construct) {
+TEST_CASE("SetValue Test", "[env]") {
+
+    // Construct a SetValue envelope:
 
     SetValue val;
 }
