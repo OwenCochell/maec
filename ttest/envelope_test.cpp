@@ -486,31 +486,78 @@ TEST_CASE("SetValue Test", "[env]") {
     // Construct a SetValue envelope:
 
     SetValue val;
-}
 
-TEST(SetValueTest, Value) {
+    SECTION("Value", "Ensures SetValue works with some generic values") {
 
-    // Create an envelope:
+        // Create an envelope:
 
-    SetValue val;
+        SetValue val;
 
-    // Seconds it will take to ramp to value:
+        // Seconds it will take to ramp to value:
 
-    int seconds = 1;
+        int seconds = 1;
 
-    // Final value to ramp to:
+        // Final value to ramp to:
 
-    long double final_value = 1;
+        long double final_value = 1;
 
-    // Set some values:
+        // Set some values:
 
-    val.set_start_value(0);
-    val.set_stop_time(NANO * seconds);
-    val.set_stop_value(final_value);
-    val.get_info()->out_buffer = 1000;
-    val.get_timer()->set_samplerate(1000);
+        val.set_start_value(0);
+        val.set_stop_time(NANO * seconds);
+        val.set_stop_value(final_value);
+        val.get_info()->out_buffer = 1000;
+        val.get_timer()->set_samplerate(1000);
 
-    for (int i = 0; i < 2; ++i) {
+        for (int i = 0; i < 2; ++i) {
+
+            // Meta process:
+
+            val.meta_process();
+
+            // Grab the buffer:
+
+            auto buff = val.get_buffer();
+
+            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+                // Determine if we are start or stop:
+
+                if (i == 0) {
+
+                    // Ensure we are the start value:
+
+                    REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(0, 0.0001));
+                }
+
+                if (i == 1) {
+
+                    // Ensure we are the stop value:
+
+                    REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(final_value, 0.0001));
+                }
+            }
+        }
+    }
+
+    SECTION("Value Offset", "Ensures we work correctly with a weird, offset value") {
+
+        // Seconds it will take to ramp to value:
+        // (Choose a super weird value here)
+
+        double seconds = 0.3486;
+
+        // Final value to ramp to:
+
+        long double final_value = 1;
+
+        // Set some values:
+
+        val.set_start_value(0);
+        val.set_stop_time(static_cast<int64_t>(NANO * seconds));
+        val.set_stop_value(final_value);
+        val.get_info()->out_buffer = 1000;
+        val.get_timer()->set_samplerate(1000);
 
         // Meta process:
 
@@ -522,111 +569,55 @@ TEST(SetValueTest, Value) {
 
         for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
-            // Determine if we are start or stop:
+            // Determine the value to check:
 
-            if (i == 0) {
+            if (iter.get_index() < static_cast<int>(1000 * seconds)) {
 
-                // Ensure we are the start value:
-
-                ASSERT_DOUBLE_EQ(0, *iter);
+                REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(0, 0.0001));
             }
 
-            if (i == 1) {
+            else {
 
-                // Ensure we are the stop value:
-
-                ASSERT_DOUBLE_EQ(final_value, *iter);
+                REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(final_value, 0.0001));
             }
         }
     }
-
 }
 
-TEST(SetValueTest, ValueOffset) {
+TEST_CASE("ChainEnvelope", "[env]") {
 
-    // Create an envelope:
+    SECTION("AddEnvelope", "Ensures we can add an envelope to the chain") {
 
-    SetValue val;
+        // Construct the chain envelope:
 
-    // Seconds it will take to ramp to value:
-    // (Choose a super weird value here)
+        ChainEnvelope chain;
 
-    double seconds = 0.3486;
+        // Create an envelope:
 
-    // Final value to ramp to:
+        SetValue env;
 
-    long double final_value = 1;
+        // Add the envelope:
 
-    // Set some values:
+        chain.add_envelope(&env);
 
-    val.set_start_value(0);
-    val.set_stop_time(static_cast<int64_t>(NANO * seconds));
-    val.set_stop_value(final_value);
-    val.get_info()->out_buffer = 1000;
-    val.get_timer()->set_samplerate(1000);
+        // Get the next envelope:
 
-    // Meta process:
+        chain.start();
 
-    val.meta_process();
+        // Ensure it is the one we added:
 
-    // Grab the buffer:
-
-    auto buff = val.get_buffer();
-
-    for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
-
-        // Determine the value to check:
-
-        if (iter.get_index() < static_cast<int>(1000 * seconds)) {
-
-            ASSERT_DOUBLE_EQ(*iter, 0);
-        }
-
-        else {
-        
-            ASSERT_DOUBLE_EQ(*iter, 1);
-        }
+        ASSERT_EQ(chain.get_current(), &env);
     }
-
-}
-
-TEST(ChainEnvelopeTest, Construct) {
-
-    ChainEnvelope chain;
-}
-
-TEST(ChainEnvelopeTest, AddEnvelope) {
-
-    // Construct the chain envelope:
-
-    ChainEnvelope chain;
-
-    // Create an envelope:
-
-    SetValue env;
-
-    // Add the envelope:
-
-    chain.add_envelope(&env);
-
-    // Get the next envelope:
-
-    chain.start();
-
-    // Ensure it is the one we added:
-
-    ASSERT_EQ(chain.get_current(), &env);
-
 }
 
 TEST(ChainEnvelopeTest, RepeatEnvelope) {
 
     /**
      * @brief Determines if the ChainEnvelope repeats envelope with -1 stop time
-     * 
+     *
      * We ensure that envelopes with stop time of -1 are correctly repeated
      * indefinitely, until the user manually advances.
-     * 
+     *
      */
 
     // Construct the chain envelope:
@@ -657,7 +648,7 @@ TEST(ChainEnvelopeTest, RepeatEnvelope) {
 
     auto buff = chain.get_buffer();
 
-    for(auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+    for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
         ASSERT_EQ(*iter, 5);
     }
@@ -668,7 +659,7 @@ TEST(ChainEnvelopeTest, RepeatEnvelope) {
 
     buff = chain.get_buffer();
 
-    for(auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+    for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
         ASSERT_EQ(*iter, 5);
     }
@@ -679,11 +670,10 @@ TEST(ChainEnvelopeTest, RepeatEnvelope) {
 
     buff = chain.get_buffer();
 
-    for(auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+    for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
         ASSERT_EQ(*iter, 5);
     }
-
 }
 
 TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
@@ -712,9 +702,9 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
     ConstantEnvelope cnst2;
 
     cnst2.set_start_value(20);
-    cnst2.set_start_time(NANO*2);
+    cnst2.set_start_time(NANO * 2);
     cnst2.set_stop_value(30);
-    cnst2.set_stop_time(NANO*3);
+    cnst2.set_stop_time(NANO * 3);
 
     chain.add_envelope(&cnst2);
 
@@ -730,10 +720,10 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
 
     // Ensure buffer is all 5:
 
-    for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
+    for (auto iter = buff->sbegin();
+         static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
 
         ASSERT_DOUBLE_EQ(*iter, 5);
-
     }
 
     // Grab next buffer:
@@ -744,10 +734,10 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
 
     // Ensure buffer is all 10:
 
-    for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
+    for (auto iter = buff->sbegin();
+         static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
 
         ASSERT_DOUBLE_EQ(*iter, 10);
-
     }
 
     // Grab next buffer:
@@ -758,10 +748,10 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
 
     // Ensure buffer is all 20:
 
-    for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
+    for (auto iter = buff->sbegin();
+         static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
 
         ASSERT_DOUBLE_EQ(*iter, 20);
-
     }
 
     // Grab next buffer:
@@ -772,12 +762,11 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
 
     // Ensure buffer is all 30:
 
-    for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
+    for (auto iter = buff->sbegin();
+         static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
 
         ASSERT_DOUBLE_EQ(*iter, 30);
-
     }
-
 }
 
 TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
@@ -806,9 +795,9 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
     ConstantEnvelope cnst2;
 
     cnst2.set_start_value(20);
-    cnst2.set_start_time(NANO*2);
+    cnst2.set_start_time(NANO * 2);
     cnst2.set_stop_value(30);
-    cnst2.set_stop_time(NANO*3);
+    cnst2.set_stop_time(NANO * 3);
 
     chain.add_envelope(&cnst2);
 
@@ -824,37 +813,35 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
 
     // Ensure buffer is all 5:
 
-    for (auto iter = buff->sbegin(); static_cast<unsigned int>(iter.get_index()) < 100; ++iter) {
+    for (auto iter = buff->sbegin();
+         static_cast<unsigned int>(iter.get_index()) < 100; ++iter) {
 
         ASSERT_DOUBLE_EQ(*iter, 5);
-
     }
-
 
     // Ensure buffer is all 10:
 
-    for (auto iter = buff->sbegin()+100; static_cast<unsigned int>(iter.get_index()) < 200; ++iter) {
+    for (auto iter = buff->sbegin() + 100;
+         static_cast<unsigned int>(iter.get_index()) < 200; ++iter) {
 
         ASSERT_DOUBLE_EQ(*iter, 10);
-
     }
 
     // Ensure buffer is all 20:
 
-    for (auto iter = buff->sbegin()+200; static_cast<unsigned int>(iter.get_index()) < 300; ++iter) {
+    for (auto iter = buff->sbegin() + 200;
+         static_cast<unsigned int>(iter.get_index()) < 300; ++iter) {
 
         ASSERT_DOUBLE_EQ(*iter, 20);
-
     }
 
     // Ensure buffer is all 30:
 
-    for (auto iter = buff->sbegin()+300; static_cast<unsigned int>(iter.get_index()) < 400; ++iter) {
+    for (auto iter = buff->sbegin() + 300;
+         static_cast<unsigned int>(iter.get_index()) < 400; ++iter) {
 
         ASSERT_DOUBLE_EQ(*iter, 30);
-
     }
-
 }
 
 TEST(ChainEnvelopeTest, FullTest) {
@@ -885,7 +872,8 @@ TEST(ChainEnvelopeTest, FullTest) {
     long double value3_start = 0;
     long double value3_stop = 0;
 
-    int loops = std::ceil(time3_stop / sample_rate);  // By default, we loop until complete
+    int loops = std::ceil(time3_stop /
+                          sample_rate);  // By default, we loop until complete
 
     auto* timer = chain.get_timer();
 
@@ -958,14 +946,12 @@ TEST(ChainEnvelopeTest, FullTest) {
             // Update timer:
 
             ttime.add_sample(1);
-
         }
 
         // Update the loop:
 
         loop++;
     }
-
 }
 
 TEST(ChainEnvelopeTest, AddAfter) {
@@ -973,7 +959,7 @@ TEST(ChainEnvelopeTest, AddAfter) {
     // Create a ChainEnvelope:
 
     ChainEnvelope chain;
- 
+
     chain.get_timer()->set_samplerate(100);
     chain.get_info()->out_buffer = 100;
 
@@ -991,7 +977,7 @@ TEST(ChainEnvelopeTest, AddAfter) {
 
     // Sample twice:
 
-    for(int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 2; ++i) {
 
         chain.meta_process();
 
@@ -1002,7 +988,7 @@ TEST(ChainEnvelopeTest, AddAfter) {
         for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
             ASSERT_EQ(*iter, 1);
-        }         
+        }
     }
 
     // Sample twice again:
@@ -1033,12 +1019,12 @@ TEST(ChainEnvelopeTest, AddAfter) {
     // Add the envelope:
 
     chain.add_envelope(&cnst2);
-    //chain.optimize();
+    // chain.optimize();
     chain.next_envelope();
 
     // Sample twice:
 
-    for(int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 2; ++i) {
 
         chain.meta_process();
 
@@ -1049,7 +1035,7 @@ TEST(ChainEnvelopeTest, AddAfter) {
         for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
             ASSERT_EQ(*iter, 10);
-        }         
+        }
     }
 
     // Sample twice again:
@@ -1067,5 +1053,4 @@ TEST(ChainEnvelopeTest, AddAfter) {
             ASSERT_EQ(*iter, 20);
         }
     }
-
 }
