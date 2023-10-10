@@ -21,6 +21,11 @@ TEST_CASE("MetaCount Test", "[meta][count]") {
 
     Counter count;
 
+    // Ensure default values work correctly:
+
+    REQUIRE(0 == count.processed());
+    REQUIRE(0 == count.samples());
+
     // Create constant oscillator:
 
     ConstantOscillator con(5.0);
@@ -29,7 +34,7 @@ TEST_CASE("MetaCount Test", "[meta][count]") {
 
     count.bind(&con);
 
-    SECTION("Count processing") {
+    SECTION("Processing", "Ensures processing works correctly") {
 
         // Process a few times:
 
@@ -41,44 +46,24 @@ TEST_CASE("MetaCount Test", "[meta][count]") {
 
         REQUIRE(3 == count.processed());
         REQUIRE(3 * con.get_info()->out_buffer == count.samples());
+
+        SECTION("Reset", "Ensures counter resets work correctly") {
+
+            // Reset:
+
+            count.reset();
+
+            // Ensure values are zero:
+
+            REQUIRE(0 == count.processed());
+            REQUIRE(0 == count.samples());
+        }
     }
-
-    SECTION("Reset a counter")
 }
 
-TEST(MetaCountTest, Reset) {
+TEST_CASE("MetaLatency Test", "[meta]") {
 
-    // Create counter:
-
-    Counter count;
-
-    // Create constant oscillator:
-
-    ConstantOscillator con(5.0);
-
-    // Bind the constant oscillator:
-
-    count.bind(&con);
-
-    // Process a few times:
-
-    count.meta_process();
-    count.meta_process();
-    count.meta_process();
-
-    // Reset:
-
-    count.reset();
-
-    // Ensure values are zero:
-
-    ASSERT_EQ(0, count.processed());
-    ASSERT_EQ(0, count.samples());
-}
-
-TEST(MetaLatencyTest, Construct) {
-
-    // Create timer:
+    // Create latency module:
 
     LatencyModule late;
 }
