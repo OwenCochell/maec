@@ -72,6 +72,10 @@ TEST_CASE("MetaLatency Test", "[meta]") {
 
     SineOscillator sine;
 
+    // Bind the sine oscillator:
+
+    late.bind(&sine);
+
     SECTION("Default", "Ensure default values are accurate") {
 
         // Ensure initial values are zero:
@@ -93,7 +97,7 @@ TEST_CASE("MetaLatency Test", "[meta]") {
 
         // Ensure start time is not zero:
 
-        REQUIRE(0 == late.get_start_time());
+        REQUIRE(0 < late.get_start_time());
 
         // Get total time elapsed:
 

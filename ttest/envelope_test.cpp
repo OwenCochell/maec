@@ -606,11 +606,11 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         // Ensure it is the one we added:
 
-        ASSERT_EQ(chain.get_current(), &env);
+        REQUIRE(chain.get_current() == &env);
     }
 }
 
-TEST(ChainEnvelopeTest, RepeatEnvelope) {
+TEST_CASE("ChainEnvelope Repeat", "[chain]") {
 
     /**
      * @brief Determines if the ChainEnvelope repeats envelope with -1 stop time
@@ -650,7 +650,7 @@ TEST(ChainEnvelopeTest, RepeatEnvelope) {
 
     for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
-        ASSERT_EQ(*iter, 5);
+        REQUIRE(*iter == 5);
     }
 
     // Sample twice:
@@ -661,7 +661,7 @@ TEST(ChainEnvelopeTest, RepeatEnvelope) {
 
     for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
-        ASSERT_EQ(*iter, 5);
+        REQUIRE(*iter == 5);
     }
 
     // Sample THRICE!
@@ -672,11 +672,11 @@ TEST(ChainEnvelopeTest, RepeatEnvelope) {
 
     for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
-        ASSERT_EQ(*iter, 5);
+        REQUIRE(*iter == 5);
     }
 }
 
-TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
+TEST_CASE("ChainEnvelopeTest MultiEnvelopeTest", "[chain][env]") {
 
     // Construct the chain envelope:
 
@@ -723,7 +723,7 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
     for (auto iter = buff->sbegin();
          static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
 
-        ASSERT_DOUBLE_EQ(*iter, 5);
+        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(5, 0.0001));
     }
 
     // Grab next buffer:
@@ -737,7 +737,7 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
     for (auto iter = buff->sbegin();
          static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
 
-        ASSERT_DOUBLE_EQ(*iter, 10);
+        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(10, 0.0001));
     }
 
     // Grab next buffer:
@@ -751,7 +751,7 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
     for (auto iter = buff->sbegin();
          static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
 
-        ASSERT_DOUBLE_EQ(*iter, 20);
+        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(20, 0.0001));
     }
 
     // Grab next buffer:
@@ -765,11 +765,11 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTest) {
     for (auto iter = buff->sbegin();
          static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
 
-        ASSERT_DOUBLE_EQ(*iter, 30);
+        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(30, 0.0001));
     }
 }
 
-TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
+TEST_CASE("ChainEnvelopeTest MultiEnvelopeTestOneBuffer", "[env][chain]") {
 
     // Construct the chain envelope:
 
@@ -816,7 +816,7 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
     for (auto iter = buff->sbegin();
          static_cast<unsigned int>(iter.get_index()) < 100; ++iter) {
 
-        ASSERT_DOUBLE_EQ(*iter, 5);
+        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(5, 0.0001));
     }
 
     // Ensure buffer is all 10:
@@ -824,7 +824,7 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
     for (auto iter = buff->sbegin() + 100;
          static_cast<unsigned int>(iter.get_index()) < 200; ++iter) {
 
-        ASSERT_DOUBLE_EQ(*iter, 10);
+        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(10, 0.0001));
     }
 
     // Ensure buffer is all 20:
@@ -832,7 +832,7 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
     for (auto iter = buff->sbegin() + 200;
          static_cast<unsigned int>(iter.get_index()) < 300; ++iter) {
 
-        ASSERT_DOUBLE_EQ(*iter, 20);
+        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(20, 0.0001));
     }
 
     // Ensure buffer is all 30:
@@ -840,11 +840,11 @@ TEST(ChainEnvelopeTest, MultiEnvelopeTestOneBuffer) {
     for (auto iter = buff->sbegin() + 300;
          static_cast<unsigned int>(iter.get_index()) < 400; ++iter) {
 
-        ASSERT_DOUBLE_EQ(*iter, 30);
+        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(30, 0.0001));
     }
 }
 
-TEST(ChainEnvelopeTest, FullTest) {
+TEST_CASE("ChainEnvelopeTest FullTest", "[env][chain]") {
 
     // Create a ChainEnvelope:
 
@@ -941,7 +941,7 @@ TEST(ChainEnvelopeTest, FullTest) {
 
             // Otherwise, ensure current value is accurate:
 
-            ASSERT_EQ(*iter, cenv->get_start_value());
+            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(cenv->get_start_value(), 0.0001));
 
             // Update timer:
 
@@ -954,7 +954,7 @@ TEST(ChainEnvelopeTest, FullTest) {
     }
 }
 
-TEST(ChainEnvelopeTest, AddAfter) {
+TEST_CASE("ChainEnvelopeTest AddAfter", "[env][chain]") {
 
     // Create a ChainEnvelope:
 
@@ -987,7 +987,7 @@ TEST(ChainEnvelopeTest, AddAfter) {
 
         for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
-            ASSERT_EQ(*iter, 1);
+            REQUIRE(*iter == 1);
         }
     }
 
@@ -1003,7 +1003,7 @@ TEST(ChainEnvelopeTest, AddAfter) {
 
         for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
-            ASSERT_EQ(*iter, 5);
+            REQUIRE(*iter == 5);
         }
     }
 
@@ -1034,7 +1034,7 @@ TEST(ChainEnvelopeTest, AddAfter) {
 
         for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
-            ASSERT_EQ(*iter, 10);
+            REQUIRE(*iter == 10);
         }
     }
 
@@ -1050,7 +1050,7 @@ TEST(ChainEnvelopeTest, AddAfter) {
 
         for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
-            ASSERT_EQ(*iter, 20);
+            REQUIRE(*iter == 20);
         }
     }
 }

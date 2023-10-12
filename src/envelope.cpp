@@ -33,11 +33,11 @@ void DurationEnvelope::start() {
 
     // First, set the start time to value from timer:
 
-    this->env->set_start_time(this->env->get_time());
+    this->env->set_start_time(this->get_time());
 
     // Next, set the stop time:
 
-    this->env->set_stop_time(this->env->get_time() + this->duration);
+    this->env->set_stop_time(this->get_time() + this->duration);
 
     // Next, start the enclosed envelope:
 
