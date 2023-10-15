@@ -295,11 +295,11 @@ TEST_CASE("ExponentialRamp Test", "[env]") {
 
         // Seconds it will take to ramp to value:
 
-        int seconds = 120;
+        const int seconds = 120;
 
         // Final value to ramp to:
 
-        long double final_value = 1;
+        const long double final_value = 1;
 
         // Set some values:
 
@@ -366,11 +366,11 @@ TEST_CASE("LinearRamp Test", "[env]") {
 
         // Seconds it will take to ramp to value:
 
-        int seconds = 1;
+        const int seconds = 1;
 
         // Final value to ramp to:
 
-        long double final_value = 1;
+        const long double final_value = 1;
 
         // Set some values:
 
@@ -427,11 +427,11 @@ TEST_CASE("LinearRamp Test", "[env]") {
 
         // Seconds it will take to ramp to value:
 
-        int seconds = 120;
+        const int seconds = 120;
 
         // Final value to ramp to:
 
-        long double final_value = 1;
+        const long double final_value = 1;
 
         // Set some values:
 
@@ -495,11 +495,11 @@ TEST_CASE("SetValue Test", "[env]") {
 
         // Seconds it will take to ramp to value:
 
-        int seconds = 1;
+        const int seconds = 1;
 
         // Final value to ramp to:
 
-        long double final_value = 1;
+        const long double final_value = 1;
 
         // Set some values:
 
@@ -545,11 +545,11 @@ TEST_CASE("SetValue Test", "[env]") {
         // Seconds it will take to ramp to value:
         // (Choose a super weird value here)
 
-        double seconds = 0.3486;
+        const double seconds = 0.3486;
 
         // Final value to ramp to:
 
-        long double final_value = 1;
+        const long double final_value = 1;
 
         // Set some values:
 
@@ -586,11 +586,18 @@ TEST_CASE("SetValue Test", "[env]") {
 
 TEST_CASE("ChainEnvelope", "[env]") {
 
+    // Construct the chain envelope:
+
+    ChainEnvelope chain;
+
+    chain.get_timer()->set_samplerate(100);
+    chain.get_info()->out_buffer = 100;
+
+    // Create an envelope:
+
+    ConstantEnvelope cnst;
+
     SECTION("AddEnvelope", "Ensures we can add an envelope to the chain") {
-
-        // Construct the chain envelope:
-
-        ChainEnvelope chain;
 
         // Create an envelope:
 
@@ -608,398 +615,47 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         REQUIRE(chain.get_current() == &env);
     }
-}
 
-TEST_CASE("ChainEnvelope Repeat", "[chain]") {
+    SECTION("Repeat", "Ensures a repeating envelope repeats") {
 
-    /**
-     * @brief Determines if the ChainEnvelope repeats envelope with -1 stop time
-     *
-     * We ensure that envelopes with stop time of -1 are correctly repeated
-     * indefinitely, until the user manually advances.
-     *
-     */
+        // Set the values:
 
-    // Construct the chain envelope:
+        cnst.set_stop_time(-1);
+        cnst.set_start_value(5);
 
-    ChainEnvelope chain;
+        // Add it to the envelope:
 
-    chain.get_timer()->set_samplerate(100);
-    chain.get_info()->out_buffer = 100;
+        chain.add_envelope(&cnst);
 
-    // Create an envelope:
+        // Sample once:
 
-    ConstantEnvelope cnst;
-
-    // Set the values:
-
-    cnst.set_stop_time(-1);
-    cnst.set_start_value(5);
-
-    // Add it to the envelope:
-
-    chain.add_envelope(&cnst);
-
-    // Sample once:
-
-    chain.start();
-
-    chain.meta_process();
-
-    auto buff = chain.get_buffer();
-
-    for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
-
-        REQUIRE(*iter == 5);
-    }
-
-    // Sample twice:
-
-    chain.meta_process();
-
-    buff = chain.get_buffer();
-
-    for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
-
-        REQUIRE(*iter == 5);
-    }
-
-    // Sample THRICE!
-
-    chain.meta_process();
-
-    buff = chain.get_buffer();
-
-    for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
-
-        REQUIRE(*iter == 5);
-    }
-}
-
-TEST_CASE("ChainEnvelopeTest MultiEnvelopeTest", "[chain][env]") {
-
-    // Construct the chain envelope:
-
-    ChainEnvelope chain;
-
-    chain.get_timer()->set_samplerate(100);
-    chain.get_info()->out_buffer = 100;
-
-    // Create the envelope:
-
-    ConstantEnvelope cnst;
-
-    cnst.set_start_value(5);
-    cnst.set_stop_value(10);
-    cnst.set_stop_time(NANO);
-
-    // Add the envelope to the chain:
-
-    chain.add_envelope(&cnst);
-
-    // Add another envelope:
-
-    ConstantEnvelope cnst2;
-
-    cnst2.set_start_value(20);
-    cnst2.set_start_time(NANO * 2);
-    cnst2.set_stop_value(30);
-    cnst2.set_stop_time(NANO * 3);
-
-    chain.add_envelope(&cnst2);
-
-    // Start the chain:
-
-    chain.start();
-
-    // Get a buffer:
-
-    chain.meta_process();
-
-    auto buff = chain.get_buffer();
-
-    // Ensure buffer is all 5:
-
-    for (auto iter = buff->sbegin();
-         static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
-
-        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(5, 0.0001));
-    }
-
-    // Grab next buffer:
-
-    chain.meta_process();
-
-    buff = chain.get_buffer();
-
-    // Ensure buffer is all 10:
-
-    for (auto iter = buff->sbegin();
-         static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
-
-        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(10, 0.0001));
-    }
-
-    // Grab next buffer:
-
-    chain.meta_process();
-
-    buff = chain.get_buffer();
-
-    // Ensure buffer is all 20:
-
-    for (auto iter = buff->sbegin();
-         static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
-
-        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(20, 0.0001));
-    }
-
-    // Grab next buffer:
-
-    chain.meta_process();
-
-    buff = chain.get_buffer();
-
-    // Ensure buffer is all 30:
-
-    for (auto iter = buff->sbegin();
-         static_cast<unsigned int>(iter.get_index()) < buff->size(); ++iter) {
-
-        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(30, 0.0001));
-    }
-}
-
-TEST_CASE("ChainEnvelopeTest MultiEnvelopeTestOneBuffer", "[env][chain]") {
-
-    // Construct the chain envelope:
-
-    ChainEnvelope chain;
-
-    chain.get_timer()->set_samplerate(100);
-    chain.get_info()->out_buffer = 400;
-
-    // Create the envelope:
-
-    ConstantEnvelope cnst;
-
-    cnst.set_start_value(5);
-    cnst.set_stop_value(10);
-    cnst.set_stop_time(NANO);
-
-    // Add the envelope to the chain:
-
-    chain.add_envelope(&cnst);
-
-    // Add another envelope:
-
-    ConstantEnvelope cnst2;
-
-    cnst2.set_start_value(20);
-    cnst2.set_start_time(NANO * 2);
-    cnst2.set_stop_value(30);
-    cnst2.set_stop_time(NANO * 3);
-
-    chain.add_envelope(&cnst2);
-
-    // Start the chain:
-
-    chain.start();
-
-    // Get a buffer:
-
-    chain.meta_process();
-
-    auto buff = chain.get_buffer();
-
-    // Ensure buffer is all 5:
-
-    for (auto iter = buff->sbegin();
-         static_cast<unsigned int>(iter.get_index()) < 100; ++iter) {
-
-        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(5, 0.0001));
-    }
-
-    // Ensure buffer is all 10:
-
-    for (auto iter = buff->sbegin() + 100;
-         static_cast<unsigned int>(iter.get_index()) < 200; ++iter) {
-
-        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(10, 0.0001));
-    }
-
-    // Ensure buffer is all 20:
-
-    for (auto iter = buff->sbegin() + 200;
-         static_cast<unsigned int>(iter.get_index()) < 300; ++iter) {
-
-        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(20, 0.0001));
-    }
-
-    // Ensure buffer is all 30:
-
-    for (auto iter = buff->sbegin() + 300;
-         static_cast<unsigned int>(iter.get_index()) < 400; ++iter) {
-
-        REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(30, 0.0001));
-    }
-}
-
-TEST_CASE("ChainEnvelopeTest FullTest", "[env][chain]") {
-
-    // Create a ChainEnvelope:
-
-    ChainEnvelope chain;
-
-    // Set the configuration values:
-
-    int sample_rate = SAMPLE_RATE;
-
-    int64_t time1_start = 0;
-    int64_t time1_stop = 0;
-
-    int64_t time2_start = 0;
-    int64_t time2_stop = 0;
-
-    int64_t time3_start = 0;
-    int64_t time3_stop = 0;
-
-    long double value1_start = 0;
-    long double value1_stop = 0;
-
-    long double value2_start = 0;
-    long double value2_stop = 0;
-
-    long double value3_start = 0;
-    long double value3_stop = 0;
-
-    int loops = std::ceil(time3_stop /
-                          sample_rate);  // By default, we loop until complete
-
-    auto* timer = chain.get_timer();
-
-    timer->set_samplerate(sample_rate);
-
-    ChainTimer ttime;
-    ttime.set_samplerate(sample_rate);
-
-    // Add the envelopes:
-
-    ConstantEnvelope env1;
-
-    env1.set_start_time(time1_start);
-    env1.set_stop_time(time1_stop);
-    env1.set_start_value(value1_start);
-    env1.set_stop_value(value1_stop);
-
-    ConstantEnvelope env2;
-
-    env2.set_start_time(time2_start);
-    env2.set_stop_time(time2_stop);
-    env2.set_start_value(value2_start);
-    env2.set_stop_value(value2_stop);
-
-    ConstantEnvelope env3;
-
-    env3.set_start_time(time3_start);
-    env3.set_stop_time(time3_stop);
-    env3.set_start_value(value3_start);
-    env3.set_stop_value(value3_stop);
-
-    // Add each envelope:
-
-    chain.add_envelope(&env1);
-    chain.add_envelope(&env2);
-    chain.add_envelope(&env3);
-
-    std::vector<ConstantEnvelope*> envs = {&env1, &env2, &env3};
-    int current_envelope = 0;
-
-    ConstantEnvelope* cenv = &env1;
-
-    int loop = 0;
-
-    while (loop < loops) {
-
-        // Grab the buffer:
+        chain.start();
 
         chain.meta_process();
 
         auto buff = chain.get_buffer();
-
-        // Iterate over the buffer:
 
         for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
-            // Determine if the time is valid:
-
-            if (ttime.get_time() > cenv->get_stop_time()) {
-
-                // Update to the the next envelope:
-
-                cenv = envs[++current_envelope];
-            }
-
-            // Otherwise, ensure current value is accurate:
-
-            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(cenv->get_start_value(), 0.0001));
-
-            // Update timer:
-
-            ttime.add_sample(1);
+            REQUIRE(*iter == 5);
         }
 
-        // Update the loop:
-
-        loop++;
-    }
-}
-
-TEST_CASE("ChainEnvelopeTest AddAfter", "[env][chain]") {
-
-    // Create a ChainEnvelope:
-
-    ChainEnvelope chain;
-
-    chain.get_timer()->set_samplerate(100);
-    chain.get_info()->out_buffer = 100;
-
-    // Create an envelope:
-
-    ConstantEnvelope cnst;
-
-    cnst.set_stop_time(NANO * 2);
-    cnst.set_start_value(1);
-    cnst.set_stop_value(5);
-
-    chain.add_envelope(&cnst);
-
-    chain.start();
-
-    // Sample twice:
-
-    for (int i = 0; i < 2; ++i) {
+        // Sample twice:
 
         chain.meta_process();
 
-        auto buff = chain.get_buffer();
-
-        // Ensure values are all 1:
+        buff = chain.get_buffer();
 
         for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
-            REQUIRE(*iter == 1);
+            REQUIRE(*iter == 5);
         }
-    }
 
-    // Sample twice again:
-
-    for (int i = 0; i < 2; ++i) {
+        // Sample THRICE!
 
         chain.meta_process();
 
-        auto buff = chain.get_buffer();
-
-        // Ensure all values are 5:
+        buff = chain.get_buffer();
 
         for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
 
@@ -1007,50 +663,359 @@ TEST_CASE("ChainEnvelopeTest AddAfter", "[env][chain]") {
         }
     }
 
-    // Now, add another envelope:
+    SECTION("MultiEnvelope", "Ensures we can process multiple envelopes") {
 
-    ConstantEnvelope cnst2;
+        // Configure the envelope:
 
-    cnst2.set_start_time(chain.get_time());
-    cnst2.set_stop_time(chain.get_time() + (2 * NANO));
-    cnst2.set_start_value(10);
-    cnst2.set_stop_value(20);
+        cnst.set_start_value(5);
+        cnst.set_stop_value(10);
+        cnst.set_stop_time(NANO);
 
-    // Add the envelope:
+        // Add the envelope to the chain:
 
-    chain.add_envelope(&cnst2);
-    // chain.optimize();
-    chain.next_envelope();
+        chain.add_envelope(&cnst);
 
-    // Sample twice:
+        // Add another envelope:
 
-    for (int i = 0; i < 2; ++i) {
+        ConstantEnvelope cnst2;
+
+        cnst2.set_start_value(20);
+        cnst2.set_start_time(NANO * 2);
+        cnst2.set_stop_value(30);
+        cnst2.set_stop_time(NANO * 3);
+
+        chain.add_envelope(&cnst2);
+
+        // Start the chain:
+
+        chain.start();
+
+        // Get a buffer:
 
         chain.meta_process();
 
         auto buff = chain.get_buffer();
 
-        // Ensure values are all 1:
+        // Ensure buffer is all 5:
 
-        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+        for (auto iter = buff->sbegin();
+             static_cast<unsigned int>(iter.get_index()) < buff->size();
+             ++iter) {
 
-            REQUIRE(*iter == 10);
+            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(5, 0.0001));
+        }
+
+        // Grab next buffer:
+
+        chain.meta_process();
+
+        buff = chain.get_buffer();
+
+        // Ensure buffer is all 10:
+
+        for (auto iter = buff->sbegin();
+             static_cast<unsigned int>(iter.get_index()) < buff->size();
+             ++iter) {
+
+            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(10, 0.0001));
+        }
+
+        // Grab next buffer:
+
+        chain.meta_process();
+
+        buff = chain.get_buffer();
+
+        // Ensure buffer is all 20:
+
+        for (auto iter = buff->sbegin();
+             static_cast<unsigned int>(iter.get_index()) < buff->size();
+             ++iter) {
+
+            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(20, 0.0001));
+        }
+
+        // Grab next buffer:
+
+        chain.meta_process();
+
+        buff = chain.get_buffer();
+
+        // Ensure buffer is all 30:
+
+        for (auto iter = buff->sbegin();
+             static_cast<unsigned int>(iter.get_index()) < buff->size();
+             ++iter) {
+
+            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(30, 0.0001));
         }
     }
 
-    // Sample twice again:
+    SECTION("MultiEnvelope Single", "Ensures envelopes with small duration in one buffer process correctly") {
 
-    for (int i = 0; i < 2; ++i) {
+        // Configure the chain:
+
+        chain.get_timer()->set_samplerate(100);
+        chain.get_info()->out_buffer = 400;
+
+        // Configure the envelope:
+
+        cnst.set_start_value(5);
+        cnst.set_stop_value(10);
+        cnst.set_stop_time(NANO);
+
+        // Add the envelope to the chain:
+
+        chain.add_envelope(&cnst);
+
+        // Add another envelope:
+
+        ConstantEnvelope cnst2;
+
+        cnst2.set_start_value(20);
+        cnst2.set_start_time(NANO * 2);
+        cnst2.set_stop_value(30);
+        cnst2.set_stop_time(NANO * 3);
+
+        chain.add_envelope(&cnst2);
+
+        // Start the chain:
+
+        chain.start();
+
+        // Get a buffer:
 
         chain.meta_process();
 
         auto buff = chain.get_buffer();
 
-        // Ensure all values are 5:
+        // Ensure buffer is all 5:
 
-        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+        for (auto iter = buff->sbegin();
+             static_cast<unsigned int>(iter.get_index()) < 100; ++iter) {
 
-            REQUIRE(*iter == 20);
+            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(5, 0.0001));
+        }
+
+        // Ensure buffer is all 10:
+
+        for (auto iter = buff->sbegin() + 100;
+             static_cast<unsigned int>(iter.get_index()) < 200; ++iter) {
+
+            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(10, 0.0001));
+        }
+
+        // Ensure buffer is all 20:
+
+        for (auto iter = buff->sbegin() + 200;
+             static_cast<unsigned int>(iter.get_index()) < 300; ++iter) {
+
+            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(20, 0.0001));
+        }
+
+        // Ensure buffer is all 30:
+
+        for (auto iter = buff->sbegin() + 300;
+             static_cast<unsigned int>(iter.get_index()) < 400; ++iter) {
+
+            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(30, 0.0001));
+        }
+    }
+
+    SECTION("Add After", "Ensures envelopes added during processing work correctly") {
+
+        cnst.set_stop_time(NANO * 2);
+        cnst.set_start_value(1);
+        cnst.set_stop_value(5);
+
+        chain.add_envelope(&cnst);
+
+        chain.start();
+
+        // Sample twice:
+
+        for (int i = 0; i < 2; ++i) {
+
+            chain.meta_process();
+
+            auto buff = chain.get_buffer();
+
+            // Ensure values are all 1:
+
+            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+                REQUIRE(*iter == 1);
+            }
+        }
+
+        // Sample twice again:
+
+        for (int i = 0; i < 2; ++i) {
+
+            chain.meta_process();
+
+            auto buff = chain.get_buffer();
+
+            // Ensure all values are 5:
+
+            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+                REQUIRE(*iter == 5);
+            }
+        }
+
+        // Now, add another envelope:
+
+        ConstantEnvelope cnst2;
+
+        cnst2.set_start_time(chain.get_time());
+        cnst2.set_stop_time(chain.get_time() + (2 * NANO));
+        cnst2.set_start_value(10);
+        cnst2.set_stop_value(20);
+
+        // Add the envelope:
+
+        chain.add_envelope(&cnst2);
+        // chain.optimize();
+        chain.next_envelope();
+
+        // Sample twice:
+
+        for (int i = 0; i < 2; ++i) {
+
+            chain.meta_process();
+
+            auto buff = chain.get_buffer();
+
+            // Ensure values are all 1:
+
+            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+                REQUIRE(*iter == 10);
+            }
+        }
+
+        // Sample twice again:
+
+        for (int i = 0; i < 2; ++i) {
+
+            chain.meta_process();
+
+            auto buff = chain.get_buffer();
+
+            // Ensure all values are 5:
+
+            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+                REQUIRE(*iter == 20);
+            }
+        }
+    }
+
+    SECTION("Full Test", "A fully configurable test") {
+
+        // Set the configuration values:
+
+        const int sample_rate = SAMPLE_RATE;
+
+        const int64_t time1_start = 0;
+        const int64_t time1_stop = 0;
+
+        const int64_t time2_start = 0;
+        const int64_t time2_stop = 0;
+
+        const int64_t time3_start = 0;
+        const int64_t time3_stop = 0;
+
+        const long double value1_start = 0;
+        const long double value1_stop = 0;
+
+        const long double value2_start = 0;
+        const long double value2_stop = 0;
+
+        const long double value3_start = 0;
+        const long double value3_stop = 0;
+
+        const int loops = std::ceil(
+            time3_stop / sample_rate);  // By default, we loop until complete
+
+        auto* timer = chain.get_timer();
+
+        timer->set_samplerate(sample_rate);
+
+        ChainTimer ttime;
+        ttime.set_samplerate(sample_rate);
+
+        // Add the envelopes:
+
+        ConstantEnvelope env1;
+
+        env1.set_start_time(time1_start);
+        env1.set_stop_time(time1_stop);
+        env1.set_start_value(value1_start);
+        env1.set_stop_value(value1_stop);
+
+        ConstantEnvelope env2;
+
+        env2.set_start_time(time2_start);
+        env2.set_stop_time(time2_stop);
+        env2.set_start_value(value2_start);
+        env2.set_stop_value(value2_stop);
+
+        ConstantEnvelope env3;
+
+        env3.set_start_time(time3_start);
+        env3.set_stop_time(time3_stop);
+        env3.set_start_value(value3_start);
+        env3.set_stop_value(value3_stop);
+
+        // Add each envelope:
+
+        chain.add_envelope(&env1);
+        chain.add_envelope(&env2);
+        chain.add_envelope(&env3);
+
+        std::vector<ConstantEnvelope*> envs = {&env1, &env2, &env3};
+        int current_envelope = 0;
+
+        ConstantEnvelope* cenv = &env1;
+
+        int loop = 0;
+
+        while (loop < loops) {
+
+            // Grab the buffer:
+
+            chain.meta_process();
+
+            auto buff = chain.get_buffer();
+
+            // Iterate over the buffer:
+
+            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+                // Determine if the time is valid:
+
+                if (ttime.get_time() > cenv->get_stop_time()) {
+
+                    // Update to the the next envelope:
+
+                    cenv = envs[++current_envelope];
+                }
+
+                // Otherwise, ensure current value is accurate:
+
+                REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(
+                                        cenv->get_start_value(), 0.0001));
+
+                // Update timer:
+
+                ttime.add_sample(1);
+            }
+
+            // Update the loop:
+
+            loop++;
         }
     }
 }
