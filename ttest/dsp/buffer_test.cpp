@@ -10,6 +10,7 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "dsp/buffer.hpp"
 
@@ -85,867 +86,726 @@ class ConstGenericIterator
     const std::vector<long double> buff;
 };
 
-/**
- * @brief Ensures the MAEC basic iterator operations work correctly
- *
- */
-TEST(IteratorTest, BasicIterOperations) {
+TEST_CASE("Iterator Test", "[buff][iter]") {
 
     // Create an iterator:
 
     GenericIterator iter1(idata);
 
-    // Get a pointer to the internal buffer:
+    SECTION("Iterator Operations", "Ensures basic iterator operations work correctly") {
 
-    auto* buff = iter1.get_buffer();
+        // Get a pointer to the internal buffer:
 
-    // First, ensure default index methods work:
+        auto* buff = iter1.get_buffer();
 
-    iter1.set_index(2);
+        // First, ensure default index methods work:
 
-    ASSERT_EQ(iter1.get_index(), 2);
+        iter1.set_index(2);
 
-    // Next, check subscripting operators, forward:
+        REQUIRE(iter1.get_index() == 2);
 
-    ASSERT_EQ(iter1[7], buff->at(7));
-    ASSERT_EQ(iter1.get_index(), 2);
+        // Next, check subscripting operators, forward:
 
-    // And backward:
+        REQUIRE(iter1[7] == buff->at(7));
+        REQUIRE(iter1.get_index() == 2);
 
-    ASSERT_EQ(iter1[2], buff->at(2));
-    ASSERT_EQ(iter1.get_index(), 2);
+        // And backward:
 
-    // Next, ensure increments work:
+        REQUIRE(iter1[2] == buff->at(2));
+        REQUIRE(iter1.get_index() == 2);
 
-    iter1++;
-    ASSERT_EQ(iter1.get_index(), 3);
+        // Next, ensure increments work:
 
-    ++iter1;
-    ASSERT_EQ(iter1.get_index(), 4);
+        iter1++;
+        REQUIRE(iter1.get_index() == 3);
 
-    // Ensure decrements work:
-    // (Also test iterator to int conversion going forward)
+        ++iter1;
+        REQUIRE(iter1.get_index() == 4);
 
-    iter1--;
-    ASSERT_EQ(iter1, 3);
+        // Ensure decrements work:
+        // (Also test iterator to int conversion going forward)
 
-    --iter1;
-    ASSERT_EQ(iter1, 2);
+        iter1--;
+        REQUIRE(iter1 == 3);
 
-    // Now, alter index via operators:
+        --iter1;
+        REQUIRE(iter1 == 2);
 
-    iter1 = iter1 + 5;
-    ASSERT_EQ(iter1, 7);
+        // Now, alter index via operators:
 
-    iter1 = iter1 - 5;
-    ASSERT_EQ(iter1, 2);
+        iter1 = iter1 + 5;
+        REQUIRE(iter1 == 7);
 
-    iter1 += 6;
-    ASSERT_EQ(iter1, 8);
+        iter1 = iter1 - 5;
+        REQUIRE(iter1 == 2);
 
-    iter1 -= 6;
-    ASSERT_EQ(iter1, 2);
+        iter1 += 6;
+        REQUIRE(iter1 == 8);
 
-    // Finally, do the same as above but with iterators:
+        iter1 -= 6;
+        REQUIRE(iter1 == 2);
 
-    GenericIterator iter2(idata);
-    iter2 += 3;
+        // Finally, do the same as above but with iterators:
 
-    iter1 = iter1 + iter2;
-    ASSERT_EQ(iter1, 5);
+        GenericIterator iter2(idata);
+        iter2 += 3;
 
-    iter1 = iter1 - iter2;
-    ASSERT_EQ(iter1, 2);
+        iter1 = iter1 + iter2;
+        REQUIRE(iter1 == 5);
 
-    iter1 += iter2;
-    ASSERT_EQ(iter1, 5);
+        iter1 = iter1 - iter2;
+        REQUIRE(iter1 == 2);
 
-    iter1 -= iter2;
-    ASSERT_EQ(iter1, 2);
-}
+        iter1 += iter2;
+        REQUIRE(iter1 == 5);
 
-/**
- * @brief Ensures the MAEC basic iterator comparison operations work correctly
- *
- */
-TEST(IteratorTest, BasicIterComparison) {
-
-    // Create two iterators:
-
-    GenericIterator iter1(idata);
-    auto iter2 = iter1 + 5;
-
-    // Checks when iter1 < iter2
-
-    ASSERT_TRUE(iter1 < iter2);
-    ASSERT_FALSE(iter1 > iter2);
-    ASSERT_TRUE(iter1 <= iter2);
-    ASSERT_FALSE(iter1 >= iter2);
-    ASSERT_FALSE(iter1 == iter2);
-    ASSERT_TRUE(iter1 != iter2);
-
-    // Checks when iter1 > iter2
-
-    iter1 = iter1 + 10;
-
-    ASSERT_FALSE(iter1 < iter2);
-    ASSERT_TRUE(iter1 > iter2);
-    ASSERT_FALSE(iter1 <= iter2);
-    ASSERT_TRUE(iter1 >= iter2);
-    ASSERT_FALSE(iter1 == iter2);
-    ASSERT_TRUE(iter1 != iter2);
-
-    // Checks when iter1 == iter2
-
-    iter2 = iter2 + 5;
-
-    ASSERT_FALSE(iter1 < iter2);
-    ASSERT_FALSE(iter1 > iter2);
-    ASSERT_TRUE(iter1 <= iter2);
-    ASSERT_TRUE(iter1 >= iter2);
-    ASSERT_TRUE(iter1 == iter2);
-    ASSERT_FALSE(iter1 != iter2);
-}
-
-/**
- * @brief Ensures BaseMAECIterator can correctly read
- *
- */
-TEST(IteratorTest, BasicIterRead) {
-
-    // Create an iterator:
-
-    GenericIterator iter(idata);
-
-    // Get internal buffer:
-
-    auto* buff = iter.get_buffer();
-
-    // Iterate until completion:
-
-    for (int i = 0; i < idata.size(); ++i) {
-
-        // Ensure current value is accurate:
-
-        ASSERT_DOUBLE_EQ(iter[i], buff->at(i));
-
-        ASSERT_DOUBLE_EQ(*(iter + i), buff->at(i));
+        iter1 -= iter2;
+        REQUIRE(iter1 == 2);
     }
-}
 
-/**
- * @brief Ensures BaseMAECIterator can correctly write
- *
- */
-TEST(IteratorTest, BasicIterWrite) {
+    SECTION("Iterator Comparison", "Ensures iterators can be compared") {
 
-    // Create an interator:
+        // Create two iterators:
 
-    GenericIterator iter(idata);
+        auto iter2 = iter1 + 5;
 
-    // Get a pointer to the buffer:
+        // Checks when iter1 < iter2
 
-    auto* buff = iter.get_buffer();
+        REQUIRE(iter1 < iter2);
+        REQUIRE_FALSE(iter1 > iter2);
+        REQUIRE(iter1 <= iter2);
+        REQUIRE_FALSE(iter1 >= iter2);
+        REQUIRE_FALSE(iter1 == iter2);
+        REQUIRE(iter1 != iter2);
 
-    // Iterate until completion:
+        // Checks when iter1 > iter2
 
-    for (int i = 0; i < idata.size(); ++i) {
+        iter1 = iter1 + 10;
 
-        // Determine new value to set:
+        REQUIRE_FALSE(iter1 < iter2);
+        REQUIRE(iter1 > iter2);
+        REQUIRE_FALSE(iter1 <= iter2);
+        REQUIRE(iter1 >= iter2);
+        REQUIRE_FALSE(iter1 == iter2);
+        REQUIRE(iter1 != iter2);
 
-        const long double val = i + 1;
+        // Checks when iter1 == iter2
 
-        // Write new value:
+        iter2 = iter2 + 5;
 
-        iter[i] = val;
-
-        // Ensure value is correct:
-
-        ASSERT_DOUBLE_EQ(iter[i], val);
-        ASSERT_DOUBLE_EQ(iter[i], buff->at(i));
-
-        // Now, write using a different method:
-
-        auto iter2 = iter + i;
-        auto* buff2 = iter2.get_buffer();
-
-        *(iter2) = val + 1;
-
-        // Ensure new value is correct:
-
-        ASSERT_DOUBLE_EQ(*(iter2), val + 1);
-        ASSERT_DOUBLE_EQ(*(iter2), buff2->at(i));
+        REQUIRE_FALSE(iter1 < iter2);
+        REQUIRE_FALSE(iter1 > iter2);
+        REQUIRE(iter1 <= iter2);
+        REQUIRE(iter1 >= iter2);
+        REQUIRE(iter1 == iter2);
+        REQUIRE_FALSE(iter1 != iter2);
     }
-}
 
-/**
- * @brief Ensures BaseMAECIterator correctly respects constant iterators
- *
- */
-TEST(IteratorTest, ConstantIterRead) {
+    SECTION("Iterator Read", "Ensures iterators can be read") {
 
-    // Create ConstantGenericIterator:
+        // Get internal buffer:
 
-    ConstGenericIterator iter(idata);
+        auto* buff = iter1.get_buffer();
 
-    // Get pointer to internal buffer:
+        // Iterate until completion:
 
-    const auto* buff = iter.get_buffer();
+        for (int i = 0; i < idata.size(); ++i) {
 
-    // Iterate until complete:
+            // Ensure current value is accurate:
 
-    for (int i = 0; i < idata.size(); ++i) {
+            REQUIRE_THAT(iter1[i], Catch::Matchers::WithinAbs(buff->at(i), 0.0001));
 
-        // Ensure value is correct:
-
-        ASSERT_DOUBLE_EQ(iter[i], buff->at(i));
-
-        ASSERT_DOUBLE_EQ(*(iter + i), buff->at(i));
-    }
-}
-
-/**
- * @brief Ensures the default Buffer constructor works
- *
- */
-TEST(BufferTest, Construct) {
-
-    // Create the Buffer:
-
-    const Buffer<long double> buff(1, 1);
-
-    // Ensure channel count is valid:
-
-    ASSERT_EQ(buff.channels(), 1);
-    ASSERT_EQ(buff.channel_capacity(), 1);
-    ASSERT_EQ(buff.total_capacity(), 1);
-}
-
-/**
- * @brief Ensures the Buffer constructor with a single channel works
- *
- */
-TEST(BufferTest, ConstructSingle) {
-
-    // Create an Buffer with a single channel:
-
-    Buffer<long double> buff(chan1);
-
-    // Ensure channel number is valid:
-
-    ASSERT_EQ(buff.channels(), 1);
-    ASSERT_EQ(buff.channel_capacity(), chan1.size());
-    ASSERT_EQ(buff.total_capacity(), 1 * chan1.size());
-
-    // Ensure single channel is valid:
-
-    ASSERT_TRUE(std::equal(chan1.begin(), chan1.end(), buff.sbegin()));
-}
-
-/**
- * @brief Ensures the Buffer constructor with multiple channels works
- *
- */
-TEST(BufferTest, ConstructMulti) {
-
-    // Create an Buffer with multiple channels:
-
-    Buffer<long double> buff(data);
-
-    // Ensure channel number if valid:
-
-    ASSERT_EQ(buff.channels(), data.size());
-    ASSERT_EQ(buff.channel_capacity(), chan1.size());
-    ASSERT_EQ(buff.total_capacity(), data.size() * chan1.size());
-
-    // Check split format is valid:
-
-    auto iter1 = buff.sbegin();
-    iter1.set_channel(0);
-    auto iter2 = buff.sbegin();
-    iter2.set_channel(1);
-    auto iter3 = buff.sbegin();
-    iter3.set_channel(2);
-
-    ASSERT_TRUE(std::equal(chan1.begin(), chan1.end(), iter1));
-    ASSERT_TRUE(std::equal(chan2.begin(), chan2.end(), iter2));
-    ASSERT_TRUE(std::equal(chan3.begin(), chan3.end(), iter3));
-}
-
-/**
- * @brief Ensures Buffer sample rate methods work correctly
- *
- */
-TEST(BufferTest, SampleRate) {
-
-    // Create the Buffer:
-
-    Buffer<long double> buff(1, 1);
-
-    // Ensure default sample rate is valid:
-
-    ASSERT_EQ(buff.get_samplerate(), 44100);
-
-    // Set the sample rate:
-
-    buff.set_samplerate(123456);
-
-    // Check the sample rate:
-
-    ASSERT_EQ(buff.get_samplerate(), 123456);
-}
-
-/**
- * @brief Ensures data can be retrieved from the buffer correctly
- *
- */
-TEST(BufferTest, Retrieval) {
-
-    // Construct a multi channel buffer:
-
-    Buffer buff(data);
-
-    // First, ensure channel / sample retrieval works:
-
-    for (int chan = 0; chan < buff.channels(); ++chan) {
-
-        // Iterate over samples:
-
-        for (int samp = 0; samp < buff.channel_capacity(); ++samp) {
-
-            // Ensure value is accurate:
-
-            ASSERT_DOUBLE_EQ(buff.at(chan, samp), data.at(chan).at(samp));
+            REQUIRE_THAT(*(iter1 + i), Catch::Matchers::WithinAbs(buff->at(i), 0.0001));
         }
     }
 
-    // Now, ensure interleaved retrieval works:
+    SECTION("Iterator Write", "Ensures iterators can be written") {
 
-    for (int i = 0; i < buff.total_capacity(); ++i) {
+        // Get a pointer to the buffer:
 
-        ASSERT_DOUBLE_EQ(buff.at(i), idata.at(i));
+        auto* buff = iter1.get_buffer();
+
+        // Iterate until completion:
+
+        for (int i = 0; i < idata.size(); ++i) {
+
+            // Determine new value to set:
+
+            const long double val = i + 1;
+
+            // Write new value:
+
+            iter1[i] = val;
+
+            // Ensure value is correct:
+
+            REQUIRE_THAT(iter1[i], Catch::Matchers::WithinAbs(val, 0.0001));
+            REQUIRE_THAT(iter1[i], Catch::Matchers::WithinAbs(buff->at(i), 0.0001));
+
+            // Now, write using a different method:
+
+            auto iter2 = iter1 + i;
+            auto* buff2 = iter2.get_buffer();
+
+            *(iter2) = val + 1;
+
+            // Ensure new value is correct:
+
+            REQUIRE_THAT(*(iter2), Catch::Matchers::WithinAbs(val + 1, 0.0001));
+            REQUIRE_THAT(*(iter2), Catch::Matchers::WithinAbs(buff2->at(i), 0.0001));
+        }
+    }
+
+    SECTION("Constant Iterator Read", "Ensures the constant iterator reads correctly") {
+
+        // Create ConstantGenericIterator:
+
+        ConstGenericIterator iter(idata);
+
+        // Get pointer to internal buffer:
+
+        const auto* buff = iter.get_buffer();
+
+        // Iterate until complete:
+
+        for (int i = 0; i < idata.size(); ++i) {
+
+            // Ensure value is correct:
+
+            REQUIRE_THAT(iter[i], Catch::Matchers::WithinAbs(buff->at(i), 0.0001));
+
+            REQUIRE_THAT(*(iter + i), Catch::Matchers::WithinAbs(buff->at(i), 0.0001));
+        }
     }
 }
 
-/**
- * @brief Ensures a fill operation works correctly
- *
- */
-TEST(BufferTest, Fill) {
+TEST_CASE("Buffer Test", "[buff]") {
 
-    // Create an empty buffer:
+    SECTION("Construct", "Ensures a buffer can be constructed") {
 
-    Buffer<int> buff(10, 3);
+        // Create the Buffer:
 
-    // Fill with zeros:
+        const Buffer<long double> buff(1, 1);
 
-    buff.fill();
+        // Ensure channel count is valid:
 
-    // Ensure each value is zero:
+        REQUIRE(buff.channels() == 1);
+        REQUIRE(buff.channel_capacity() == 1);
+        REQUIRE(buff.total_capacity() == 1);
+    }
 
-    for (int i = 0; i < buff.total_capacity(); ++i) {
+    SECTION("Construct Single Channel", "Ensures a buffer can be created with a single channel") {
 
-        // Ensure current value is zero:
+        // Create an Buffer with a single channel:
 
-        ASSERT_EQ(0, buff.at(i));
+        Buffer<long double> buff(chan1);
+
+        // Ensure channel number is valid:
+
+        REQUIRE(buff.channels() == 1);
+        REQUIRE(buff.channel_capacity() == chan1.size());
+        REQUIRE(buff.total_capacity() == 1 * chan1.size());
+
+        // Ensure single channel is valid:
+
+        REQUIRE(std::equal(chan1.begin(), chan1.end(), buff.sbegin()));
+    }
+
+    SECTION("Construct Mutli-Channel", "Ensures a buffer can be created with multiple channels") {
+
+        // Create an Buffer with multiple channels:
+
+        Buffer<long double> buff(data);
+
+        // Ensure channel number if valid:
+
+        REQUIRE(buff.channels() == data.size());
+        REQUIRE(buff.channel_capacity() == chan1.size());
+        REQUIRE(buff.total_capacity() == data.size() * chan1.size());
+
+        // Check split format is valid:
+
+        auto iter1 = buff.sbegin();
+        iter1.set_channel(0);
+        auto iter2 = buff.sbegin();
+        iter2.set_channel(1);
+        auto iter3 = buff.sbegin();
+        iter3.set_channel(2);
+
+        REQUIRE(std::equal(chan1.begin(), chan1.end(), iter1));
+        REQUIRE(std::equal(chan2.begin(), chan2.end(), iter2));
+        REQUIRE(std::equal(chan3.begin(), chan3.end(), iter3));
+    }
+
+    SECTION("Samplerate", "Ensures we can get and set the samplerate") {
+
+        // Create the Buffer:
+
+        Buffer<long double> buff(1, 1);
+
+        // Ensure default sample rate is valid:
+
+        REQUIRE(buff.get_samplerate() == 44100);
+
+        // Set the sample rate:
+
+        buff.set_samplerate(123456);
+
+        // Check the sample rate:
+
+        REQUIRE(buff.get_samplerate() == 123456);
+    }
+
+    SECTION("Retrieval", "Ensures data can be retrieved from the buffer") {
+
+        // Construct a multi channel buffer:
+
+        Buffer buff(data);
+
+        // First, ensure channel / sample retrieval works:
+
+        for (int chan = 0; chan < buff.channels(); ++chan) {
+
+            // Iterate over samples:
+
+            for (int samp = 0; samp < buff.channel_capacity(); ++samp) {
+
+                // Ensure value is accurate:
+
+                REQUIRE_THAT(buff.at(chan, samp), Catch::Matchers::WithinAbs(data.at(chan).at(samp), 0.0001));
+            }
+        }
+
+        // Now, ensure interleaved retrieval works:
+
+        for (int i = 0; i < buff.total_capacity(); ++i) {
+
+            REQUIRE_THAT(buff.at(i), Catch::Matchers::WithinAbs(idata.at(i), 0.0001));
+        }
+    }
+
+    SECTION("Fill", "Ensures a buffer can be filled") {
+
+        // Create an empty buffer:
+
+        Buffer<int> buff(10, 3);
+
+        // Fill with zeros:
+
+        buff.fill();
+
+        // Ensure each value is zero:
+
+        for (int i = 0; i < buff.total_capacity(); ++i) {
+
+            // Ensure current value is zero:
+
+            REQUIRE(0 == buff.at(i));
+        }
+    }
+
+    SECTION("Fill Partial", "Ensures a buffer can be partially filled") {
+
+        // Create a partial buffer:
+
+        Buffer<long double> buff(chan1);
+
+        // Make the capacity bigger:
+
+        buff.set_channel_capacity(10);
+        buff.set_channels(3);
+
+        // Now, fill with zero:
+
+        buff.fill();
+
+        // Iterate over the first section:
+
+        for (int i = 0; i < chan1.size(); ++i) {
+
+            // Ensure value is accurate:
+
+            REQUIRE_THAT(buff.at(i), Catch::Matchers::WithinAbs(chan1.at(i), 0.0001));
+        }
+
+        // Now, ensure the rest is filled with zeros:
+
+        for (int i = static_cast<int>(chan1.size()); i < buff.total_capacity();
+             ++i) {
+
+            // Ensure value is zero:
+
+            REQUIRE_THAT(buff.at(i), Catch::Matchers::WithinAbs(0, 0.0001));
+        }
+    }
+
+    SECTION("Channel Size", "Ensures the channels can be get/set") {
+
+        // Create a buffer with 10 samples and 5 channels:
+
+        Buffer<long double> buff(10, 5);
+
+        // Ensure constructor works:
+
+        REQUIRE(buff.channel_capacity() == 10);
+        REQUIRE(buff.channels() == 5);
+        REQUIRE(buff.total_capacity() == static_cast<int64_t>(10 * 5));
+
+        // Change the values:
+
+        buff.set_channels(9);
+        buff.set_channel_capacity(7);
+
+        // Ensure these values are in place:
+
+        REQUIRE(buff.channel_capacity() == 7);
+        REQUIRE(buff.channels() == 9);
+        REQUIRE(buff.total_capacity() == static_cast<int64_t>(9 * 7));
+    }
+
+    SECTION("Iterator Tests", "Tests the iterators included with the buffer") {
+
+        // Create the Buffer:
+
+        Buffer buff(data);
+
+        SECTION("Interleaved Iterator Read", "Ensures the interleaved iterator can read correctly") {
+
+            // Iterate over said buffer sequentially:
+
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
+
+                // Get the current value:
+
+                const long double val = *iter;
+
+                // Ensure this value is correct:
+
+                REQUIRE(val == data.at(iter.get_channel()).at(iter.get_sample()));
+
+                // Finally, ensure data is valid against known good set:
+
+                REQUIRE(val == idata.at(iter.get_index()));
+            }
+        }
+
+        SECTION("Sequential Iterator Read", "Ensures the sequential iterator can read") {
+
+            // Iterate over said buffer:
+
+            for (auto iter = buff.sbegin(); iter != buff.send(); ++iter) {
+
+                // Get the current value:
+
+                const long double val = *iter;
+
+                // Ensure this value is correct:
+
+                REQUIRE(val == data.at(iter.get_channel()).at(iter.get_sample()));
+
+                // Finally, ensure data is valid against known good set:
+
+                REQUIRE(val == sdata.at(iter.get_index()));
+            }
+        }
+
+        SECTION("Sequential Iterator Read Reverse",
+                "Ensures the sequential iterator can be read in reverse") {
+
+            // Iterate over it backwards:
+
+            auto biter = sdata.rbegin();
+            int traversed = 0;
+
+            for (auto iter = buff.srbegin(); iter != buff.srend(); ++iter) {
+
+                // Ensure current value works:
+
+                REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(*biter, 0.0001));
+
+                ++biter;
+                ++traversed;
+            }
+
+            // Ensure we iterated over enough values:
+
+            REQUIRE(traversed == sdata.size());
+        }
+
+        SECTION("Interleaved Iterator Read Reverse", "Ensures the Interleaved iterator can read in reverse") {
+
+            // Iterate over it backwards:
+
+            auto biter = idata.rbegin();
+            int traversed = 0;
+
+            for (auto iter = buff.irbegin(); iter != buff.irend(); ++iter) {
+
+                // Ensure current value works:
+
+                REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(*biter, 0.0001));
+
+                ++biter;
+                ++traversed;
+            }
+
+            // Ensure we iterated over enough values:
+
+            REQUIRE(traversed == idata.size());
+        }
+
+        SECTION("Interleaved Iterator Constant", "Ensures the constant interleaved iterator can read data") {
+
+            // Iterate over it:
+
+            for (auto iter = buff.icbegin(); iter != buff.icend(); ++iter) {
+
+                // Read the value:
+
+                REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(data.at(iter.get_channel()).at(iter.get_sample()), 0.0001));
+            }
+        }
+
+        SECTION("Sequential Iterator Constant", "Ensures the sequential constant iterator can read data") {
+
+            // Iterate over it:
+
+            for (auto iter = buff.scbegin(); iter != buff.scend(); ++iter) {
+
+                // Read the value:
+
+                REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(data.at(iter.get_channel()).at(iter.get_sample()), 0.0001));
+            }
+        }
+
+        SECTION("Interleaved Iterator Write", "Ensures the interleaved iterator can write") {
+
+            // Iterate over interleaved data:
+
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
+
+                // Determine the new value:
+
+                const long double val = 10. * iter.get_index() + 1;
+
+                // Change the current value:
+
+                *iter = val;
+
+                // Ensure that the value is 99:
+
+                REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(val, 0.0001));
+                REQUIRE_THAT(buff.at(iter.get_index()), Catch::Matchers::WithinAbs(val, 0.0001));
+            }
+
+            // Now, use an algorithm method:
+
+            std::fill(buff.ibegin(), buff.iend(), 454);
+
+            // Finally, ensure that all values are 454
+
+            bool res = std::all_of(buff.ibegin(), buff.iend(),
+                                   [](long double num) { return num == 454.0; });
+
+            REQUIRE(res);
+        }
+
+        SECTION("Sequential Iterator Write", "Ensures the sequential iterator can write") {
+
+            // Iterate over interleaved data:
+
+            for (auto iter = buff.sbegin(); iter != buff.send(); ++iter) {
+
+                // Determine the new value:
+
+                const long double val = 10. * iter.get_index() + 1;
+
+                // Change the current value:
+
+                *iter = val;
+
+                // Ensure that the value is the set value:
+
+                REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(val, 0.0001));
+                REQUIRE_THAT(buff.at(iter.get_channel(), iter.get_sample()),
+                             Catch::Matchers::WithinAbs(val, 0.0001));
+            }
+
+            // Now, use an algorithm method:
+
+            std::fill(buff.sbegin(), buff.send(), 454);
+
+            // Finally, ensure that all values are 454
+
+            bool res = std::all_of(buff.sbegin(), buff.send(),
+                                   [](long double num) { return num == 454.0; });
+
+            REQUIRE(res);
+        }
+
+        SECTION("Interleaved Iterator Seek", "Ensures the Interleaved Iterator can seek to data") {
+
+            // Get an iterator:
+
+            auto iter = buff.ibegin();
+
+            // Seek to a specific sample:
+
+            iter.set_sample(3);
+
+            // Ensure the index is correct:
+
+            REQUIRE(iter.get_index() == 9);
+
+            // Next, seek to a specific position:
+
+            iter.set_position(1, 4);
+
+            // Finally, ensure this position is correct:
+
+            REQUIRE(iter.get_index() == 13);
+        }
+
+        SECTION("Sequential Iterator Seek", "Ensures the sequential iterator can seek") {
+
+            // Get an iterator:
+
+            auto iter = buff.sbegin();
+
+            // Seek to a specific channel:
+
+            iter.set_channel(1);
+
+            // Ensure the index is correct:
+
+            REQUIRE(iter.get_index() == 10);
+
+            // Next, seek to a specific position:
+
+            iter.set_position(1, 4);
+
+            // Finally, ensure this position is correct:
+
+            REQUIRE(iter.get_index() == 14);
+        }
     }
 }
 
-TEST(BufferTest, FillPartial) {
+TEST_CASE("Ring Buffer Test", "[buff][ring]") {
 
-    // Create a partial buffer:
+    SECTION("Construct", "Ensures the ring buffer can be constructed") {
 
-    Buffer<long double> buff(chan1);
+        // Create a RinBuffer:
 
-    // Make the capacity bigger:
+        const RingBuffer<long double> ring;
 
-    buff.set_channel_capacity(10);
-    buff.set_channels(3);
+        // Ensure size is accurate:
 
-    // Now, fill with zero:
-
-    buff.fill();
-
-    // Iterate over the first section:
-
-    for (int i = 0; i < chan1.size(); ++i) {
-
-        // Ensure value is accurate:
-
-        ASSERT_DOUBLE_EQ(buff.at(i), chan1.at(i));
+        REQUIRE(ring.size() == 0);
     }
 
-    // Now, ensure the rest is filled with zeros:
+    SECTION("Construct Size", "Ensures we can construct a RingBuffer with a size") {
 
-    for (int i = static_cast<int>(chan1.size()); i < buff.total_capacity();
-         ++i) {
+        // Create a RingBuffer:
 
-        // Ensure value is zero:
+        const RingBuffer<long double> ring(10);
 
-        ASSERT_DOUBLE_EQ(buff.at(i), 0);
-    }
-}
+        // Ensure size is accurate:
 
-/**
- * @brief Ensures the getters and setters for channel/sample size work
- *
- */
-TEST(BufferTest, ChannelSize) {
-
-    // Create a buffer with 10 samples and 5 channels:
-
-    Buffer<long double> buff(10, 5);
-
-    // Ensure constructor works:
-
-    ASSERT_EQ(buff.channel_capacity(), 10);
-    ASSERT_EQ(buff.channels(), 5);
-    ASSERT_EQ(buff.total_capacity(), 10 * 5);
-
-    // Change the values:
-
-    buff.set_channels(9);
-    buff.set_channel_capacity(7);
-
-    // Ensure these values are in place:
-
-    ASSERT_EQ(buff.channel_capacity(), 7);
-    ASSERT_EQ(buff.channels(), 9);
-    ASSERT_EQ(buff.total_capacity(), 9 * 7);
-}
-
-/**
- * @brief Ensures the Buffer interleaved iterator read operations work correctly
- *
- */
-TEST(BufferTest, InterleavedIterRead) {
-
-    // Create the Buffer:
-
-    Buffer buff(data);
-
-    // Iterate over said buffer sequentially:
-
-    for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
-
-        // Get the current value:
-
-        const long double val = *iter;
-
-        // Ensure this value is correct:
-
-        ASSERT_EQ(val, data.at(iter.get_channel()).at(iter.get_sample()));
-
-        // Finally, ensure data is valid against known good set:
-
-        ASSERT_EQ(val, idata.at(iter.get_index()));
-    }
-}
-
-/**
- * @brief Ensures the Buffer sequential iterator read operations work correctly
- *
- */
-TEST(BufferTest, SequentialIterRead) {
-
-    // Create the Buffer:
-
-    Buffer buff(data);
-
-    // Iterate over said buffer:
-
-    for (auto iter = buff.sbegin(); iter != buff.send(); ++iter) {
-
-        // Get the current value:
-
-        const long double val = *iter;
-
-        // Ensure this value is correct:
-
-        ASSERT_EQ(val, data.at(iter.get_channel()).at(iter.get_sample()));
-
-        // Finally, ensure data is valid against known good set:
-
-        ASSERT_EQ(val, sdata.at(iter.get_index()));
-    }
-}
-
-/**
- * @brief Ensures we can read data sequentially backwards
- *
- */
-TEST(BufferTest, SequentialIterReadReverse) {
-
-    // Create a buffer:
-
-    Buffer buff(data);
-
-    // Iterate over it backwards:
-
-    auto biter = sdata.rbegin();
-    int traversed = 0;
-
-    for (auto iter = buff.srbegin(); iter != buff.srend(); ++iter) {
-
-        // Ensure current value works:
-
-        ASSERT_DOUBLE_EQ(*iter, *biter);
-
-        ++biter;
-        ++traversed;
+        REQUIRE(ring.size() == 10);
     }
 
-    // Ensure we iterated over enough values:
+    SECTION("Construct Data", "Ensures we can construct a RingBuffer with a size") {
 
-    ASSERT_EQ(traversed, sdata.size());
-}
+        // Create a RingBuffer:
 
-/**
- * @brief Ensures we can read data sequentially backwards
- *
- */
-TEST(BufferTest, InterleavedIterReadReverse) {
+        const RingBuffer<long double> ring(chan1);
 
-    // Create a buffer:
+        // Ensure size is accurate:
 
-    Buffer buff(data);
-
-    // Iterate over it backwards:
-
-    auto biter = idata.rbegin();
-    int traversed = 0;
-
-    for (auto iter = buff.irbegin(); iter != buff.irend(); ++iter) {
-
-        // Ensure current value works:
-
-        ASSERT_DOUBLE_EQ(*iter, *biter);
-
-        ++biter;
-        ++traversed;
+        REQUIRE(ring.size() == 10);
     }
 
-    // Ensure we iterated over enough values:
+    SECTION("Reserve", "Ensures we can reserve a RingBuffer with a size") {
 
-    ASSERT_EQ(traversed, idata.size());
-}
+        // Create a RingBuffer:
 
-/**
- * @brief Ensures we can read from interleaved constant iterators
- *
- */
-TEST(BufferTest, InterleavedConstant) {
+        RingBuffer<long double> ring;
 
-    // Create a buffer:
+        // Reserve some space:
 
-    Buffer buff(data);
+        ring.reserve(10);
 
-    // Iterate over it:
+        // Ensure size is accurate:
 
-    for (auto iter = buff.icbegin(); iter != buff.icend(); ++iter) {
-
-        // Read the value:
-
-        ASSERT_DOUBLE_EQ(*iter,
-                         data.at(iter.get_channel()).at(iter.get_sample()));
-    }
-}
-
-/**
- * @brief Ensures we can read from sequential constant iterators
- *
- */
-TEST(BufferTest, SequencialConstant) {
-
-    // Create a buffer:
-
-    Buffer buff(data);
-
-    // Iterate over it:
-
-    for (auto iter = buff.scbegin(); iter != buff.scend(); ++iter) {
-
-        // Read the value:
-
-        ASSERT_DOUBLE_EQ(*iter,
-                         data.at(iter.get_channel()).at(iter.get_sample()));
-    }
-}
-
-/**
- * @brief Ensures the Buffer interleaved iterator write operations work
- * correctly
- *
- */
-TEST(BufferTest, InterleavedIterWrite) {
-
-    // Create a buffer with dummy data:
-
-    Buffer buff(data);
-
-    // Iterate over interleaved data:
-
-    for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
-
-        // Determine the new value:
-
-        const long double val = 10. * iter.get_index() + 1;
-
-        // Change the current value:
-
-        *iter = val;
-
-        // Ensure that the value is 99:
-
-        ASSERT_DOUBLE_EQ(*iter, val);
-        ASSERT_DOUBLE_EQ(buff.at(iter.get_index()), val);
+        REQUIRE(ring.size() == 10);
     }
 
-    // Now, use an algorithm method:
+    SECTION("Retrieval", "Ensures we can retrieve data from the RingBuffer") {
 
-    std::fill(buff.ibegin(), buff.iend(), 454);
+        // Create a RingBuffer:
 
-    // Finally, ensure that all values are 454
+        RingBuffer<long double> ring(chan1);
 
-    ASSERT_TRUE(std::all_of(buff.ibegin(), buff.iend(),
-                            [](long double num) { return num == 454.0; }));
-}
+        // Access some values:
 
-/**
- * @brief Ensures the Buffer sequential iterator write operations work correctly
- *
- */
-TEST(BufferTest, SequentialIterWrite) {
+        for (int i = 0; i < ring.size() * 2; ++i) {
 
-    // Create a buffer with dummy data:
-
-    Buffer buff(data);
-
-    // Iterate over interleaved data:
-
-    for (auto iter = buff.sbegin(); iter != buff.send(); ++iter) {
-
-        // Determine the new value:
-
-        const long double val = 10. * iter.get_index() + 1;
-
-        // Change the current value:
-
-        *iter = val;
-
-        // Ensure that the value is the set value:
-
-        ASSERT_DOUBLE_EQ(*iter, val);
-        ASSERT_DOUBLE_EQ(buff.at(iter.get_channel(), iter.get_sample()), val);
+            REQUIRE_THAT(ring[i], Catch::Matchers::WithinAbs(chan1[i % ring.size()], 0.0001));
+            REQUIRE_THAT(ring[i % ring.size()], Catch::Matchers::WithinAbs(chan1[i % ring.size()], 0.0001));
+        }
     }
 
-    // Now, use an algorithm method:
+    SECTION("Iterator Tests", "Tests for iterator operations") {
 
-    std::fill(buff.sbegin(), buff.send(), 454);
+        // Create a RingBuffer:
 
-    // Finally, ensure that all values are 454
+        RingBuffer<long double> ring(chan1);
 
-    ASSERT_TRUE(std::all_of(buff.sbegin(), buff.send(),
-                            [](long double num) { return num == 454.0; }));
-}
+        SECTION("Iterator Read", "Ensures the iterator can read data") {
 
-/**
- * @brief Ensures the Buffer interleaved iterator seek operations work correctly
- *
- */
-TEST(BufferTest, InterleavedIterSeek) {
+            // Create a RingBuffer:
 
-    // Create an audio buffer:
+            RingBuffer<long double> ring(chan1);
 
-    Buffer buff(data);
+            // Iterate over the values:
 
-    // Get an iterator:
+            auto ring_iter = ring.begin();
 
-    auto iter = buff.ibegin();
+            for (int i = 0; i < ring.size() * 2; ++i) {
 
-    // Seek to a specific sample:
+                REQUIRE_THAT(ring_iter[i], Catch::Matchers::WithinAbs(ring[i], 0.0001));
+                REQUIRE_THAT(ring_iter[i % ring.size()], Catch::Matchers::WithinAbs(ring[i % ring.size()], 0.0001));
+            }
+        }
 
-    iter.set_sample(3);
+        SECTION("Iterator Write", "Ensures the iterator can write") {
 
-    // Ensure the index is correct:
+            // Iterate over the values:
 
-    ASSERT_EQ(iter.get_index(), 9);
+            auto ring_iter = ring.begin();
 
-    // Next, seek to a specific position:
+            for (int i = 0; i < ring.size() * 2; ++i) {
 
-    iter.set_position(1, 4);
+                // Write a new value:
 
-    // Finally, ensure this position is correct:
+                ring_iter[i] = 99.;
 
-    ASSERT_EQ(iter.get_index(), 13);
-}
+                // Ensure the value is correct:
 
-/**
- * @brief Ensures the Buffer sequential iterator seek operations work correctly
- *
- */
-TEST(BufferTest, SequentialIterSeek) {
+                REQUIRE_THAT(ring_iter[i], Catch::Matchers::WithinAbs(99., 0.0001));
+            }
 
-    // Create an audio buffer:
+            // Now, use an algorithm method:
 
-    Buffer buff(data);
+            std::fill(ring.begin(), ring.end(), 454);
 
-    // Get an iterator:
+            // Finally, ensure that all values are 454
 
-    auto iter = buff.sbegin();
+            bool res = std::all_of(ring.begin(), ring.end(),
+                                   [](long double num) { return num == 454.0; });
 
-    // Seek to a specific channel:
-
-    iter.set_channel(1);
-
-    // Ensure the index is correct:
-
-    ASSERT_EQ(iter.get_index(), 10);
-
-    // Next, seek to a specific position:
-
-    iter.set_position(1, 4);
-
-    // Finally, ensure this position is correct:
-
-    ASSERT_EQ(iter.get_index(), 14);
-}
-
-/**
- * @brief Ensures default construction of a RingBuffer works as expected.
- *
- */
-TEST(RingBufferTest, Construct) {
-
-    // Create a RinBuffer:
-
-    const RingBuffer<long double> ring;
-
-    // Ensure size is accurate:
-
-    ASSERT_EQ(ring.size(), 0);
-}
-
-/**
- * @brief Ensures construction of a RingBuffer with a size works as expected.
- *
- */
-TEST(RingBufferTest, ConstructSize) {
-
-    // Create a RingBuffer:
-
-    const RingBuffer<long double> ring(10);
-
-    // Ensure size is accurate:
-
-    ASSERT_EQ(ring.size(), 10);
-}
-
-/**
- * @brief Ensures construction of a RingBuffer with data works as expected.
- *
- */
-TEST(RingBufferTest, ConstructData) {
-
-    // Create a RingBuffer:
-
-    const RingBuffer<long double> ring(chan1);
-
-    // Ensure size is accurate:
-
-    ASSERT_EQ(ring.size(), 10);
-}
-
-/**
- * @brief Ensures RingBuffer reserve works correctly
- *
- */
-TEST(RingBufferTest, Reserve) {
-
-    // Create a RingBuffer:
-
-    RingBuffer<long double> ring;
-
-    // Reserve some space:
-
-    ring.reserve(10);
-
-    // Ensure size is accurate:
-
-    ASSERT_EQ(ring.size(), 10);
-}
-
-/**
- * @brief Ensures RingBuffer data can be accessed correctly
- *
- */
-TEST(RingBufferTest, Access) {
-
-    // Create a RingBuffer:
-
-    RingBuffer<long double> ring(chan1);
-
-    // Access some values:
-
-    for (int i = 0; i < ring.size() * 2; ++i) {
-
-        ASSERT_DOUBLE_EQ(ring[i], chan1[i % ring.size()]);
-        ASSERT_DOUBLE_EQ(ring[i % ring.size()], chan1[i % ring.size()]);
+            REQUIRE(res);
+        }
     }
-}
-
-/**
- * @brief Ensures RingBuffer iterators can read correctly
- *
- */
-TEST(RingBufferTest, IterRead) {
-
-    // Create a RingBuffer:
-
-    RingBuffer<long double> ring(chan1);
-
-    // Iterate over the values:
-
-    auto ring_iter = ring.begin();
-
-    for (int i = 0; i < ring.size() * 2; ++i) {
-
-        ASSERT_DOUBLE_EQ(ring_iter[i], ring[i]);
-        ASSERT_DOUBLE_EQ(ring_iter[i % ring.size()], ring[i % ring.size()]);
-    }
-}
-
-/**
- * @brief Ensures the RingBuffer iterators can write correctly
- *
- */
-TEST(RingBufferTest, IterWrite) {
-
-    // Create a RingBuffer:
-
-    RingBuffer<long double> ring(chan1);
-
-    // Iterate over the values:
-
-    auto ring_iter = ring.begin();
-
-    for (int i = 0; i < ring.size() * 2; ++i) {
-
-        // Write a new value:
-
-        ring_iter[i] = 99.;
-
-        // Ensure the value is correct:
-
-        ASSERT_DOUBLE_EQ(ring_iter[i], 99.);
-    }
-
-    // Now, use an algorithm method:
-
-    std::fill(ring.begin(), ring.end(), 454);
-
-    // Finally, ensure that all values are 454
-
-    ASSERT_TRUE(std::all_of(ring.begin(), ring.end(),
-                            [](long double num) { return num == 454.0; }));
 }
