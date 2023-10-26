@@ -66,7 +66,7 @@ if (FFTW_FOUND)
 
   # Include FFTW for linking:
 
-  include_directories(${FFTW_INCLUDE_DIRS})
+  include_directories(${FFTW_INCLUDE_DIRS} SYSTEM)
   target_link_libraries(maec ${FFTW_LIBRARIES})
 
 endif(FFTW_FOUND)
