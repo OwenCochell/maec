@@ -1,4 +1,4 @@
-project(TTests)
+project(Test)
 
 # Unit tests managed by Catch2
 
@@ -38,10 +38,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 # Adding the tests target
-add_executable(tests ${TEST_FILES})
+add_executable(test ${TEST_FILES})
 
 # Linking Tests_run with the Google Test libraries
-target_link_libraries(tests PRIVATE maec Catch2::Catch2WithMain)
+target_link_libraries(test PRIVATE maec Catch2::Catch2WithMain)
 
 # Add Catch2 extra modules to the CMAKE_MODULE_PATH
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
@@ -49,4 +49,4 @@ list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 # Include Catch2 Test for testing
 include(Catch)
 
-catch_discover_tests(tests)
+catch_discover_tests(test)

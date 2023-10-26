@@ -13,7 +13,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include "alsa_module.hpp"
+#include "io/alsa_module.hpp"
 #include "base_oscillator.hpp"
 
 TEST_CASE("ALSABase Test", "[alsa]") {
