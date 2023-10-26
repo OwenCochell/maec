@@ -13,7 +13,7 @@
 
 #ifdef ALSA_F
 
-#include "alsa_module.hpp"
+#include "io/alsa_module.hpp"
 #include "fund_oscillator.hpp"
 #include "filter_module.hpp"
 #include "meta_audio.hpp"
