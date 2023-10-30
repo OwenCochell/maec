@@ -12,10 +12,20 @@
  * so modules can read and write to wave files.
  */
 
+#include <istream>
 #include <fstream>
 
 #include "../sink_module.hpp"
 #include "../source_module.hpp"
+
+struct ChunkHeader {
+
+    /// Chunk ID of the header
+    char chunk_id[4];
+
+    /// Size of the chunk
+    u_int32_t chunk_size;
+};
 
 /**
  * @brief Struct that represents a wave file header
@@ -27,12 +37,32 @@ struct WavHeader {
     char chunk_id[4];
 
     /// Chunk size, in this case the size of the file minus 8
-    int chunk_size;
+    uint32_t chunk_size;
 
     /// Format, in this case "WAVE"
     char format[4];
 };
 
+struct WaveFormat {
+
+    /// Format of the wave data, in this case 1
+    uint16_t format;
+
+    /// Number of channels in the wave data
+    uint16_t channels;
+
+    /// Sample rate of the wave data
+    uint32_t sample_rate;
+
+    /// Byte rate of the wave data
+    uint32_t byte_rate;
+
+    /// Block align of the wave data
+    uint16_t block_align;
+
+    /// Bits per sample of the wave data
+    uint16_t bits_per_sample;
+};
 
 /**
  * @brief Base class for wave data manipulation
@@ -172,5 +202,37 @@ private:
  * 
  */
 class WaveReader : public BaseWave {
+public:
 
-}
+    /**
+     * @brief Starts this wave file for reading
+     * 
+     * You should call this method before any read operations!
+     * This component will open the file and do some preliminary checks.
+     */
+    void start();
+
+private:
+
+    /**
+     * @brief Reads the header of the current chunk
+     * 
+     * The chunk header contains the chunk ID and size,
+     * which is used by other methods to process the chunk.
+     * 
+     */
+    void read_chunk_header(ChunkHeader& header);
+
+    /**
+     * @brief Reads the wave header chunk
+     *
+     * The wave header chunk contains the format of the wave data,
+     * which is used by other methods to process the wave data. 
+     *
+     * @param header 
+     */
+    void read_wave_header(WavHeader& header);
+
+    /// Stream we are reading from
+    std::istream str;
+};

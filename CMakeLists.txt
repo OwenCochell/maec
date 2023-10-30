@@ -20,6 +20,7 @@ add_library(${PROJECT_NAME}
     src/envelope.cpp
     src/utils.cpp
     src/filter_module.cpp
+    src/io/wav.cpp
     src/dsp/conv.cpp
     src/dsp/ft.cpp
     src/dsp/util.cpp
