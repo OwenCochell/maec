@@ -36,21 +36,25 @@
  */
 template <typename C>
 class BaseMStream {
-private:
+protected:
 
-    /// Boolean determining if this stream is input
-    bool input = false;
+    /**
+     * @brief Sets our input value
+     * 
+     * @param val Value to set
+     */
+    void set_input(bool val) { this->input = val; }
 
-    /// Boolean determining if this stream is output
-    bool output = false;
-
-    /// State definition
-    enum mstate {init, started, stoped, err};
-
-    /// Current state of mstream
-    mstate state = init;
+    /**
+     * @brief Sets our output value
+     * 
+     * @param val Value to set
+     */
+    void set_output(bool val) { this->output = val; }
 
 public:
+    /// State definition
+    enum mstate { init, started, stopped, err };
 
     /**
      * @brief Start method for mstreams
@@ -60,7 +64,7 @@ public:
      * We will not only configure the state of the mstream,
      * but we will also call the child start method.
      * Child mstreams should put any start code into this method.
-     * 
+     *
      * Before a mstream is used, it SHOULD be started.
      */
     void start() {
@@ -95,7 +99,7 @@ public:
 
         // Set stop state:
 
-        this->state = stoped;
+        this->state = stopped;
     }
 
     /**
@@ -108,8 +112,6 @@ public:
      */
     mstate get_state() const { return this->state; }
 
-    bool is_input() { return this->reading; }
-
     /**
      * @brief Determines if we are an output mstream
      * 
@@ -117,6 +119,24 @@ public:
      * @return false We are not an output stream
      */
     bool is_output() { return this->output; }
+
+    /**
+     * @brief Determines if we are an input stream
+     * 
+     * @return true We are an input stream
+     * @return false We are not an input stream
+     */
+    bool is_input() { return this->input; }
+
+private:
+    /// Boolean determining if this stream is input
+    bool input = false;
+
+    /// Boolean determining if this stream is output
+    bool output = false;
+
+    /// Current state of mstream
+    mstate state = init;
 };
 
 /**
@@ -131,6 +151,23 @@ public:
 template <typename C>
 class BaseMIStream : public BaseMIStream<BaseMIStream<C>> {
 public:
+
+    /**
+     * @brief Starts this mistream
+     * 
+     * We simply set our input status and call
+     * the child start method.
+     */
+    void start() {
+
+        // Change our input/output state:
+
+        this->set_input(true);
+
+        // Call start method of child:
+
+        static_cast<C*>(this)->start();
+    }
 
     /**
      * @brief Reads a number of bytes from the stream
@@ -163,6 +200,23 @@ public:
 template <typename C>
 class BaseMOStream : public BaseMStream<C> {
 public:
+
+    /**
+     * @brief Starts this mostream
+     * 
+     * We simply set the output status,
+     * and call the child start method
+     */
+    void start() {
+
+        // Set our write status:
+
+        this->set_output(true);
+
+        // Call start method of child:
+
+        static_cast<C*>(this)->start();
+    }
 
     /**
      * @brief Writes a number of bytes to the stream
