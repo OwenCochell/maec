@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <fstream>
+
 /**
  * @brief Base class for mstreams
  * 
@@ -34,24 +36,8 @@
  * - stopped - mstream is in stop state, no longer can be utilized
  * - err - mstream is in a bad state, no longer can be utilized
  */
-template <typename C>
+template<bool Input = false, bool Output = false>
 class BaseMStream {
-protected:
-
-    /**
-     * @brief Sets our input value
-     * 
-     * @param val Value to set
-     */
-    void set_input(bool val) { this->input = val; }
-
-    /**
-     * @brief Sets our output value
-     * 
-     * @param val Value to set
-     */
-    void set_output(bool val) { this->output = val; }
-
 public:
     /// State definition
     enum mstate { init, started, stopped, err };
@@ -61,17 +47,12 @@ public:
      *
      * This method is called when the user is
      * ready to utilize the mstream.
-     * We will not only configure the state of the mstream,
-     * but we will also call the child start method.
+     * This method only sets the run state.
      * Child mstreams should put any start code into this method.
      *
      * Before a mstream is used, it SHOULD be started.
      */
-    void start() {
-
-        // call child method:
-
-        static_cast<C*>(this)->start();
+    virtual void start() {
 
         // Set state:
 
@@ -83,19 +64,14 @@ public:
      * 
      * This method is called when the user is
      * ready to stop the mstream.
-     * We will configure the state and call the child stop method.
-     * Child streams should put any stop code into this method.
+     * We will only configure the state.
      * 
      * After a stream has been stopped, it SHOULD NOT
      * be used again.
      * If an mstream is in the stop state,
      * then the state should be considered useless.
      */
-    void stop() {
-
-        // Call child method:
-
-        static_cast<C*>(this)->stop();
+    virtual void stop() {
 
         // Set stop state:
 
@@ -118,7 +94,7 @@ public:
      * @return true We are output stream
      * @return false We are not an output stream
      */
-    bool is_output() { return this->output; }
+    static bool is_output() { return Output; }
 
     /**
      * @brief Determines if we are an input stream
@@ -126,15 +102,9 @@ public:
      * @return true We are an input stream
      * @return false We are not an input stream
      */
-    bool is_input() { return this->input; }
+    static bool is_input() { return Input; }
 
 private:
-    /// Boolean determining if this stream is input
-    bool input = false;
-
-    /// Boolean determining if this stream is output
-    bool output = false;
-
     /// Current state of mstream
     mstate state = init;
 };
@@ -148,26 +118,9 @@ private:
  * 
  * ALL mistreams MUST implement the methods and functionality defined here.
  */
-template <typename C>
-class BaseMIStream : public BaseMIStream<BaseMIStream<C>> {
+template<bool Input = true, bool Output = false>
+class BaseMIStream : public BaseMStream<Input, Output> {
 public:
-
-    /**
-     * @brief Starts this mistream
-     * 
-     * We simply set our input status and call
-     * the child start method.
-     */
-    void start() {
-
-        // Change our input/output state:
-
-        this->set_input(true);
-
-        // Call start method of child:
-
-        static_cast<C*>(this)->start();
-    }
 
     /**
      * @brief Reads a number of bytes from the stream
@@ -181,12 +134,7 @@ public:
      * @param byts Charater array to place data into
      * @param num Number of bytes to read
      */
-    void read(char* byts, int num) {
-
-        // Call child method:
-
-        return static_cast<C*>(this)->read(byts, num);
-    }
+    virtual void read(char* byts, int num) =0;
 };
 
 /**
@@ -197,26 +145,9 @@ public:
  * 
  * ALL mostreams MUST implement the methods and functionally defined here.
  */
-template <typename C>
-class BaseMOStream : public BaseMStream<C> {
+template<bool Input = false, bool Output = true>
+class BaseMOStream : public BaseMStream<Input, Output> {
 public:
-
-    /**
-     * @brief Starts this mostream
-     * 
-     * We simply set the output status,
-     * and call the child start method
-     */
-    void start() {
-
-        // Set our write status:
-
-        this->set_output(true);
-
-        // Call start method of child:
-
-        static_cast<C*>(this)->start();
-    }
 
     /**
      * @brief Writes a number of bytes to the stream
@@ -230,12 +161,7 @@ public:
      * @param byts Character array to write to stream
      * @param num Number of bytes to write
      */
-    void write(char* byts, int num) {
-
-        // Call child method:
-
-        return static_cast<C*>(this)->write(byts, num);
-    }
+    virtual void write(char* byts, int num) =0;
 };
 
 /**
@@ -247,7 +173,12 @@ public:
  * ALL miostreams MUST inherit this class!
  * 
  */
-template <typename C>
-class BaseMIOStream : public BaseMIStream<BaseMIOStream<C>>, public BaseMOStream<BaseMIOStream<C>> {
+class BaseMIOStream : public BaseMIStream<true, true>, public BaseMOStream<true, true> {
 
+};
+
+class FIStream : public BaseMIStream<> {
+private:
+public:
+    virtual void read(char* byts, int num);
 };
