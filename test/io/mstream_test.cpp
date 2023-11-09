@@ -37,14 +37,11 @@
 
 TEST_CASE("Dummy test thing", "[dum]") {
 
-    bool inpi = BaseMIStream<>::is_input();
-    bool inpo = BaseMIStream<>::is_output(); 
+    bool inpi = BaseMIStream::is_input();
+    bool inpo = BaseMIStream::is_output(); 
 
-    bool outi = BaseMOStream<>::is_input();
-    bool outo = BaseMOStream<>::is_output();
-
-    bool ioi = BaseMIOStream::is_input();
-    bool ioo = BaseMIOStream::is_output();
+    bool outi = BaseMOStream::is_input();
+    bool outo = BaseMOStream::is_output();
 }
 
 // TEST_CASE("Base mstream", "[io][mstream]") {

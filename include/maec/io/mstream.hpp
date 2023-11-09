@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <string>
 #include <fstream>
 
 /**
@@ -118,8 +119,7 @@ private:
  * 
  * ALL mistreams MUST implement the methods and functionality defined here.
  */
-template<bool Input = true, bool Output = false>
-class BaseMIStream : public BaseMStream<Input, Output> {
+class BaseMIStream : public BaseMStream<true, false> {
 public:
 
     /**
@@ -145,8 +145,7 @@ public:
  * 
  * ALL mostreams MUST implement the methods and functionally defined here.
  */
-template<bool Input = false, bool Output = true>
-class BaseMOStream : public BaseMStream<Input, Output> {
+class BaseMOStream : public BaseMStream<false, true> {
 public:
 
     /**
@@ -165,20 +164,168 @@ public:
 };
 
 /**
- * @brief Base class for IO streams
+ * @brief Base class all file mstreams must implement
  * 
- * This class provides methods and functionality for input/output streams.
- * We provide methods for reading and writing data.
+ * We automatically handle the process of
+ * configuring the fstream.
  * 
- * ALL miostreams MUST inherit this class!
- * 
+ * @tparam F fstream type to utilize
+ * @tparam mode Mode to provide to fstream
  */
-class BaseMIOStream : public BaseMIStream<true, true>, public BaseMOStream<true, true> {
+template <typename F, std::ios_base::openmode mode>
+class BaseFStream {
+private:
 
+    /// fstream to utilize
+    F fstream;
+
+    /// path to file we are working with
+    std::string filepath;
+
+protected:
+
+    /**
+     * @brief Gets a pointer to the underlying stream
+     * 
+     * @return F* Pointer to stream in use
+     */
+    F* get_stream() { return &fstream; }
+
+public:
+
+    /**
+     * @brief Default constructor
+     * 
+     */
+    BaseFStream() =default;
+
+    /**
+     * @brief Allows a path to be specified
+     * 
+     * @param file Path to file to be operated on
+     */
+    BaseFStream(std::string path) : filepath(path) {}
+
+    /**
+     * @brief Gets the path to the file we are working with
+     * 
+     * @return std::string Path to file
+     */
+    std::string get_path() const { return this->filepath; }
+
+    /**
+     * @brief Sets the path to the file we are working with
+     * 
+     * @param path New path to file
+     */
+    void set_path(const std::string& path) { this->filepath = path; }
+
+    /**
+     * @brief Opens the fstream
+     * 
+     * This method opens the fstream and prepares it for operation.
+     * We pass the open mode to the fstream.
+     * 
+     */
+    void open() { fstream.open(filepath, mode); }
+
+    /**
+     * @brief Closes the fstream
+     * 
+     * This method closes the fstream and prepares it for closure.
+     * After the fstream is closed, it must NOT be used again. 
+     * 
+     */
+    void close() { fstream.close(); }
 };
 
-class FIStream : public BaseMIStream<> {
-private:
+/**
+ * @brief mstream for reading file contents
+ * 
+ * This mstream reads info from a file,
+ * allowing you to utilize file data in an mstream enabled scenario.
+ * 
+ */
+class FIStream : public BaseMIStream, BaseFStream<std::ifstream, std::ifstream::in> {
 public:
-    virtual void read(char* byts, int num);
+
+    /**
+     * @brief Reads contents from a file
+     * 
+     * @param byts Char array to store results into
+     * @param num Number of bytes to read
+     */
+    void read(char* byts, int num) final { get_stream()->read(byts, num); }
+
+    /**
+     * @brief Starts this mstream
+     * 
+     */
+    void start() final {
+
+        // Call parent start method:
+
+        BaseMIStream::start();
+
+        // Open the fstream:
+
+        open();
+    }
+
+    /**
+     * @brief Stops this mstream
+     * 
+     */
+    void stop() final {
+
+        // Call parent stop method:
+
+        BaseMIStream::stop();
+
+        // Close the fstream:
+
+        close();
+    }
+};
+
+class FOStream : public BaseMOStream, BaseFStream<std::ofstream, std::ifstream::out> {
+public:
+
+    /**
+     * @brief Writes content to a file
+     * 
+     * @param byts Bytes to write to a file
+     * @param num Number of bytes to be written
+     */
+    void write(char* byts, int num) final { get_stream()->write(byts, num); }
+
+    /**
+     * @brief Starts this mstream
+     * 
+     */
+    void start() final {
+
+        // Call parent start method:
+
+        BaseMOStream::start();
+
+        // Open the fstream:
+
+        open();
+    }
+
+    /**
+     * @brief Stops this mstream
+     * 
+     */
+    void stop() final {
+
+        // Call parent stop method:
+
+        BaseMOStream::stop();
+
+        // Close the fstream:
+
+        close();
+    }
 };
