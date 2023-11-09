@@ -21,6 +21,7 @@ add_library(${PROJECT_NAME}
     src/utils.cpp
     src/filter_module.cpp
     src/io/wav.cpp
+    src/io/mstream.cpp
     src/dsp/conv.cpp
     src/dsp/ft.cpp
     src/dsp/util.cpp
@@ -97,12 +98,10 @@ else()
   target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
-# Add binaries in 'demos'
+# Add binaries in demos
+add_subdirectory("demos")
 
-add_subdirectory(demos)
-
-# Add binaries in 'test':
-
-add_subdirectory(test)
+# Add binaries in test
+add_subdirectory("test")

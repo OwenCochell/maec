@@ -15,6 +15,7 @@ set(TEST_FILES
     audio_mod_test.cpp
     amp_module_test.cpp
     alsa_module_test.cpp
+    io/mstream_test.cpp
     dsp/buffer_test.cpp
     dsp/window_test.cpp
     dsp/kernel_test.cpp
