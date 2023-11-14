@@ -13,72 +13,93 @@
 
 #include "io/mstream.hpp"
 
-/**
- * @brief A dummy class for testing mstream components
- * 
- */
-// class MStreamTest : public BaseMStream<MStreamTest> {
-// private:
+TEST_CASE("Base mstream", "[io][mstream]") {
 
-//     /// Determines if we have been started
-//     bool started = false;
+    // Create a BaseMStream:
 
-//     /// Determines if we have been stopped
-//     bool stopped = false;
+    BaseMStream<false, false> test;
 
-// public:
+    // Determine default state is correct:
 
-//     void start() { this->started = true; }
-//     bool is_start() const { return this->started; }
+    REQUIRE(test.get_state() == BaseMStream<false, false>::init);
 
-//     void stop() { this->stopped = true; }
-//     bool is_stop() const { return this->stopped; }
-// };
+    SECTION("IO Identification", "Ensures the mstream reports the correct IO setting") {
 
-TEST_CASE("Dummy test thing", "[dum]") {
+        // Ensure both false is correct:
 
-    bool inpi = BaseMIStream::is_input();
-    bool inpo = BaseMIStream::is_output(); 
+        REQUIRE(!BaseMStream<false, false>::is_input());
+        REQUIRE(!BaseMStream<false, false>::is_output());
 
-    bool outi = BaseMOStream::is_input();
-    bool outo = BaseMOStream::is_output();
+        // Ensure input is correct:
+
+        REQUIRE(BaseMStream<true, false>::is_input());
+        REQUIRE(BaseMStream<true, false>::is_output());
+
+        // Ensure output is correct:
+
+        REQUIRE(!BaseMStream<false, true>::is_input());
+        REQUIRE(BaseMStream<false, true>::is_output());
+
+        // Ensure both is correct:
+
+        REQUIRE(BaseMStream<true, true>::is_input());
+        REQUIRE(BaseMStream<true, true>::is_output());
+
+        // Ensure functions are correct for classes:
+
+        REQUIRE(BaseMIStream::is_input());
+        REQUIRE(!BaseMIStream::is_output());
+
+        REQUIRE(!BaseMOStream::is_output());
+        REQUIRE(BaseMOStream::is_output());
+    }
+
+    SECTION("Start", "Determines if the mstream can be started") {
+
+        // Start the mstream
+
+        test.start();
+
+        // Determine if the mstream has been started
+
+        REQUIRE(test.get_state() == BaseMStream<false, false>::started);
+    }
+
+    SECTION("Stop", "Determines if the mstream can be stopped") {
+
+        // Stop the mstream
+
+        test.stop();
+
+        // Determine if the mstream has been stopped
+
+        REQUIRE(test.get_state() == BaseMStream<false, false>::stopped);
+    }
 }
 
-// TEST_CASE("Base mstream", "[io][mstream]") {
+TEST_CASE("File mstream", "[io][mstream]") {
 
-//     // Create a BaseMStream:
+    // Create a file mstream:
 
-//     MStreamTest temp;
+    FIStream istream;
+    FOStream ostream;
 
-//     BaseMStream<MStreamTest>* test = &temp;
+    // Create temporary file to work with:
+    // Screw it, just create a file in the CWD!
 
-//     SECTION("Start", "Determines if the mstream can be started") {
+    std::string path = "MSTREAM_FILE_TEST.txt";
 
-//         // Start the mstream
-//         test->start();
+    istream.set_path(path);
+    ostream.set_path(path);
 
-//         // Determine if the mstream has been started
+    SECTION("Get path", "Ensures we can retrieve a path to a file") {
 
-//         REQUIRE(temp.is_start());
+        REQUIRE(istream.get_path() == path);
+        REQUIRE(ostream.get_path() == path);
+    }
 
-//         SECTION("State", "Determines the state changes after start") {
+    SECTION("Write to file", "Ensures we can write to a file") {
+        
+    }
 
-//             REQUIRE(test->get_state() == MStreamTest::mstate::started);
-//         }
-//     }
-
-//     SECTION("Stop", "Determines if the mstream can be stopped") {
-
-//         // Stop the mstream
-//         test->stop();
-
-//         // Determine if the mstream has been stopped
-
-//         REQUIRE(temp.is_stop());
-
-//         SECTION("State", "Determines if the state changes after stop") {
-
-//             REQUIRE(test->get_state() == MStreamTest::mstate::stopped);
-//         }
-//     }
-// }
+}

@@ -246,7 +246,7 @@ public:
  * allowing you to utilize file data in an mstream enabled scenario.
  * 
  */
-class FIStream : public BaseMIStream, BaseFStream<std::ifstream, std::ifstream::in> {
+class FIStream : public BaseMIStream, public BaseFStream<std::ifstream, std::ifstream::in> {
 public:
 
     /**
@@ -288,7 +288,7 @@ public:
     }
 };
 
-class FOStream : public BaseMOStream, BaseFStream<std::ofstream, std::ifstream::out> {
+class FOStream : public BaseMOStream, public BaseFStream<std::ofstream, std::ifstream::out> {
 public:
 
     /**
