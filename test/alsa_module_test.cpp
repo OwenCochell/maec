@@ -18,7 +18,7 @@
 
 TEST_CASE("ALSABase Test", "[alsa]") {
 
-    // Construct the ALSABAse:
+    // Construct the ALSABASE:
 
     ALSABase alsa;
 
@@ -85,6 +85,8 @@ TEST_CASE("ALSASink Test", "[alsa][sink]") {
     ALSASink sink;
 
     SECTION("Start", "Ensures the ALSASink can be started") {
+
+        // Just start the sink
 
         sink.start();
 

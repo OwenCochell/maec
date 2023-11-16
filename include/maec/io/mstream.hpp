@@ -237,6 +237,8 @@ public:
      * 
      */
     void close() { fstream.close(); }
+
+    bool good() { return fstream.good(); }
 };
 
 /**
@@ -246,7 +248,7 @@ public:
  * allowing you to utilize file data in an mstream enabled scenario.
  * 
  */
-class FIStream : public BaseMIStream, public BaseFStream<std::ifstream, std::ifstream::in> {
+class FIStream : public BaseMIStream, public BaseFStream<std::ifstream, std::ifstream::in | std::ifstream::binary> {
 public:
 
     /**
@@ -288,7 +290,7 @@ public:
     }
 };
 
-class FOStream : public BaseMOStream, public BaseFStream<std::ofstream, std::ifstream::out> {
+class FOStream : public BaseMOStream, public BaseFStream<std::ofstream, std::ofstream::out | std::ofstream::binary> {
 public:
 
     /**

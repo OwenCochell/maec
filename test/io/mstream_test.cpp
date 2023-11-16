@@ -11,6 +11,9 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <array>
+#include <cstdio>
+
 #include "io/mstream.hpp"
 
 TEST_CASE("Base mstream", "[io][mstream]") {
@@ -33,7 +36,7 @@ TEST_CASE("Base mstream", "[io][mstream]") {
         // Ensure input is correct:
 
         REQUIRE(BaseMStream<true, false>::is_input());
-        REQUIRE(BaseMStream<true, false>::is_output());
+        REQUIRE(!BaseMStream<true, false>::is_output());
 
         // Ensure output is correct:
 
@@ -98,8 +101,54 @@ TEST_CASE("File mstream", "[io][mstream]") {
         REQUIRE(ostream.get_path() == path);
     }
 
+    // Start components:
+
+    istream.start();
+    ostream.start();
+
+    bool igood = istream.good();
+    bool ogood = ostream.good();
+
     SECTION("Write to file", "Ensures we can write to a file") {
         
+        // Define some content to be written:
+
+        std::array<char, 5> cont = {1, 2, 3, 4, 5};
+
+        // Write content:
+
+        ostream.write(cont.data(), 5);
+
+        ogood = ostream.good();
+
+        SECTION("Read from file", "Ensures we can read from file") {
+
+            // Define content to be stored:
+
+            std::array<char, 5> ind = {0, 0, 0, 0, 0};
+
+            // Read content:
+
+            istream.read(ind.data(), 5);
+
+            // Ensure content is the same:
+
+            for (int i = 0; i < ind.size(); ++i) {
+
+                // Compare values:
+
+                REQUIRE(ind.at(i) == cont.at(i));
+            }
+        }
+
     }
 
+    // Finally, close file:
+
+    istream.stop();
+    ostream.stop();
+
+    // Delete file:
+
+    std::remove(path.c_str());
 }

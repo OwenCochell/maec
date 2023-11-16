@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.25)
 project(maec VERSION 1.0.0 DESCRIPTION "Modular Audio Engine in C++" HOMEPAGE_URL "https://github.com/Owen-Cochell/cmae" LANGUAGES CXX)
 
 # Define our target and set properties:
