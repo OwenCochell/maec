@@ -40,7 +40,7 @@ FetchContent_MakeAvailable(Catch2)
 # Adding the tests target
 add_executable(test ${TEST_FILES})
 
-# Linking Tests_run with the Google Test libraries
+# Linking test with the Catch2 libraries
 target_link_libraries(test PRIVATE maec Catch2::Catch2WithMain)
 
 # Add Catch2 extra modules to the CMAKE_MODULE_PATH

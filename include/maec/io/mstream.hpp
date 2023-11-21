@@ -36,6 +36,13 @@
  * - started - mstream has been started, and can be utilized
  * - stopped - mstream is in stop state, no longer can be utilized
  * - err - mstream is in a bad state, no longer can be utilized
+ * 
+ * TODO: NEEDS to add flush() capabilities,
+ * for flushing any internal values and writing/reading them.
+ * We must make it clear that closing will ALWAYS flush, unless an error has occurred.
+ * 
+ * We should also include mechanisms for keeping track of how much has been read/written.
+ * Not sure if these components will do so, maybe create wrapper class for counting?
  */
 template<bool Input = false, bool Output = false>
 class BaseMStream {

@@ -12,56 +12,95 @@
  * so modules can read and write to wave files.
  */
 
-#include <istream>
-#include <fstream>
-
 #include "../sink_module.hpp"
 #include "../source_module.hpp"
+#include "mstream.hpp"
 
+/**
+ * @brief Struct that represents a chunk header
+ * 
+ * A chunk header is a collection of data that
+ * is present at the start of every chunk.
+ * This data shares the chunk ID,
+ * as well as the size of the chunk.
+ * 
+ */
 struct ChunkHeader {
 
     /// Chunk ID of the header
-    char chunk_id[4];
+    std::array<char, 4> chunk_id = {};
 
     /// Size of the chunk
-    u_int32_t chunk_size;
+    u_int32_t chunk_size = 0;
 };
 
 /**
- * @brief Struct that represents a wave file header
+ * @brief Struct that represents a wave file header chunk
+ * 
+ * The wave file header chunk describes information
+ * about the wave file we are working with.
  * 
  */
 struct WavHeader {
 
     /// Chunk ID of the header, in this case "RIFF"
-    char chunk_id[4];
+    std::array<char, 4> chunk_id = {};
 
     /// Chunk size, in this case the size of the file minus 8
-    uint32_t chunk_size;
+    uint32_t chunk_size = 0;
 
     /// Format, in this case "WAVE"
-    char format[4];
+    std::array<char, 4> format = {};
 };
 
-struct WaveFormat {
+/**
+ * @brief Struct that represents a wave format chunk
+ * 
+ * The format chunk contains a lot of information related
+ * to the audio data contained within.
+ * Much of this data is used elsewhere to intepret the audio data.
+ * 
+ * TODO: We need to have some support for working with compressed wave data,
+ * and hold extra parameters encountered.
+ */
+struct WavFormat {
 
     /// Format of the wave data, in this case 1
-    uint16_t format;
+    /// If anything other than 1, compression is utilized
+    uint16_t format = 0;
 
     /// Number of channels in the wave data
-    uint16_t channels;
+    uint16_t channels = 0;
 
     /// Sample rate of the wave data
-    uint32_t sample_rate;
+    uint32_t sample_rate = 0;
 
     /// Byte rate of the wave data
-    uint32_t byte_rate;
+    uint32_t byte_rate = 0;
 
     /// Block align of the wave data
-    uint16_t block_align;
+    uint16_t block_align = 0;
 
     /// Bits per sample of the wave data
-    uint16_t bits_per_sample;
+    uint16_t bits_per_sample = 0;
+};
+
+/**
+ * @brief A chunk that represents a unknown chunk
+ * 
+ * Sometimes, chunks with unknown structure/purpose are encountered.
+ * We have no idea how to work with or utilize these chunks,
+ * so we throw all the data into this struct.
+ * This can be parsed and utilized by the user as necessary.
+ * 
+ * This struct contains the chunk ID,
+ * size, and data (stored in a vector).
+ * 
+ */
+struct UnknownChunk : public ChunkHeader {
+
+    /// Data of unknown chunk
+    std::vector<char> data;
 };
 
 /**
@@ -220,19 +259,29 @@ private:
      * The chunk header contains the chunk ID and size,
      * which is used by other methods to process the chunk.
      * 
+     * @param header ChunkHeader to place information into
      */
-    void read_chunk_header(ChunkHeader& header);
+    void read_chunk_header(ChunkHeader& chunk);
 
     /**
      * @brief Reads the wave header chunk
      *
-     * The wave header chunk contains the format of the wave data,
-     * which is used by other methods to process the wave data. 
+     * The wave header chunk contains basic information
+     * about the wave file. 
      *
-     * @param header 
+     * @param header WaveHeader to place information into
      */
-    void read_wave_header(WavHeader& header);
+    void read_wave_header(WavHeader& chunk);
+
+    /**
+     * @brief Reads the wave format chunk
+     * 
+     * This wave format chunk contains information about the wave data/
+     * 
+     * @param chunk WavFormat to place information into
+     */
+    void read_format_header(WavFormat& chunk);
 
     /// Stream we are reading from
-    std::istream str;
+    FIStream stream;
 };
