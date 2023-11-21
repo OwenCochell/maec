@@ -184,6 +184,16 @@ public:
     int get_byterate() const { return this->byte_rate; }
 
     /**
+     * @brief Sets the byte rate of the wave data
+     * 
+     * The byte rate determines how many bytes
+     * are required to represent one second.
+     * 
+     * @param byr Byte rate of wave data to set
+     */
+    void set_byterate(int byr) { this->byte_rate = byr; }
+
+    /**
      * @brief Gets the block align of the wave data
      * 
      * The block align is the number of bytes
@@ -196,6 +206,18 @@ public:
     int get_blockalign() const { return this->block_align; }
 
     /**
+     * @brief Sets the block align of the wave data
+     * 
+     * The block align is the number of bytes
+     * per frame, that is,
+     * the number of bytes required to represent a sample
+     * at a given time in all channels.
+     * 
+     * @param bal Block align of wave data to set
+     */
+    void set_blockalign(int bal) { this->block_align = bal; }
+
+    /**
      * @brief Gets the number of bits per sample
      * 
      * The bits per sample determines how many bits
@@ -204,6 +226,34 @@ public:
      * @return Number of bits per sample
      */
     int get_bitspersample() const { return this->bits_per_sample; }
+
+    /**
+     * @brief Sets the number of bits per sample
+     * 
+     * The bits per sample determines how many bits
+     * are required to represent a single sample
+     * 
+     * @param bps Number of bits per sample to ser
+     */
+    void set_bitspersample(int bps) { this->bits_per_sample = bps; }
+
+    /**
+     * @brief Gets the size of the wave file
+     * 
+     * This function returns the size of the wave file in bytes.
+     * 
+     * @return int Size in bytes
+     */
+    int get_size() const { return this->size; }
+
+    /**
+     * @brief Sets the size of the wave file
+     * 
+     * This function sets the size of the wave file in bytes.
+     * 
+     * @param size Size of wave file
+     */
+    void set_size(int size) { this->size = size; }
 
 private:
 
@@ -224,6 +274,9 @@ private:
 
     /// Bits per sample of the wave file
     int bits_per_sample = 0;
+
+    /// Size of the wave file
+    int size = 0;
 };
 
 /**
@@ -247,9 +300,35 @@ public:
      * @brief Starts this wave file for reading
      * 
      * You should call this method before any read operations!
-     * This component will open the file and do some preliminary checks.
+     * This component will open the file and do some preliminary checks,
+     * as well as load critical info from the stream so we can correctly
+     * handle incoming audio data.
      */
     void start();
+
+    /**
+     * @brief Stops this wave reader
+     * 
+     * You should call this method when reading is to be stopped!
+     * This method ensures the mstream is properly closed.
+     * 
+     */
+    void stop();
+
+    /**
+     * @brief Reads audio data from the stream
+     * 
+     * We read chunks from the stream until
+     * we encounter a data chunk.
+     * From there, we read the data and do any necessary conversions (?)
+     * 
+     * If we encounter any weird chunks that we don't recognize,
+     * then we will discard them
+     * TODO: Save these for later?
+     * Offer some kind of handling system for these? 
+     * 
+     */
+    void get_data();
 
 private:
 
@@ -276,11 +355,13 @@ private:
     /**
      * @brief Reads the wave format chunk
      * 
-     * This wave format chunk contains information about the wave data/
+     * This wave format chunk contains information about the wave data
      * 
      * @param chunk WavFormat to place information into
      */
-    void read_format_header(WavFormat& chunk);
+    void read_format_chunk(WavFormat& chunk);
+
+    void read_chunk();
 
     /// Stream we are reading from
     FIStream stream;

@@ -135,9 +135,6 @@ TEST_CASE("File mstream", "[io][mstream]") {
 
                 // Compare values:
 
-                auto first = ind.at(i);
-                auto second = cont.at(i);
-
                 REQUIRE(ind.at(i) == cont.at(i));
             }
         }
