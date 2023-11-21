@@ -227,7 +227,7 @@ public:
      * We pass the open mode to the fstream.
      * 
      */
-    void open() { fstream.open(filepath, mode); }
+    void open() { this->fstream.open(filepath, mode); }
 
     /**
      * @brief Closes the fstream
@@ -299,7 +299,7 @@ public:
      * @param byts Bytes to write to a file
      * @param num Number of bytes to be written
      */
-    void write(char* byts, int num) final { get_stream()->write(byts, num); }
+    void write(char* byts, int num) final { this->get_stream()->write(byts, num); }
 
     /**
      * @brief Starts this mstream

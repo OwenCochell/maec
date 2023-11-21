@@ -13,6 +13,7 @@
 
 #include <array>
 #include <cstdio>
+#include <fstream>
 
 #include "io/mstream.hpp"
 
@@ -53,7 +54,7 @@ TEST_CASE("Base mstream", "[io][mstream]") {
         REQUIRE(BaseMIStream::is_input());
         REQUIRE(!BaseMIStream::is_output());
 
-        REQUIRE(!BaseMOStream::is_output());
+        REQUIRE(!BaseMOStream::is_input());
         REQUIRE(BaseMOStream::is_output());
     }
 
@@ -106,49 +107,43 @@ TEST_CASE("File mstream", "[io][mstream]") {
     istream.start();
     ostream.start();
 
-    bool igood = istream.good();
-    bool ogood = ostream.good();
-
     SECTION("Write to file", "Ensures we can write to a file") {
-        
+
         // Define some content to be written:
 
         std::array<char, 5> cont = {1, 2, 3, 4, 5};
 
         // Write content:
 
-        ostream.write(cont.data(), 5);
-
-        ogood = ostream.good();
+        ostream.write(cont.begin(), cont.size());
+        ostream.stop();
 
         SECTION("Read from file", "Ensures we can read from file") {
 
             // Define content to be stored:
 
-            std::array<char, 5> ind = {0, 0, 0, 0, 0};
+            std::array<char, cont.size()> ind = {};
 
             // Read content:
 
-            istream.read(ind.data(), 5);
+            istream.read(ind.begin(), cont.size());
+            istream.stop();
 
             // Ensure content is the same:
 
-            for (int i = 0; i < ind.size(); ++i) {
+            for (int i = 0; i < cont.size(); ++i) {
 
                 // Compare values:
+
+                auto first = ind.at(i);
+                auto second = cont.at(i);
 
                 REQUIRE(ind.at(i) == cont.at(i));
             }
         }
-
     }
-
-    // Finally, close file:
-
-    istream.stop();
-    ostream.stop();
 
     // Delete file:
 
-    std::remove(path.c_str());
+    //std::remove(path.c_str());
 }
