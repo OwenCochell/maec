@@ -9,16 +9,17 @@
  * 
  */
 
-#include <istream>
 #include <cstring>
+#include <vector>
 
 #include "io/wav.hpp"
+#include "audio_buffer.hpp"
 
 void WaveReader::start() {
 
     // First, start the stream:
 
-    stream.start();
+    stream->start();
 
     // Next, read file header:
 
@@ -83,8 +84,8 @@ void WaveReader::read_chunk_header(ChunkHeader& chunk) {
 
     // Read the chunk header:
 
-    this->stream.read(chunk.chunk_id.begin(), 4);
-    this->stream.read(reinterpret_cast<char*>(&chunk.chunk_size), 4);
+    this->stream->read(chunk.chunk_id.begin(), 4);
+    this->stream->read(reinterpret_cast<char*>(&chunk.chunk_size), 4);
 }
 
 void WaveReader::read_wave_header(WavHeader& chunk) {
@@ -97,7 +98,7 @@ void WaveReader::read_wave_header(WavHeader& chunk) {
 
     // Read the format data:
 
-    this->stream.read(chunk.format.begin(), 4);
+    this->stream->read(chunk.format.begin(), 4);
 
     // Place contents of the chunk header into the wave header:
 
@@ -109,20 +110,46 @@ void WaveReader::read_wave_header(WavHeader& chunk) {
 void WaveReader::read_format_chunk(WavFormat& chunk) {
 
     // Read the audio format:
-    this->stream.read(reinterpret_cast<char*>(&chunk.format), 2);
+    this->stream->read(reinterpret_cast<char*>(&chunk.format), 2);
 
     // Read the number of channels
-    this->stream.read(reinterpret_cast<char*>(&chunk.channels), 2);
+    this->stream->read(reinterpret_cast<char*>(&chunk.channels), 2);
 
     // Read the sample rate:
-    this->stream.read(reinterpret_cast<char*>(&chunk.channels), 4);
+    this->stream->read(reinterpret_cast<char*>(&chunk.channels), 4);
 
     // Read the byte rate:
-    this->stream.read(reinterpret_cast<char*>(&chunk.byte_rate), 4);
+    this->stream->read(reinterpret_cast<char*>(&chunk.byte_rate), 4);
 
     // Read the block align:
-    this->stream.read(reinterpret_cast<char*>(&chunk.block_align), 2);
+    this->stream->read(reinterpret_cast<char*>(&chunk.block_align), 2);
 
     // Read the bits per sample:
-    this->stream.read(reinterpret_cast<char*>(&chunk.bits_per_sample), 2);
+    this->stream->read(reinterpret_cast<char*>(&chunk.bits_per_sample), 2);
+}
+
+AudioBuffer WaveReader::get_data() {
+
+    while (true) {
+
+        // Read wave file header:
+
+        ChunkHeader head;
+
+        this->read_chunk_header(head);
+
+        // Determine if this is a data chunk:
+
+        if (strcmp(head.chunk_id.data(), "data") != 0) {
+
+            // Not a data chunk, continue
+            continue;
+        }
+
+        // Otherwise, read in the data:
+
+        std::vector<char> tdata(head.chunk_size);
+
+        this->stream->read(tdata.data(), head.chunk_size);
+    }
 }

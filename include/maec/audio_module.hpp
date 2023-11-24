@@ -12,7 +12,6 @@
 #pragma once
 
 #include <memory>
-#include <utility>
 
 #include "const.hpp"
 #include "base_module.hpp"

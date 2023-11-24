@@ -14,7 +14,9 @@
 
 #include "../sink_module.hpp"
 #include "../source_module.hpp"
+#include "audio_buffer.hpp"
 #include "mstream.hpp"
+#include <fstream>
 
 /**
  * @brief Struct that represents a chunk header
@@ -116,7 +118,6 @@ struct UnknownChunk : public ChunkHeader {
  * 
  */
 class BaseWave {
-
 public:
 
     /**
@@ -296,6 +297,10 @@ private:
 class WaveReader : public BaseWave {
 public:
 
+    WaveReader() = default;
+
+    WaveReader(BaseMIStream* stream) : stream(stream) {}
+
     /**
      * @brief Starts this wave file for reading
      * 
@@ -316,6 +321,26 @@ public:
     void stop();
 
     /**
+     * @brief Sets the input mstream to utilize
+     * 
+     * This function allows you to set an mstream to read from.
+     * This WaveReader wil read all the data from the mstream provided.
+     * 
+     * @param stream New input mstream
+     */
+    void set_stream(BaseMIStream* stream) { this->stream = stream; }
+
+    /**
+     * @brief Gets the input mstream
+     * 
+     * This function allows you to get the mstream
+     * this WaveReader utilizes.
+     * 
+     * @return BaseMIStream* input mstream
+     */
+    BaseMIStream* get_stream() const { return this->stream;}
+
+    /**
      * @brief Reads audio data from the stream
      * 
      * We read chunks from the stream until
@@ -328,7 +353,7 @@ public:
      * Offer some kind of handling system for these? 
      * 
      */
-    void get_data();
+    AudioBuffer get_data();
 
 private:
 
@@ -364,5 +389,5 @@ private:
     void read_chunk();
 
     /// Stream we are reading from
-    FIStream stream;
+    BaseMIStream* stream = nullptr;
 };

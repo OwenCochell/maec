@@ -15,13 +15,9 @@
 
 #pragma once
 
-#include <utility>
-#include <vector>
-#include <iterator>
 #include <algorithm>
 #include <memory>
 
-#include "const.hpp"
 #include "dsp/buffer.hpp"
 
 /// A typedef representing an AudioBuffer

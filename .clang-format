@@ -7,4 +7,3 @@ SeparateDefinitionBlocks: Always
 PointerAlignment: Left
 IndentAccessModifiers: false
 AccessModifierOffset: -4
-...
