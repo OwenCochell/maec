@@ -30,6 +30,7 @@
 #include <array>
 #include <chrono>
 #include <iostream>
+#include <cmath>
 
 /**
  * @brief Templated array - Used for testing
@@ -46,11 +47,21 @@ struct my_static_vector
     // ...
 private:
     std::array<long double, N> data;
-    std::size_t curr_size;
+    std::size_t curr_size = 0;
 };
 
+long double percent_diff(long double first, long double second) {
+    
+    // Get the diff:
 
-int main(int argc, char** argv) {
+    const long double diff = std::abs(second - first);
+
+    // Determine the percent difference:
+
+    return diff / ((first + second) / 2) * 100;
+}
+
+int main() {
 
     // Number of values to test:
 
@@ -58,7 +69,7 @@ int main(int argc, char** argv) {
 
     // Number of times to test:
 
-    int iterations = 1000;
+    const int iterations = 1000;
 
     // Create a normal vector:
 
@@ -70,11 +81,15 @@ int main(int argc, char** argv) {
 
     // Create array:
 
-    std::array<long double, (std::size_t)num> vec4;
+    std::array<long double, (std::size_t)num> vec4 = {};
 
     // Create dynamic array:
 
     long double* vec5 = new long double[num];
+
+    // Create reserved vector:
+
+    std::vector<long double> vec6;
 
     // Finally, templated array:
 
@@ -173,6 +188,93 @@ int main(int argc, char** argv) {
 
             vect_read += std::chrono::duration <double, std::milli> (diff).count();
 
+    }
+
+    // Alright, test the reserved vector:
+
+    long double vectr_read = 0;
+    long double vectr_write = 0;
+
+    std::cout << " --== [ Testing reserved vector write performance... ] ==--"
+              << std::endl;
+
+    for (int i = 0; i < iterations; i++) {
+
+        // First, clear and shrink:
+
+        vec6.clear();
+        vec6.shrink_to_fit();
+
+        // Reserve the vector:
+
+        vec6.reserve(num);
+
+        // Start the clock:
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        // Add values to the vector:
+
+        for (int j = 0; j < num; j++) {
+
+            vec6.push_back(static_cast<long double>(j));
+        }
+
+        // Stop the clock:
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Calculate the time:
+
+        auto diff = end - start;
+
+        // Print the time:
+
+        std::cout << "Reserved vector write time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diff).count()
+                  << " ms" << std::endl;
+
+        // Add to the total:
+
+        vectr_write += std::chrono::duration<double, std::milli>(diff).count();
+    }
+
+    // Test the read of the vector:
+
+    std::cout << "+====================================+" << std::endl;
+    std::cout << " --== [ Testing reserved vector read performance... ] ==--"
+              << std::endl;
+
+    for (int i = 0; i < iterations; i++) {
+
+        // Start the clock:
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        // Add values to the vector:
+
+        for (int j = 0; j < num; j++) {
+
+            long double val = vec6[j];
+        }
+
+        // Stop the clock:
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Calculate the time:
+
+        auto diff = end - start;
+
+        // Print the time:
+
+        std::cout << "Reserved vector read time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diff).count()
+                  << " ms" << std::endl;
+
+        // Add to the total:
+
+        vectr_read += std::chrono::duration<double, std::milli>(diff).count();
     }
 
     // Alright, test the pre allocated vector:
@@ -490,6 +592,7 @@ int main(int argc, char** argv) {
 
     std::cout << "Vector average write time: " << vect_write / iterations << " ms" << std::endl;
     std::cout << "Prealloc-Vector average write time: " << vect2_write / iterations << " ms" << std::endl;
+    std::cout << "Reserved Vector average write time: " << vectr_read / iterations << " ms" << std::endl;
     std::cout << "Templated-Array average write time: " << vect3_write / iterations << " ms" << std::endl;
     std::cout << "Array average write time: " << vect4_write / iterations << " ms" << std::endl;
     std::cout << "Dynamic array average write time: " << vect5_write / iterations << " ms" << std::endl;
@@ -499,6 +602,7 @@ int main(int argc, char** argv) {
 
     std::cout << "Vector average read time: " << vect_read / iterations << " ms" << std::endl;
     std::cout << "Prealloc-Vector average read time: " << vect2_read / iterations << " ms" << std::endl;
+    std::cout << "Reserved Vector average read time: " << vectr_read / iterations << " ms" << std::endl;
     std::cout << "Templated-Array average read time: " << vect3_read / iterations << " ms" << std::endl;
     std::cout << "Array average read time: " << vect4_read / iterations << " ms" << std::endl;
     std::cout << "Dynamic array average read time: " << vect5_read / iterations << " ms" << std::endl;
@@ -506,12 +610,14 @@ int main(int argc, char** argv) {
 
     std::cout << "+================================================+" << std::endl;
     std::cout << " --== [ Comparisons ] ==--" << std::endl;
-    std::cout << "Array write time is " << vect4_write / vect2_write << " times faster than preallocated vector write time." << std::endl;
-    std::cout << "Array read time is " << vect4_read / vect2_read << " times faster than preallocated vector read time." << std::endl;
+    std::cout << "Array write time is " << percent_diff(vect4_write / iterations, vect2_write / iterations) << " percent faster than preallocated vector write time." << std::endl;
+    std::cout << "Array read time is " << percent_diff(vect4_read / iterations, vect2_read / iterations) << " percent faster than preallocated vector read time." << std::endl;
 
-    std::cout << "Prealloc-Vector write time is " << vect2_write / vect_read << " percent faster than normal vector write time." << std::endl;
-    std::cout << "Prealloc-Vector read time is " << vect2_read / vect_read << " percent faster than normal vector write time." << std::endl;
+    std::cout << "Prealloc-Vector write time is " << percent_diff(vect2_write / iterations, vect_read / iterations) << " percent faster than normal vector write time." << std::endl;
+    std::cout << "Prealloc-Vector read time is " << percent_diff(vect2_read / iterations, vect_read / iterations) << " percent faster than normal vector write time." << std::endl;
+
+    std::cout << "Reserved-Vector write time is " << percent_diff(vect2_write / iterations, vectr_write / iterations) << " percent faster than reserved vector write time." << std::endl;
+    std::cout << "Reserved-Vector read time is " << percent_diff(vect2_read / iterations, vectr_read / iterations) << " percent faster than reserved vector read time." << std::endl;
 
     return 0;
-
 }

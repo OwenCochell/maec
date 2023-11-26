@@ -16,10 +16,7 @@
 
 #pragma once
 
-#include <algorithm>
 #include <iterator>
-#include <memory>
-#include <utility>
 #include <vector>
 
 #include "const.hpp"
@@ -51,7 +48,7 @@
  */
 template <class I, typename T, bool IsConst = false>
 class BaseMAECIterator {
-   protected:
+protected:
     /**
      * @brief Sets the pointer
      *
@@ -63,7 +60,7 @@ class BaseMAECIterator {
      */
     void set_pointer(T* ptr) { point = ptr; }
 
-   public:
+public:
     // Tags for identifying this iterator
 
     using iterator_category = std::random_access_iterator_tag;
@@ -187,6 +184,19 @@ class BaseMAECIterator {
 
     /**
      * @brief Adds the given number to this iterator
+     * 
+     * Set plus operation for unsigned int
+     * 
+     * @param num Number to add to current index
+     * @return iterator_type& This iterator
+     */
+    iterator_type& operator+=(const long unsigned int& num) {  // NOLINT(google-runtime-int)
+        this->set_index(this->get_index() + num);
+        return static_cast<iterator_type&>(*this);
+    }
+
+    /**
+     * @brief Adds the given number to this iterator
      *
      * Set plus operation for fixed size int64_t
      *
@@ -250,6 +260,20 @@ class BaseMAECIterator {
      * @return C A new iterator with the new index
      */
     iterator_type operator+(const int64_t& num) const {
+        iterator_type tmp = static_cast<const iterator_type&>(*this);
+        tmp += num;
+        return tmp;
+    }
+
+    /**
+     * @brief Creates a new iterator by adding the given number to our index
+     * 
+     * Plus operator for long unsigned int
+     * 
+     * @param num Number to add to the current index
+     * @return A new iterator with the new index
+     */
+    iterator_type operator+(const long unsigned int& num) const {  // NOLINT(google-runtime-int)
         iterator_type tmp = static_cast<const iterator_type&>(*this);
         tmp += num;
         return tmp;
@@ -432,7 +456,7 @@ class BaseMAECIterator {
      */
     pointer base() const { return this->point; }
 
-   private:
+private:
     /// Current pointer we are on
     pointer point = nullptr;
 
@@ -557,8 +581,8 @@ class BaseMAECIterator {
  */
 template <typename T>
 class Buffer {
+public:
 
-   public:
     /**
      * @brief An iterator that iterates over signal data sequentially
      * 
@@ -722,7 +746,8 @@ class Buffer {
          */
         int get_sample() const { return this->get_sample(this->get_index()); }
 
-       private:
+    private:
+
         /**
          * @brief Gets the sample of this iterator
          *
@@ -804,8 +829,8 @@ class Buffer {
      */
     template <typename V, bool IsConst = false>
     class InterIterator : public BaseMAECIterator<InterIterator<V, IsConst>, V, IsConst> {
+    public:
 
-       public:
         using BufferType = typename ChooseType<IsConst, const Buffer<T>, Buffer<T>>::type;
         using reference = typename BaseMAECIterator<InterIterator<V, IsConst>, V, IsConst>::reference;
 
@@ -947,7 +972,8 @@ class Buffer {
             this->set_index(this->buff->channels() * sample + channel);
         }
 
-       private:
+    private:
+
         /**
          * @brief Gets the current channel we are on
          *
@@ -985,7 +1011,7 @@ class Buffer {
      * @param size The size of each channel, AKA the number of samples per channel
      * @param channels The number of channels in this buffer, by default 1
      */
-    explicit Buffer(int size, int channels = 1) : buff(size * channels), csize(size), nchannels(channels) {
+    explicit Buffer(int size, int channels = 1) : csize(size), nchannels(channels) {
 
         // Reserve the buffer with the given info:
 
@@ -1166,6 +1192,16 @@ class Buffer {
     void reserve() { buff.reserve(this->total_capacity()); }
 
     /**
+     * @brief Resizes the vector size
+     *
+     * This method resizes the vector to the provided elements.
+     * https://en.cppreference.com/w/cpp/container/vector/resize
+     *
+     * @param size Size to resize vector to
+     */
+    void resize(int size) { buff.resize(size); }
+
+    /**
      * @brief Shrinks the vector to it's current size
      *
      * This tells the underlying vector to un-allocate
@@ -1230,7 +1266,7 @@ class Buffer {
 
         // Iterate over the total capacity:
 
-        for (int i = this->size(); i < this->total_capacity(); ++i) {
+        for (size_t i = this->size(); i < this->total_capacity(); ++i) {
 
             // Add this value to the buffer:
 

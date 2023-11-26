@@ -28,28 +28,28 @@ using BufferPointer = std::unique_ptr<AudioBuffer>;
 
 /**
  * @brief Components that squish and split audio buffers.
- * 
+ *
  * Audio buffers are great for representing audio information
  * in the MAEC environment.
- * 
+ *
  * However, if we wish to translate this data to another
  * audio library (i.e, ALSA), these buffers are NOT compatable.
  * Therefore, it is necessary to offer methods to convert AudioBuffers
  * to compatable structures and vice versa.
- * 
+ *
  * A 'squishier' is a component that takes multiple channels and
  * converts it into a single data stream.
  * For example, audio data with three channels can be squished
  * by representing the data in an interleaved format.
  * Most squishers will take an audio buffer and will return a compatable
  * data structure, such as a vector.
- * 
+ *
  * A 'splitter' is a component that takes a single data stream and
  * converts it into multiple channels.
  * For example, audio data in interleaved format
  * can be split into multiple separate channels.
  * Most squishers will take a vector and convert it into an AudioBuffer.
- * 
+ *
  * Squishers and splitters support format conversion,
  * which means that the format of the incoming container (be it long double, float, int, ect)
  * can be converted into another format during the copy operation.
@@ -91,17 +91,53 @@ void squish_seq(AudioBuffer* buff, const It& iter, Func oper) {
 
 /**
  * @brief Does nothing!
- * 
+ *
  * This squishier does nothing!
  * This can be great if you don't want any modules
  * to do squishing operations.
- * 
+ *
  * @param buff AudioBuffer to ignore
  * @param iter Input iterator to ignore
  */
-template<typename It, typename Func>
-void squish_null(AudioBuffer* buff, const It& iter, Func oper) {}
+template <typename It, typename Func>
+void squish_null(AudioBuffer* buff, const It& iter, Func oper) {}  // NOLINT(clang-diagnostic-unused-parameter)
+
+/**
+ * @brief Components for converting audio data
+ * 
+ * This section contains components for converting audio data.
+ * These are used to convert audio data from one format to another.
+ * Most audio libraries do not work well with the internal maec audio format, long double,
+ * so it is necessary to provide components for transforming between the two.
+ * 
+ * It is recommended to use these functions with the squishers/splitters
+ * defined above, which will automatically iterate over the provided array
+ * and convert it into the necessary data structure.
+ * 
+ * The naming convention goes like this:
+ * 
+ * For converting the maec format (mf) into another:
+ * 
+ * [OTHER] mf_[OTHER](long double val)
+ * 
+ * For converting other format into mf:
+ * 
+ * long double [OTHER]_mf([OTHER] val)
+ * 
+ * Where [OTHER] is the name of the other format to work with.
+ * For example, converting mf to int and vice versa:
+ * 
+ * mf_int(long double val)
+ * int_mf(int val)
+ * 
+ * It is also worth mentioning that 'null' means the function will do nothing.
+ * For example, mf_null() will just return what is given.
+ */
+
+// mf -> other
 
 float mf_float(long double val);
 
 long double mf_null(long double val);
+
+// other -> mf

@@ -26,16 +26,15 @@ void SineOscillator::process() {
 
     // Fill the buffer with the sine wave:
 
-    for (auto iter = this->buff->ibegin(); (unsigned int)iter.get_index() < this->buff->size(); ++iter) {
+    for (size_t i = 0; i < this->buff->total_capacity(); ++i) {
 
         // Calculate the sine wave:
 
-        *iter = sin(TWO_PI * this->frequency * this->phase / this->sample_rate);
+        this->buff->push_back(sin(TWO_PI * this->frequency * this->phase / this->sample_rate));
 
         // Increment the phase:
 
         this->phase++;
-
     }
 }
 
@@ -51,17 +50,16 @@ void SquareOscillator::process() {
 
     // Fill the buffer with the square wave:
 
-    for (auto iter = this->buff->ibegin(); (unsigned int)iter.get_index() < this->buff->size(); ++iter) {
+    for (size_t i = 0; i < this->buff->total_capacity(); ++i) {
 
         // Calculate the square wave:
 
         // this->buff->at(i) = (sin(TWO_PI * this->frequency * this->phase / this->sample_rate) > 0.0) ? 1.0 : -1.0;
-        *iter = (modf(double(this->frequency * this->phase / this->sample_rate), &placeholder) < 0.5) ? 1.0 : -1.0;
+        this->buff->push_back((modf(double(this->frequency * this->phase / this->sample_rate), &placeholder) < 0.5) ? 1.0 : -1.0);
 
         // Increment the phase:
 
         this->phase++;
-
     }
 }
 
@@ -77,16 +75,15 @@ void SawtoothOscillator::process() {
 
     // Fill the buffer with the sawtooth wave:
 
-    for (auto iter = this->buff->ibegin(); (unsigned int)iter.get_index() < this->buff->size(); ++iter) {
+    for (size_t i = 0; i < this->buff->total_capacity(); ++i) {
 
         // Calculate the sawtooth wave:
 
-        *iter = (2.0 * modf(double(this->frequency * this->phase / this->sample_rate + 0.5), &placeholder)) - 1.0;
+        this->buff->push_back((2.0 * modf(double(this->frequency * this->phase / this->sample_rate + 0.5), &placeholder)) - 1.0);
 
         // Increment the phase:
 
         this->phase++;
-
     }
 }
 
@@ -102,13 +99,13 @@ void TriangleOscillator::process() {
 
     // Fill the buffer with the triangle wave:
 
-    for (auto iter = this->buff->ibegin(); (unsigned int)iter.get_index() < this->buff->size(); ++iter) {
+    for (size_t i = 0; i < this->buff->total_capacity(); ++i) {
 
         // Calculate the triangle wave:
 
         //this->buff->at(i) = (2.0 * fabs(modf(this->phase / this->sample_rate + 0.25, &placeholder) - 0.5)) - 1.0;
 
-        long double temp = modf(double(this->frequency * this->phase / this->sample_rate), &placeholder);
+        long double temp = modf(static_cast<double>(this->frequency * this->phase / this->sample_rate), &placeholder);
 
         if (temp < 0.25) {
             temp *= 4.0;
@@ -122,11 +119,10 @@ void TriangleOscillator::process() {
             temp = (0.5 - temp) * 4.0;
         }
 
-        *iter = temp;
+        this->buff->push_back(temp);
 
         // Increment the phase:
 
         this->phase++;
-
     }
 }

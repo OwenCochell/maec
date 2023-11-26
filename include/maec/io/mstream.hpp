@@ -43,6 +43,9 @@
  * 
  * We should also include mechanisms for keeping track of how much has been read/written.
  * Not sure if these components will do so, maybe create wrapper class for counting?
+ * 
+ * Some components that can help determine when the stream is now invalid?
+ * Such as, error, EOF, closed socket?
  */
 template<bool Input = false, bool Output = false>
 class BaseMStream {
@@ -245,7 +248,17 @@ public:
      */
     void close() { fstream.close(); }
 
-    bool good() { return fstream.good(); }
+    /**
+     * @brief Determines if we have reached the end of the file
+     * 
+     * If we have reached the end of the file,
+     * then there is nothing else to be read.
+     * It is recommended to stop this mstream and stop using it.
+     * 
+     * @return true We have reached the end of the file
+     * @return false We not reached the end of the file
+     */
+    bool eof() const { return this->fstream.eof(); }
 };
 
 /**
@@ -295,6 +308,8 @@ public:
 
         close();
     }
+
+    void get(char& blah) { this->get_stream()->get(blah); }
 };
 
 class FOStream : public BaseMOStream, public BaseFStream<std::ofstream, std::ofstream::out | std::ofstream::binary> {

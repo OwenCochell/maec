@@ -8,6 +8,7 @@ set(MISC_FILES
     container_benchmark.cpp
     fftw_demo.cpp
     fft_radix2_benchmark.cpp
+    mstream_bench.cpp
 )
 
 # Finally, build and link all misc. demo files:

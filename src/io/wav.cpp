@@ -58,7 +58,7 @@ void WaveReader::start() {
 
     // Determine this chunk is a format chunk:
 
-    if (strcmp(head.chunk_id.data(), "fmt") != 0) {
+    if (strcmp(head.chunk_id.data(), "fmt ") != 0) {
 
         // This chunk is not format chunk
         // TODO: Gotta do something here
@@ -78,6 +78,13 @@ void WaveReader::start() {
     this->set_byterate(form.byte_rate);
     this->set_blockalign(form.block_align);
     this->set_bitspersample(form.bits_per_sample);
+}
+
+void WaveReader::stop() {
+
+    // Simply stop the stream:
+
+    this->stream->stop();
 }
 
 void WaveReader::read_chunk_header(ChunkHeader& chunk) {
@@ -116,7 +123,7 @@ void WaveReader::read_format_chunk(WavFormat& chunk) {
     this->stream->read(reinterpret_cast<char*>(&chunk.channels), 2);
 
     // Read the sample rate:
-    this->stream->read(reinterpret_cast<char*>(&chunk.channels), 4);
+    this->stream->read(reinterpret_cast<char*>(&chunk.sample_rate), 4);
 
     // Read the byte rate:
     this->stream->read(reinterpret_cast<char*>(&chunk.byte_rate), 4);
@@ -148,7 +155,12 @@ AudioBuffer WaveReader::get_data() {
 
         // Otherwise, read in the data:
 
-        std::vector<char> tdata(head.chunk_size);
+        std::vector<char> tdata;
+        tdata.reserve(head.chunk_size);
+
+        // Process into an AudioBuffer
+
+        AudioBuffer thing;
 
         this->stream->read(tdata.data(), head.chunk_size);
     }
