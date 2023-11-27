@@ -16,7 +16,6 @@
 
 #include "base_oscillator.hpp"
 
-
 /**
  * @brief Returns a sine wave
  * 
@@ -40,7 +39,6 @@ class SineOscillator : public BaseOscillator {
         void process() override;
 };
 
-
 /**
  * @brief Returns a Square Wave
  * 
@@ -63,7 +61,6 @@ class SquareOscillator : public BaseOscillator {
         void process() override;
 };
 
-
 /**
  * @brief Returns a Sawtooth Wave
  * 
@@ -85,7 +82,6 @@ class SawtoothOscillator : public BaseOscillator {
          */
         void process() override;
 };
-
 
 /**
  * @brief Returns a Triangle Wave
