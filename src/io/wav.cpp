@@ -29,20 +29,24 @@ void WaveReader::start() {
 
     // Ensure we are in a format we expect:
 
-    if (strcmp(head.chunk_id.data(), "RIFF") != 0) {
+    //if (strcmp(head.chunk_id.data(), "RIFF") != 0) {
+    if (head.chunk_id != "RIFF") {
 
         // Invalid header!
         // We do not support this file
         // TODO: Do something here
+        int dhd = 0;
     }
 
     // Ensure the format is something we expect:
 
-    if (strcmp(head.chunk_id.data(), "WAVE") != 0) {
+    //if (strcmp(head.chunk_id.data(), "WAVE") != 0) {
+    if (head.format != "WAVE") {
 
         // Invalid format type!
         // We do not support this file
         // TODO: Again, do something here
+        int dhd = 0;
     }
 
     // Save the size of the file:
@@ -58,10 +62,12 @@ void WaveReader::start() {
 
     // Determine this chunk is a format chunk:
 
-    if (strcmp(head.chunk_id.data(), "fmt ") != 0) {
+    //if (strcmp(head.chunk_id.data(), "fmt ") != 0) {
+    if (chead.chunk_id != "fmt ") {
 
         // This chunk is not format chunk
         // TODO: Gotta do something here
+        int dhd = 0;
     }
 
     // Read the wave format chunk
@@ -91,7 +97,8 @@ void WaveReader::read_chunk_header(ChunkHeader& chunk) {
 
     // Read the chunk header:
 
-    this->stream->read(chunk.chunk_id.begin(), 4);
+    //this->stream->read(chunk.chunk_id.begin(), 4);
+    this->stream->read(chunk.chunk_id.data(), 4);
     this->stream->read(reinterpret_cast<char*>(&chunk.chunk_size), 4);
 }
 
@@ -105,7 +112,8 @@ void WaveReader::read_wave_header(WavHeader& chunk) {
 
     // Read the format data:
 
-    this->stream->read(chunk.format.begin(), 4);
+    //this->stream->read(chunk.format.begin(), 4);
+    this->stream->read(chunk.format.data(), 4);
 
     // Place contents of the chunk header into the wave header:
 
@@ -147,7 +155,10 @@ AudioBuffer WaveReader::get_data() {
 
         // Determine if this is a data chunk:
 
-        if (strcmp(head.chunk_id.data(), "data") != 0) {
+        auto blah = strcmp(head.chunk_id.data(), "data");
+
+        //if (strcmp(head.chunk_id.data(), "data") != 0) {
+        if (head.chunk_id == "data") {
 
             // Not a data chunk, continue
             continue;
@@ -155,13 +166,12 @@ AudioBuffer WaveReader::get_data() {
 
         // Otherwise, read in the data:
 
-        std::vector<char> tdata;
-        tdata.reserve(head.chunk_size);
+        std::vector<std::int16_t> tdata(head.chunk_size);
 
         // Process into an AudioBuffer
 
         AudioBuffer thing;
 
-        this->stream->read(tdata.data(), head.chunk_size);
+        this->stream->read(reinterpret_cast<char*>(tdata.data()), head.chunk_size);
     }
 }

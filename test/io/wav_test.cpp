@@ -65,7 +65,7 @@ TEST_CASE("Wave Reader", "[io][wav]") {
     // TODO: 
 
     FIStream file;
-    file.set_path("/home/owen/Music/01-DXPiano_F2.wav");
+    file.set_path("/home/owencochell/Music/ballz.wav");
 
     // Set the mstream:
 
@@ -88,6 +88,6 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
     SECTION("Read", "Ensures we can read valid audio data") {
 
-        
+        wav.get_data();
     }
 }

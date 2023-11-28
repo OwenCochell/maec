@@ -31,7 +31,8 @@
 struct ChunkHeader {
 
     /// Chunk ID of the header
-    std::array<char, 4> chunk_id = {};
+    //std::array<char, 4> chunk_id = {};
+    std::string chunk_id = "    ";
 
     /// Size of the chunk
     u_int32_t chunk_size = 0;
@@ -47,13 +48,15 @@ struct ChunkHeader {
 struct WavHeader {
 
     /// Chunk ID of the header, in this case "RIFF"
-    std::array<char, 4> chunk_id = {};
+    //std::array<char, 4> chunk_id = {};
+    std::string chunk_id = "    ";
 
     /// Chunk size, in this case the size of the file minus 8
     uint32_t chunk_size = 0;
 
     /// Format, in this case "WAVE"
-    std::array<char, 4> format = {};
+    //std::array<char, 4> format = {};
+    std::string format = "    ";
 };
 
 /**
