@@ -151,9 +151,9 @@ std::int16_t char_int16(T byts) {
 
     std::int16_t val = 0;
 
-    // Read the bytes:
+    // Read the type:
 
-    val = byts[0] | (byts[1] >> 8);
+    std::copy_n(byts, 2, reinterpret_cast<char*>(val));
 
     // Return the final value:
 
