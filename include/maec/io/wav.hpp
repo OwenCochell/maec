@@ -230,7 +230,7 @@ public:
      * 
      * @return Number of bits per sample
      */
-    int get_bitspersample() const { return this->bits_per_sample; }
+    int get_bits_per_sample() const { return this->bits_per_sample; }
 
     /**
      * @brief Sets the number of bits per sample
@@ -238,9 +238,35 @@ public:
      * The bits per sample determines how many bits
      * are required to represent a single sample
      * 
-     * @param bps Number of bits per sample to ser
+     * This method automatically sets the bytes per sample
+     * using the provided value
+     * 
+     * @param bps Number of bits per sample to set
      */
-    void set_bitspersample(int bps) { this->bits_per_sample = bps; }
+    void set_bits_per_sample(int bps) { this->bits_per_sample = bps; this->bytes_per_sample = bps / 8; }
+
+    /**
+     * @brief Gets the number of bytes per sample
+     * 
+     * The bytes per sample determines how many bytes
+     * are required to represent a single sample
+     * 
+     * @return int Number of bytes per sample
+     */
+    int get_bytes_per_sample() const { return this->bytes_per_sample; }
+
+    /**
+     * @brief Sets the number of bytes per sample
+     * 
+     * The bytes per sample determines how many bytes
+     * are required to represent a single sample.
+     * 
+     * This method automatically sets the bits per sample
+     * using the provided value.
+     * 
+     * @param bps Number of bytes per sample to set
+     */
+    void set_bytes_per_sample(int bps) { this->bytes_per_sample = bps; this->bits_per_sample = bps * 8; }
 
     /**
      * @brief Gets the size of the wave file
@@ -279,6 +305,9 @@ private:
 
     /// Bits per sample of the wave file
     int bits_per_sample = 0;
+
+    /// Bytes per sample of the wave file
+    int bytes_per_sample = 0;
 
     /// Size of the wave file
     int size = 0;

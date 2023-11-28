@@ -14,3 +14,10 @@
 float mf_float(long double val) { return static_cast<float>(val); }
 
 long double mf_null(long double val) { return val; }
+
+long double int16_mf(std::int16_t val) {
+
+    // Divide by largest value:
+
+    return static_cast<long double>(val) / 32767;
+}

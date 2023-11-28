@@ -141,3 +141,21 @@ float mf_float(long double val);
 long double mf_null(long double val);
 
 // other -> mf
+
+long double int16_mf(std::int16_t val);
+
+template<typename T>
+std::int16_t char_int16(T byts) {
+
+    // Define the type:
+
+    std::int16_t val = 0;
+
+    // Read the bytes:
+
+    val = byts[0] | (byts[1] >> 8);
+
+    // Return the final value:
+
+    return val;
+}

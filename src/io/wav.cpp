@@ -83,7 +83,7 @@ void WaveReader::start() {
     this->set_samplerate(form.sample_rate);
     this->set_byterate(form.byte_rate);
     this->set_blockalign(form.block_align);
-    this->set_bitspersample(form.bits_per_sample);
+    this->set_bits_per_sample(form.bits_per_sample);
 }
 
 void WaveReader::stop() {
@@ -155,10 +155,8 @@ AudioBuffer WaveReader::get_data() {
 
         // Determine if this is a data chunk:
 
-        auto blah = strcmp(head.chunk_id.data(), "data");
-
         //if (strcmp(head.chunk_id.data(), "data") != 0) {
-        if (head.chunk_id == "data") {
+        if (head.chunk_id != "data") {
 
             // Not a data chunk, continue
             continue;
@@ -166,12 +164,21 @@ AudioBuffer WaveReader::get_data() {
 
         // Otherwise, read in the data:
 
-        std::vector<std::int16_t> tdata(head.chunk_size);
+        //std::vector<std::int16_t> tdata(head.chunk_size);
+        std::vector<char> tdata(head.chunk_size);
 
         // Process into an AudioBuffer
 
         AudioBuffer thing;
 
-        this->stream->read(reinterpret_cast<char*>(tdata.data()), head.chunk_size);
+        //this->stream->read(reinterpret_cast<char*>(tdata.data()), head.chunk_size);
+        this->stream->read(tdata.data(), head.chunk_size);
+
+        // Iterate over the chars:
+
+        for (int i = 0; i < tdata.size() / this->get_bytes_per_sample(); ++i) {
+
+            // Intepret this byte
+        }
     }
 }

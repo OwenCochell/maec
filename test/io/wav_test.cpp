@@ -26,7 +26,8 @@ TEST_CASE("Base Wave", "[io][wav]") {
         REQUIRE(bwave.get_samplerate() == 44100);
         REQUIRE(bwave.get_byterate() == 0);
         REQUIRE(bwave.get_blockalign() == 0);
-        REQUIRE(bwave.get_bitspersample() == 0);
+        REQUIRE(bwave.get_bits_per_sample() == 0);
+        REQUIRE(bwave.get_bytes_per_sample() == 0);
         REQUIRE(bwave.get_size() == 0);
     }
     
@@ -39,7 +40,7 @@ TEST_CASE("Base Wave", "[io][wav]") {
         bwave.set_samplerate(4);
         bwave.set_byterate(5);
         bwave.set_blockalign(6);
-        bwave.set_bitspersample(7);
+        bwave.set_bits_per_sample(16);
         bwave.set_size(8);
 
         SECTION("Getter", "Ensures changes can be retrieved") {
@@ -49,7 +50,8 @@ TEST_CASE("Base Wave", "[io][wav]") {
             REQUIRE(bwave.get_samplerate() == 4);
             REQUIRE(bwave.get_byterate() == 5);
             REQUIRE(bwave.get_blockalign() == 6);
-            REQUIRE(bwave.get_bitspersample() == 7);
+            REQUIRE(bwave.get_bits_per_sample() == 16);
+            REQUIRE(bwave.get_bytes_per_sample() == 2);
             REQUIRE(bwave.get_size() == 8);
         }
     }
