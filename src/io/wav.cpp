@@ -143,7 +143,7 @@ void WaveReader::read_format_chunk(WavFormat& chunk) {
     this->stream->read(reinterpret_cast<char*>(&chunk.bits_per_sample), 2);
 }
 
-AudioBuffer WaveReader::get_data() {
+BufferPointer WaveReader::get_data() {
 
     while (true) {
 
@@ -162,23 +162,38 @@ AudioBuffer WaveReader::get_data() {
             continue;
         }
 
-        // Otherwise, read in the data:
+        // Determine which processing pathway to utilize:
+        // TODO: Really don't like this.
+        // While I think this is the fastest solution,
+        // It has a few problems:
+        // 1. Not modular - This is all hardcoded
+        // 2. Endianess problems, what we we have differing endianess?
+        // 3. Breaks the DRY principal a lot
 
-        //std::vector<std::int16_t> tdata(head.chunk_size);
-        std::vector<char> tdata(head.chunk_size);
+        if (this->get_bits_per_sample() == 16) {
 
-        // Process into an AudioBuffer
+            // Need to do 16 bit processing:
 
-        AudioBuffer thing;
+            std::vector<int16_t> tdata(head.chunk_size / this->get_bytes_per_sample());
 
-        //this->stream->read(reinterpret_cast<char*>(tdata.data()), head.chunk_size);
-        this->stream->read(tdata.data(), head.chunk_size);
+            // Read data into vector:
 
-        // Iterate over the chars:
+            this->stream->read(reinterpret_cast<char*>(tdata.data()), head.chunk_size);
 
-        for (int i = 0; i < tdata.size() / this->get_bytes_per_sample(); ++i) {
+            // Create AudioBuffer:
 
-            // Intepret this byte
+            auto buff = std::make_unique<AudioBuffer>(head.chunk_size / this->get_bytes_per_sample(), this->get_channels());
+
+            // Read data into buffer:
+
+            for (int i = 0; i < tdata.size(); ++i) {
+
+                buff->at(i) = static_cast<long double>(tdata[i]) / 32768.;
+            }
+
+            // Finally, return data:
+
+            return buff;
         }
     }
 }

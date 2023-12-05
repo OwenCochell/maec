@@ -140,6 +140,8 @@ float mf_float(long double val);
 
 long double mf_null(long double val);
 
+int16_t mf_int16(long double val);
+
 // other -> mf
 
 long double int16_mf(std::int16_t val);
