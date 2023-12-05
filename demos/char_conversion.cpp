@@ -38,7 +38,7 @@ int main() {
     // Fill with random chars:
 
     random_bytes_engine rbe;
-    std::generate_n(data.begin(), size, rbe);
+    std::generate_n(data.begin(), size*2, rbe);
 
     // From here, we need to test our methods.
     // We assume the vector we are copying to is optimal
@@ -60,7 +60,7 @@ int main() {
         std::cout << "Warning: high_resolution_clock is not steady!"
                   << std::endl;
         std::cout << "This may cause inaccurate results." << std::endl;
-        std::cout << "+====================================+" << std::endl;
+        std::cout << "+=======================================+" << std::endl;
     }
 
     long double acopy = 0;
@@ -81,7 +81,11 @@ int main() {
 
         auto start = std::chrono::high_resolution_clock::now();
 
-        std::copy_n(data.begin(), size*2, idata.data());
+        std::copy_n(data.data(), size*2, idata.data());
+
+        for (int i = 0; i < size; ++i) {
+            //odata.at(i) = data[i] / 32768.0;
+        }
 
         auto end = std::chrono::high_resolution_clock::now();
 
@@ -105,10 +109,6 @@ int main() {
 
         start = std::chrono::high_resolution_clock::now();
 
-        std::cout << "Single copy time [" << j << "]: "
-                  << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
-
         for (int i = 0; i < size; ++i) {
 
             // Define our type:
@@ -117,11 +117,11 @@ int main() {
 
             // Copy values over:
 
-            std::copy_n(data.begin() + i*2, 2, reinterpret_cast<char*>(val));
+            std::copy_n(data.data() + static_cast<ptrdiff_t>(i)*2, 2, &val);
 
             // Add value to final vector:
 
-            odata[i] = static_cast<long double>(val) / 32768.0;
+            //odata.at(i) = static_cast<long double>(val) / 32768.0;
         }
 
         end = std::chrono::high_resolution_clock::now();
@@ -158,7 +158,7 @@ int main() {
 
             // Add value to final vector:
 
-            odata[i] = static_cast<long double>(val) / 32768.0;
+            odata.at(i) = static_cast<long double>(val) / 32768.0;
         }
 
         end = std::chrono::high_resolution_clock::now();
@@ -184,4 +184,10 @@ int main() {
     std::cout << "All in one copy time: " << acopy << " ms" << std::endl;
     std::cout << "Single copy time: " << scopy << " ms" << std::endl;
     std::cout << "Single safe copy time: " << sscopy << " ms" << std::endl;
+
+    odata.clear();
+    odata.shrink_to_fit();
+
+    idata.clear();
+    idata.shrink_to_fit();
 }

@@ -153,7 +153,7 @@ std::int16_t char_int16(T byts) {
 
     // Read the type:
 
-    std::copy_n(byts, 2, reinterpret_cast<char*>(val));
+    std::copy_n(byts, 2, &val);
 
     // Return the final value:
 
