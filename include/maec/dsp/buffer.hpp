@@ -463,7 +463,7 @@ private:
     /// The current sample we are on
     int index = 0;
 };
-
+ 
 /**
  * @brief Class for holding signal data
  * 

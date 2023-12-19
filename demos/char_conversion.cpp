@@ -27,27 +27,23 @@ int main() {
 
     // Number of iterations:
 
-    const int iter = 10;
+    const int iter = 100;
 
     // Create initial array.
     // The size is the number of output values there will be
 
-    const int size = 100;
+    const int size = 400;
     std::array<char, size*2> data = {};
 
     // Fill with random chars:
 
     random_bytes_engine rbe;
-    std::generate_n(data.begin(), size, rbe);
+    std::generate_n(data.begin(), size*2, rbe);
 
     // From here, we need to test our methods.
     // We assume the vector we are copying to is optimal
 
     std::vector<long double> odata(size);
-
-    // We also provide an intermediate vector for use:
-
-    std::vector<std::int16_t> idata(size);
 
     std::cout << "+=========================================+" << std::endl;
     std::cout << " !Benchmarking char conversion performance!" << std::endl;
@@ -81,7 +77,22 @@ int main() {
 
         auto start = std::chrono::high_resolution_clock::now();
 
-        std::copy_n(data.begin(), size*2, idata.data());
+        // Create a vector for intermediate use:
+
+        std::vector<std::int16_t> idata(size);
+
+        // First, convert into shorts:
+
+        std::copy_n(data.begin(), size*2, reinterpret_cast<char*>(idata.data()));
+
+        // Next, convert into long doubles:
+
+        for (int i = 0; i < idata.size(); ++i) {
+
+            // Convert into double and save:
+
+            odata[i] = idata[i] / 32768.0;
+        }
 
         auto end = std::chrono::high_resolution_clock::now();
 
@@ -105,10 +116,6 @@ int main() {
 
         start = std::chrono::high_resolution_clock::now();
 
-        std::cout << "Single copy time [" << j << "]: "
-                  << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
-
         for (int i = 0; i < size; ++i) {
 
             // Define our type:
@@ -117,7 +124,7 @@ int main() {
 
             // Copy values over:
 
-            std::copy_n(data.begin() + i*2, 2, reinterpret_cast<char*>(val));
+            std::copy_n(data.begin() + i*2, 2, reinterpret_cast<char*>(&val));
 
             // Add value to final vector:
 
@@ -154,7 +161,7 @@ int main() {
 
             // Copy values over:
 
-            val = data[i*2] | data[i*2+1] << 8;
+            val = static_cast<int16_t>((static_cast<int16_t>(data[i * 2+1]) << 8) | static_cast<unsigned char>(data[i*2]));
 
             // Add value to final vector:
 
@@ -181,7 +188,7 @@ int main() {
     std::cout << "+=======================================+" << std::endl;
     std::cout << " -== [ Results: ] ==--" << std::endl;
 
-    std::cout << "All in one copy time: " << acopy << " ms" << std::endl;
-    std::cout << "Single copy time: " << scopy << " ms" << std::endl;
-    std::cout << "Single safe copy time: " << sscopy << " ms" << std::endl;
+    std::cout << "Average all in one copy time: " << acopy / iter << " ms" << std::endl;
+    std::cout << "Average single copy time: " << scopy / iter << " ms" << std::endl;
+    std::cout << "Average single safe copy time: " << sscopy / iter << " ms" << std::endl;
 }

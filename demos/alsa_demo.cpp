@@ -42,7 +42,7 @@ int main() {
 
     // Set type to lowpass:
 
-    sinc.set_type(FilterType::BandReject);
+    sinc.set_type(FilterType::LowPass);
 
     // Set low frequency to 440:
 
@@ -62,8 +62,8 @@ int main() {
     sinc.bind(&saw);
     latency.bind(&sinc);
     sink.bind(&latency);
-    // latency.bind(&saw);
-    // sink.bind(&latency);
+    //latency.bind(&saw);
+    //sink.bind(&latency);
 
     // Start all modules:
 

@@ -142,18 +142,19 @@ long double mf_null(long double val);
 
 // other -> mf
 
-long double int16_mf(std::int16_t val);
+long double int16_mf(int16_t val);
 
 template<typename T>
-std::int16_t char_int16(T byts) {
+int16_t char_int16(T byts) {
 
     // Define the type:
 
-    std::int16_t val = 0;
+    int16_t val = 0;
 
-    // Read the type:
+    // Read the bytes and store in value:
 
-    std::copy_n(byts, 2, reinterpret_cast<char*>(val));
+    val = static_cast<int16_t>((static_cast<int16_t>(data[1]) << 8) |
+                               static_cast<unsigned char>(data[0]));
 
     // Return the final value:
 

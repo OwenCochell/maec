@@ -17,8 +17,6 @@
 #include "audio_buffer.hpp"
 #include "mstream.hpp"
 
-#include <fstream>
-
 /**
  * @brief Struct that represents a chunk header
  * 

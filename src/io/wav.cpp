@@ -155,7 +155,6 @@ AudioBuffer WaveReader::get_data() {
 
         // Determine if this is a data chunk:
 
-        //if (strcmp(head.chunk_id.data(), "data") != 0) {
         if (head.chunk_id != "data") {
 
             // Not a data chunk, continue
@@ -169,16 +168,36 @@ AudioBuffer WaveReader::get_data() {
 
         // Process into an AudioBuffer
 
-        AudioBuffer thing;
+        AudioBuffer thing((tdata.size() / this->get_bytes_per_sample()) / this->get_channels(), this->get_channels());
 
         //this->stream->read(reinterpret_cast<char*>(tdata.data()), head.chunk_size);
         this->stream->read(tdata.data(), head.chunk_size);
 
-        // Iterate over the chars:
+        // Determine which type to read in:
 
-        for (int i = 0; i < tdata.size() / this->get_bytes_per_sample(); ++i) {
+        if (this->get_bits_per_sample() == 16) {
 
-            // Intepret this byte
+            // We are reading in 16 bit ints:
+
+            for (int i = 0; i < tdata.size() / 2; i++) {
+
+                // Read this int16:
+
+                auto val = char_int16(tdata.begin() + i * 2);
+
+                // Convert to mf:
+
+                auto mf_val = int16_mf(val);
+
+                // Add value to final vector:
+
+                thing.at(i) = mf_val;
+            }
+        }
+
+        else if (this->get_bits_per_sample() == 8) {
+            
+            // We are reading in unsigned chars
         }
     }
 }
