@@ -262,7 +262,7 @@ void ALSABase::alsa_start(int sample_rate, int buffer_size) {
     // Set some non-negotiable values:
 
     int a = snd_pcm_hw_params_set_access(pcm, this->params, SND_PCM_ACCESS_RW_INTERLEAVED);
-	int b = snd_pcm_hw_params_set_format(pcm, this->params, SND_PCM_FORMAT_FLOAT); // THIS FAILS, ONLY WITH FLOAT_64
+	int b = snd_pcm_hw_params_set_format(pcm, this->params, SND_PCM_FORMAT_S16); // THIS FAILS, ONLY WITH FLOAT_64
 	int c = snd_pcm_hw_params_set_channels(pcm, this->params,  this->device.channels);
 	int d = snd_pcm_hw_params_set_rate(pcm, this->params, sample_rate, 0);
 
@@ -330,13 +330,13 @@ void ALSASink::process() {
 
     // First, define our temporary vector:
 
-    std::vector<float> temp(buff->size() * buff->channels());
+    std::vector<int16_t> temp(buff->size() * buff->channels());
 
     auto tthing = buff->size();
 
     // Next, squish it:
 
-    squish_inter(this->buff.get(), temp.begin(), &mf_float);
+    squish_inter(this->buff.get(), temp.begin(), &mf_int16);
 
     auto thing = temp.size();
 
@@ -360,7 +360,7 @@ void ALSASink::process() {
     // Finally, send the data along:
 
     this->return_code =
-        snd_pcm_writei(this->pcm, reinterpret_cast<float*>(temp.data()),
+        snd_pcm_writei(this->pcm, reinterpret_cast<int16_t*>(temp.data()),
                        static_cast<snd_pcm_uframes_t>(temp.size()));
 
     std::cout << this->return_code << std::endl;

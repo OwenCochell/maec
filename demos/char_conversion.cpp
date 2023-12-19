@@ -39,6 +39,7 @@ int main() {
 
     random_bytes_engine rbe;
     std::generate_n(data.begin(), size*2, rbe);
+    std::generate_n(data.begin(), size*2, rbe);
 
     // From here, we need to test our methods.
     // We assume the vector we are copying to is optimal
@@ -56,7 +57,7 @@ int main() {
         std::cout << "Warning: high_resolution_clock is not steady!"
                   << std::endl;
         std::cout << "This may cause inaccurate results." << std::endl;
-        std::cout << "+====================================+" << std::endl;
+        std::cout << "+=======================================+" << std::endl;
     }
 
     long double acopy = 0;
@@ -128,7 +129,7 @@ int main() {
 
             // Add value to final vector:
 
-            odata[i] = static_cast<long double>(val) / 32768.0;
+            //odata.at(i) = static_cast<long double>(val) / 32768.0;
         }
 
         end = std::chrono::high_resolution_clock::now();
@@ -165,7 +166,7 @@ int main() {
 
             // Add value to final vector:
 
-            odata[i] = static_cast<long double>(val) / 32768.0;
+            odata.at(i) = static_cast<long double>(val) / 32768.0;
         }
 
         end = std::chrono::high_resolution_clock::now();

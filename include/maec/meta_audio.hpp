@@ -364,5 +364,4 @@ class UniformBuffer : public AudioModule {
          * 
          */
         void meta_process() override { this->process(); }
-
 };

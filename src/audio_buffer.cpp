@@ -19,5 +19,5 @@ long double int16_mf(int16_t val) {
 
     // Divide by largest value:
 
-    return static_cast<long double>(val) / 32767;
+    return static_cast<long double>(val) / 32767.;
 }

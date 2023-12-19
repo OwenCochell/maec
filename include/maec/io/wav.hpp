@@ -376,15 +376,16 @@ public:
      * 
      * We read chunks from the stream until
      * we encounter a data chunk.
-     * From there, we read the data and do any necessary conversions (?)
+     * From there, we read the data and do any necessary conversions
      * 
      * If we encounter any weird chunks that we don't recognize,
      * then we will discard them
      * TODO: Save these for later?
      * Offer some kind of handling system for these? 
      * 
+     * @return BufferPointer AudioBuffer containing audio data, ready for processing
      */
-    AudioBuffer get_data();
+    BufferPointer get_data();
 
 private:
 
