@@ -51,7 +51,7 @@ void WaveReader::start() {
 
     // Save the size of the file:
 
-    this->set_size(head.chunk_size);
+    this->set_size(head.chunk_size+8);
 
     // Next, read the format chunk
     // TODO: Is it always guaranteed that format will always be second chunk?
@@ -62,7 +62,6 @@ void WaveReader::start() {
 
     // Determine this chunk is a format chunk:
 
-    //if (strcmp(head.chunk_id.data(), "fmt ") != 0) {
     if (chead.chunk_id != "fmt ") {
 
         // This chunk is not format chunk
@@ -97,9 +96,10 @@ void WaveReader::read_chunk_header(ChunkHeader& chunk) {
 
     // Read the chunk header:
 
-    //this->stream->read(chunk.chunk_id.begin(), 4);
     this->stream->read(chunk.chunk_id.data(), 4);
     this->stream->read(reinterpret_cast<char*>(&chunk.chunk_size), 4);
+
+    this->total_read += 8;
 }
 
 void WaveReader::read_wave_header(WavHeader& chunk) {
@@ -112,7 +112,6 @@ void WaveReader::read_wave_header(WavHeader& chunk) {
 
     // Read the format data:
 
-    //this->stream->read(chunk.format.begin(), 4);
     this->stream->read(chunk.format.data(), 4);
 
     // Place contents of the chunk header into the wave header:
@@ -120,6 +119,8 @@ void WaveReader::read_wave_header(WavHeader& chunk) {
     // TODO: Is this line inefficient?
     chunk.chunk_id = head.chunk_id;
     chunk.chunk_size = head.chunk_size;
+
+    this->total_read += 4;
 }
 
 void WaveReader::read_format_chunk(WavFormat& chunk) {
@@ -141,24 +142,67 @@ void WaveReader::read_format_chunk(WavFormat& chunk) {
 
     // Read the bits per sample:
     this->stream->read(reinterpret_cast<char*>(&chunk.bits_per_sample), 2);
+
+    this->total_read += 16;
 }
 
 BufferPointer WaveReader::get_data() {
 
-    while (true) {
+    // Define the BufferPointer to return:
+
+    BufferPointer bpoint = std::make_unique<AudioBuffer>(
+        this->buffer_size,
+        this->get_channels());
+
+    // Also set the sample rate:
+
+    bpoint->set_samplerate(this->get_samplerate());
+
+    // Define some variables:
+
+    int read = 0;
+
+    // Loop as long as our mstream is valid
+    while (!this->done() && read < buffer_size * this->get_channels()) {
 
         // Read wave file header:
 
-        ChunkHeader head;
+        if (this->needs_chunk) {
 
-        this->read_chunk_header(head);
+            this->read_chunk_header(this->head);
 
-        // Determine if this is a data chunk:
+            // Determine if this is a data chunk:
 
-        if (head.chunk_id != "data") {
+            if (this->head.chunk_id != "data") {
 
-            // Not a data chunk, continue
-            continue;
+                // Create UnknownChunk:
+
+                UnknownChunk chunk(this->head.chunk_size);
+
+                // Not a data chunk, read data into an unknown chunk:
+
+                this->stream->read(chunk.data.data(), this->head.chunk_size);
+
+                // Also copy over other pieces of info:
+
+                chunk.chunk_id = head.chunk_id;
+                chunk.chunk_size = head.chunk_size;
+
+                // We are past this weird chunk! Continue
+                // TODO: Should we save these chunks somewhere?
+
+                this->total_read += this->head.chunk_size;
+
+                continue;
+            }
+
+            // Set our reading chunk status:
+
+            this->needs_chunk = false;
+
+            // Set the number of bytes read from this chunk:
+
+            this->chunk_read = 0;
         }
 
         // Determine which processing pathway to utilize:
@@ -169,18 +213,45 @@ BufferPointer WaveReader::get_data() {
         // 2. Endianess problems, what we we have differing endianess?
         // 3. Breaks the DRY principal a lot
 
-        if (this->get_bits_per_sample() == 16) {
+        // Determine the number of bytes to read
+        // We either read the entire buffer size,
+        // or the number of bytes left in this chunk, whichever is smallest
 
-            // Need to do 16 bit processing:
+        const int buffer_bytes =
+            (this->buffer_size * this->get_channels()) * this->get_bytes_per_sample();
 
-            std::vector<int16_t> tdata(head.chunk_size / this->get_bytes_per_sample());
+        const int chunk_bytes = static_cast<int>(head.chunk_size - this->chunk_read);
 
-            // Read data into vector:
+        int to_read = 0;
 
-        AudioBuffer thing((tdata.size() / this->get_bytes_per_sample()) / this->get_channels(), this->get_channels());
+        if (chunk_bytes <= buffer_bytes) {
 
-        //this->stream->read(reinterpret_cast<char*>(tdata.data()), head.chunk_size);
-        this->stream->read(tdata.data(), head.chunk_size);
+            // This chunk is NOT big enough to fill a buffer
+            // We read all we can and then read a new chunk
+
+            this->needs_chunk = true;
+
+            to_read = chunk_bytes;
+        }
+
+        else {
+
+            // Chunk is big enough, read size of vector:
+
+            to_read = buffer_bytes;
+        }
+
+        // Read data into vector:
+
+        std::vector<char> tdata(to_read);
+
+        this->stream->read(tdata.data(), to_read);
+
+        this->total_read += to_read;
+
+        // Add to number of bytes read:
+
+        this->chunk_read += to_read;
 
         // Determine which type to read in:
 
@@ -188,11 +259,12 @@ BufferPointer WaveReader::get_data() {
 
             // We are reading in 16 bit ints:
 
-            for (int i = 0; i < tdata.size() / 2; i++) {
+            for (int i = 0; i < static_cast<int>(tdata.size() / 2); ++i) {
 
                 // Read this int16:
 
-                auto val = char_int16(tdata.begin() + i * 2);
+                auto val = char_int16(tdata.begin() +
+                                      static_cast<int64_t>(i) * 2);
 
                 // Convert to mf:
 
@@ -200,13 +272,74 @@ BufferPointer WaveReader::get_data() {
 
                 // Add value to final vector:
 
-                thing.at(i) = mf_val;
+                bpoint->at(read++) = mf_val;
             }
         }
 
         else if (this->get_bits_per_sample() == 8) {
-            
+
             // We are reading in unsigned chars
+
+            for (int i = 0; i < static_cast<int>(tdata.size()); ++i) {
+
+                // Convert into mf:
+
+                const long double val = uchar_mf(tdata[i]);
+
+                // Add to buffer:
+
+                bpoint->at(read++) = val;
+            }
         }
     }
+
+    // Determine if we need to close the file (reached end):
+
+    if (this->total_read >= this->get_size()) {
+
+        // Stop this WaveReader
+
+        this->stop();
+    }
+
+    // Finally, return buffer pointer:
+
+    return bpoint;
+}
+
+void WaveSource::start() {
+
+    // Start the wave reader:
+
+    WaveReader::start();
+
+    // Populate our AudioInfo data from wave file info:
+
+    auto* info = this->get_info();
+
+    info->channels = this->get_channels();
+    info->in_buffer = 0;
+    info->sample_rate = this->get_samplerate();
+
+    // Use buffer size from AUdioInfo:
+
+    WaveReader::set_buffer_size(info->out_buffer);
+}
+
+void WaveSource::stop() {
+
+    // Stop the wave reader:
+
+    WaveReader::stop();
+}
+
+void WaveSource::process() {
+
+    // Ask the WaveReader to generate AudioBuffer:
+
+    auto buff = WaveReader::get_data();
+
+    // Set our buffer:
+
+    this->set_buffer(std::move(buff));
 }

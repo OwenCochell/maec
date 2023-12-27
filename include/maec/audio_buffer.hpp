@@ -136,16 +136,86 @@ void squish_null(AudioBuffer* buff, const It& iter, Func oper) {}  // NOLINT(cla
 
 // mf -> other
 
+/**
+ * @brief Converts mf to a float
+ * 
+ * This function is simply a cast!
+ * There are no interesting methods utilized here.
+ * 
+ * @param val Value to convert
+ * @return float Converted float value
+ */
 float mf_float(long double val);
 
+/**
+ * @brief Does nothing
+ * 
+ * This function simply returns the value provided.
+ * 
+ * @param val Value to convert
+ * @return long double Value provided
+ */
 long double mf_null(long double val);
 
+/**
+ * @brief Converts mf to a 16bit integer
+ *
+ * We multiply the mf by 32767,
+ * and cast it to int16_t
+ *
+ * @param val Value to convert
+ * @return int16_t Converted int16_t
+ */
 int16_t mf_int16(long double val);
 
 // other -> mf
 
+/**
+ * @brief Converts a 16bit integer to mf
+ *
+ * We divide the integer by 32767,
+ * and then cast to mf
+ *
+ * @param val Value to convert
+ * @return long double Converted mf
+ */
 long double int16_mf(int16_t val);
 
+/**
+ * @brief Converts a unsigned char to mf
+ * 
+ * We divide the char by 255
+ * and then cast to mf
+ * 
+ * @param val Value to convert
+ * @return long double Converted mf
+ */
+long double uchar_mf(unsigned char val);
+
+/**
+ * @brief Components for byte conversions
+ * 
+ * This section describes functions for converting
+ * byte data into higher level types.
+ * These functions operate with character arrays,
+ * and pointers/iterators to specific elements should be provided!
+ * 
+ * These functions follow the same naming convention mentioned above.
+ */
+
+/**
+ * @brief Converts byte data into 16bit integers
+ * 
+ * This function utilizes endian safe methods
+ * for conversions.
+ * 
+ * We require 2 bytes to make this conversion,
+ * so your pointer should have at least 1 value in front of it.
+ * 
+ * @tparam T Iterator to character data
+ * @param byts Byte data to convert
+ * @return int16_t 16bit integer
+ */
 template<typename T>
 int16_t char_int16(T byts) {
 
@@ -155,8 +225,8 @@ int16_t char_int16(T byts) {
 
     // Read the bytes and store in value:
 
-    val = static_cast<int16_t>((static_cast<int16_t>(data[1]) << 8) |
-                               static_cast<unsigned char>(data[0]));
+    val = static_cast<int16_t>((static_cast<int16_t>(byts[1]) << 8) |
+                               static_cast<unsigned char>(byts[0]));
 
     // Return the final value:
 

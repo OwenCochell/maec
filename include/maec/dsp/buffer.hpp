@@ -1468,7 +1468,7 @@ public:
         return this->iend();
     }
 
-   private:
+private:
     /// Sample rate in Hertz
     double sample_rate = SAMPLE_RATE;
 

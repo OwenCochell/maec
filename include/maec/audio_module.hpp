@@ -25,6 +25,9 @@
  * However, good modules WILL take this info into consideration,
  * and modules attached to this one will use this info.
  * 
+ * The info contained here represents the state of a single module.
+ * Other modules can use this information to understand how to interact
+ * with modules, and may allow other modules to alter the parameters described here. 
  */
 struct ModuleInfo {
 
@@ -37,38 +40,36 @@ struct ModuleInfo {
     /// Size of the outgoing audio buffer
     int out_buffer = BUFF_SIZE;
 
+    /// Channels of audio data
+    int channels = 1;
 };
 
 /**
- * @brief Structure for holding audio info
+ * @brief Structure for holding information about an AudioChain
  * 
- * We contain various info to be shared among modules
- * that are linked together.
+ * This struct contains many attributes that module chains can utilize.
+ * AudioModules and AudioChains are not required to consider this information!
+ * However, good chains/modules WILL take this info into consideration.
  * 
- * THIS INFO IS HOW THE AUDIO DATA WILL BE ONCE IT LEAVES THE CHAIN!
- * For example, the sample rate can be changed in the middle of the chain if need be.
- * But, it MUST match the chain sample rate when it leaves the chain,
- * otherwise we will encounter issues with the audio output modules.
+ * This values in this struct describes how audio data LEAVES the chain!
+ * For example, the buffer_size will be the size of the buffer as it reaches the sink.
+ * Modules (such as sinks) can use this info to self-configure themselves.
+ * Other modules can alter this data to affect how sinks configure themselves.
  * 
- * TODO: Finalize and really structure this data.
- * 
- * Do we really need all values here?
- * We need to figure out how this data can be altered and changed in the chain...
+ * This data will be shared between ALL modules in the same chain.
+ * The struct will be synced when modules are linked,
+ * and will likely be used at start time by modules in the chain to configure themselves.
  */
-struct AudioInfo {
+struct ChainInfo {
 
-    long double freq = 0;  /// The frequency of the audio data, if applicable
-    long double sample_rate = SAMPLE_RATE;  /// The sample rate of the audio data, if applicable
+    /// Sample rate of audio data, if applicable
+    long double sample_rate = SAMPLE_RATE;
 
-    int done = 0 ;  /// Number of modules that are finished
-    int num = 0;  /// Number of modules present in the chain
-    int velocity = 0;  /// Velocity of the audio data, if applicable
-    int buff_size = BUFF_SIZE;  /// The size of the audio buffer
+    /// Size of buffer entering the sink
+    int buffer_size = BUFF_SIZE;
 
-    bool running = false;  // Value determining if we are running
-
-    std::vector<std::unique_ptr<long double*>> points;
-
+    /// Number of audio channels
+    int channels = 1;
 };
 
 /**
@@ -89,6 +90,9 @@ class AudioModule : public BaseModule {
 
         /// Information for this specific module
         ModuleInfo info;
+
+        /// Information for the chain this module is apart of
+        ChainInfo* chain = nullptr;
 
         /// Pointer to the audio module we are attached to
         AudioModule* forward=nullptr;
@@ -236,9 +240,6 @@ class AudioModule : public BaseModule {
          * You can also specify the default number of channels,
          * but by default this will be 1.
          * 
-         * TODO: TEST THIS FO SURE!
-         * Not 100% sure that compilers will allow this...
-         * 
          * @return The newly created buffer
          */
         std::unique_ptr<AudioBuffer> create_buffer(int channels=1);
@@ -255,7 +256,7 @@ class AudioModule : public BaseModule {
          * @param channels Channels in AudioBuffer
          * @return std::unique_ptr<AudioBuffer> Newly created buffer
          */
-        std::unique_ptr<AudioBuffer> create_buffer(int size, int channels) const;
+        static std::unique_ptr<AudioBuffer> create_buffer(int size, int channels);
 
         /**
          * @brief Get the forward object
@@ -276,17 +277,30 @@ class AudioModule : public BaseModule {
         AudioModule* get_backward() { return this->backward; }
 
         /**
-         * @brief Get the info object
+         * @brief Get the module info object
          * 
          * @return ModuleInfo* ModuleInfo struct in use by this class
          */
         ModuleInfo* get_info() { return &this->info; }
 
         /**
-         * @brief Set the info object
+         * @brief Set the module info object
          * 
          * @param in Audio info struct
-         *
          */
         void set_info(ModuleInfo& inf) { this->info = inf; }
+
+        /**
+         * @brief Get the chain info object
+         * 
+         * @return ChainInfo struct in use by this class
+         */
+        ChainInfo* get_chain_info() const { return this->chain; }
+
+        /**
+         * @brief Set the chain info object
+         * 
+         * @param inf Chain info struct
+         */
+        void set_chain_info(ChainInfo* inf) { this->chain = inf; }
 };

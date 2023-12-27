@@ -21,6 +21,7 @@
 
 #include <string>
 #include <fstream>
+#include <algorithm>
 
 /**
  * @brief Base class for mstreams
@@ -92,12 +93,41 @@ public:
     /**
      * @brief Gets the current state of the mstream
      * 
-     * Te state of the mstream can be utilize
+     * The state of the mstream can be utilized
      * to understand the current status of the mstream.
      * 
      * @return Current state of mstream
      */
     mstate get_state() const { return this->state; }
+
+    /**
+     * @brief Sets the state of the mstream
+     * 
+     * @param nstate New state of mstream
+     */
+    void set_state(mstate nstate) { this->state = nstate; }
+
+    /**
+     * @brief Determines if this mstream is in a good state
+     * 
+     * An mstream is 'good' if it is capable of reading/writing.
+     * If it is in a good state, then you can use them as expected.
+     * 
+     * @return true Stream is in good state
+     * @return false Stream is in bad state
+     */
+    bool good() { return this->state == init || this->state == started; }
+
+    /**
+     * @brief Determines if this mstream is in a bad state
+     * 
+     * An mstream is 'bad' if it is NOT capable of reading/writing.
+     * If it is in a bad state, then the stream should not be used going forward.
+     * 
+     * @return true Stream is in bad state
+     * @return false Stream is in good state
+     */
+    bool bad() { return !this->good(); }
 
     /**
      * @brief Determines if we are an output mstream
@@ -174,6 +204,61 @@ public:
 };
 
 /**
+ * @brief mstream for reading byte arrays
+ * 
+ * This mstream can read a provided byte array.
+ * 
+ * We iterate over this array as we are asked to extract info from it.
+ * This array can be provided to us in many ways,
+ * but at the end of the day, we store the characters in a vector.
+ * 
+ */
+class CharIStream : public BaseMIStream {
+private:
+
+    /// Vector to store character array in
+    std::vector<unsigned char> arr;
+
+    /// Current index of character array
+    int index = 0;
+
+public:
+
+    CharIStream() = default;
+
+    CharIStream(std::initializer_list<unsigned char> lst) : arr(lst) {}
+
+    /**
+     * @brief Reads chars from the array
+     * 
+     * We copy chars from the array into the output.
+     * 
+     * @param byts Char array to store results into
+     * @param num Number of bytes to read
+     */
+    void read(char* byts, int num) final {
+
+        // Copy the contents over:
+
+        std::copy_n(arr.begin() + index, num, byts);
+
+        // Increment index:
+
+        this->index += num;
+    }
+
+    /**
+     * @brief Gets the array utilized by this mstream
+     * 
+     * We return a reference to the array utilized by this mstream.
+     * Users can configure this array as they see fit.
+     * 
+     * @return std::vector<char>& Current array in use
+     */
+    std::vector<unsigned char>& get_array() { return this->arr; }
+};
+
+/**
  * @brief Base class all file mstreams must implement
  * 
  * We automatically handle the process of
@@ -214,7 +299,7 @@ public:
      * 
      * @param file Path to file to be operated on
      */
-    BaseFStream(std::string path) : filepath(path) {}
+    BaseFStream(std::string path) : filepath(std::move(path)) {}
 
     /**
      * @brief Gets the path to the file we are working with
@@ -259,6 +344,18 @@ public:
      * @return false We not reached the end of the file
      */
     bool eof() const { return this->fstream.eof(); }
+
+    /**
+     * @brief Determines if this stream is in a bad state
+     * 
+     * If we are in a bad state, then this stream is beyond repair
+     * and should not be used.
+     * This can happen for many different reasons!
+     * 
+     * @return true If stream is valid
+     * @return false If stream is invalid
+     */
+    bool good() const { return this->fstream.good(); }
 };
 
 /**
@@ -277,7 +374,20 @@ public:
      * @param byts Char array to store results into
      * @param num Number of bytes to read
      */
-    void read(char* byts, int num) final { get_stream()->read(byts, num); }
+    void read(char* byts, int num) final {
+
+        // Read the data:
+        get_stream()->read(byts, num);
+
+        // Determine if we are in a bad state:
+
+        if (!BaseFStream::good()) {
+
+            // Invalid, just close:
+
+            this->stop();
+        }
+    }
 
     /**
      * @brief Starts this mstream
@@ -292,6 +402,15 @@ public:
         // Open the fstream:
 
         open();
+
+        // Determine if we are in a bad state:
+
+        if (!BaseFStream::good()) {
+
+            // We are invalid, set error state:
+
+            this->set_state(BaseMStream::mstate::err);
+        }
     }
 
     /**
@@ -308,10 +427,14 @@ public:
 
         close();
     }
-
-    void get(char& blah) { this->get_stream()->get(blah); }
 };
 
+/**
+ * @brief mstream for writing file contents
+ * 
+ * This mstream writes info to a file,
+ * allowing you to write file data in mstream enabled scenarios.
+ */
 class FOStream : public BaseMOStream, public BaseFStream<std::ofstream, std::ofstream::out | std::ofstream::binary> {
 public:
 
@@ -321,7 +444,20 @@ public:
      * @param byts Bytes to write to a file
      * @param num Number of bytes to be written
      */
-    void write(char* byts, int num) final { this->get_stream()->write(byts, num); }
+    void write(char* byts, int num) final {
+
+        // Write the bytes:
+        this->get_stream()->write(byts, num);
+
+        // Determine if we are in a bad state:
+
+        if (!BaseFStream::good()) {
+
+            // Invalid, just close:
+
+            this->stop();
+        }
+    }
 
     /**
      * @brief Starts this mstream
@@ -336,6 +472,15 @@ public:
         // Open the fstream:
 
         open();
+
+        // Determine if we are in a bad state:
+
+        if (!BaseFStream::good()) {
+
+            // We are invalid, set error state:
+
+            this->set_state(BaseMStream::mstate::err);
+        }
     }
 
     /**

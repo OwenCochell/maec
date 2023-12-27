@@ -47,7 +47,7 @@ std::unique_ptr<AudioBuffer> AudioModule::create_buffer(int channels) {
     return std::make_unique<AudioBuffer>(this->info.out_buffer, channels);
 }
 
-std::unique_ptr<AudioBuffer> AudioModule::create_buffer(int size, int channels) const {
+std::unique_ptr<AudioBuffer> AudioModule::create_buffer(int size, int channels) {
 
     // Allocate the new buffer:
 
@@ -70,6 +70,12 @@ AudioModule* AudioModule::bind(AudioModule* mod) {
     // Set the forward module:
 
     mod->set_forward(this);
+
+    // Set the chain info in the back to ours:
+    // TODO: Really need to find a more robust way of doing this!
+    // If a chain is added to another, previous ChainInfo pointers will not be updated!
+
+    mod->set_chain_info(this->chain);
 
     return mod;
 }

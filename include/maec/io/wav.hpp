@@ -103,6 +103,8 @@ struct WavFormat {
  */
 struct UnknownChunk : public ChunkHeader {
 
+    UnknownChunk(int size) : data(size) {}
+
     /// Data of unknown chunk
     std::vector<char> data;
 };
@@ -126,7 +128,7 @@ public:
      * @brief Gets the format of this wave data
      * 
      * The format of wave data determines how the data is stored.
-     * If this value is 0, then there is no compression at play
+     * If this value is 1, then there is no compression at play
      * and samples can be interpreted as they are stored.
      * Anything else is a compression format,
      * which we do not support at this time.
@@ -287,7 +289,7 @@ public:
 private:
 
     /// Format of the audio
-    int format = 0;
+    int format = 1;
 
     /// Number of channels present in the wave file
     int channels = 1;
@@ -324,6 +326,13 @@ private:
  * socket, or anything that supports standard C++
  * IO streams.
  * 
+ * This reader supports buffered reading,
+ * which means we will extract data from the file in chunks,
+ * keeping the state of our position as we iterate through the wave data.
+ * Most wave files put all the data into one chunk,
+ * but if it is split then we will handle this as well.
+ * If we reach the end of the file before we reach the buffer size,
+ * then the rest of the buffer will be filled with zeros.
  */
 class WaveReader : public BaseWave {
 public:
@@ -363,20 +372,54 @@ public:
 
     /**
      * @brief Gets the input mstream
-     * 
+     *
      * This function allows you to get the mstream
      * this WaveReader utilizes.
-     * 
+     *
      * @return BaseMIStream* input mstream
      */
-    BaseMIStream* get_stream() const { return this->stream;}
+    BaseMIStream* get_stream() const { return this->stream; }
+
+    /**
+     * @brief Returns the size of the output buffer
+     * 
+     * The buffer size is the number FRAMES this reader will output.
+     * For example, if there are 3 channels, and you wish to have 3 frames,
+     * then this reader will output 9 samples.
+     * 
+     * @return int Size of output buffer
+     */
+    int get_buffer_size() const { return this->buffer_size; }
+
+    /**
+     * @brief Sets the size of the output buffer
+     * 
+     * @param bsize New size of output buffer
+     */
+    void set_buffer_size(int bsize) { this->buffer_size = bsize; }
+
+    /**
+     * @brief Determines if this WaveReader is done
+     * 
+     * A wave reader can be 'done' for a few reasons.
+     * First, if we hit the end of the file,
+     * then there is nothing left to do, and we are done.
+     * 
+     * Second, a reader can be done if the given mstream goes into an invalid state.
+     * 
+     * @return true Reader is done
+     * @return false Reader is not done
+     */
+    bool done() const {
+        return this->total_read >= this->get_size() || this->stream->bad(); }
 
     /**
      * @brief Reads audio data from the stream
      * 
-     * We read chunks from the stream until
-     * we encounter a data chunk.
-     * From there, we read the data and do any necessary conversions
+     * We buffer the audio data as necessary,
+     * reading chunks and maintaining our state as we go.
+     * If we need more data than is left in the file,
+     * the empty space in the buffer will simply be zeros.
      * 
      * If we encounter any weird chunks that we don't recognize,
      * then we will discard them
@@ -418,8 +461,67 @@ private:
      */
     void read_format_chunk(WavFormat& chunk);
 
-    void read_chunk();
+    /// Size of buffer to output
+    int buffer_size = 0;
+
+    /// Number of bytes read from chunk
+    int chunk_read = 0;
+
+    /// Total number of bytes read
+    int total_read = 0;
 
     /// Stream we are reading from
     BaseMIStream* stream = nullptr;
+
+    /// Current chunk header we are reading
+    ChunkHeader head;
+
+    /// Boolean determining if we require a new chunk
+    bool needs_chunk = true;
+};
+
+/**
+ * @brief A source for wave data
+ * 
+ * This module reads audio data from a wave source,
+ * and allows this audio data to be integrated into a chain.
+ * 
+ * The required wave reading operations are done at start time,
+ * so you may see some latency when the chain is started.
+ * 
+ * TODO: Need to find a process for stopping the chain
+ * if we reach the end of audio data.
+ * 
+ */
+class WaveSource : public SourceModule, public WaveReader {
+
+    WaveSource() = default;
+
+    WaveSource(BaseMIStream* stream) : WaveReader(stream) {}
+
+    /**
+     * @brief Starts this wave source
+     * 
+     * We simply tell the WaveReader to start read operations.
+     * This operation can take some time!
+     * 
+     */
+    void start() override;
+
+    /**
+     * @brief Stops this wave source
+     * 
+     * We simply tell the WaveReader to stop read operations,
+     * and will close the underlying mstream.
+     * 
+     */
+    void stop() override;
+
+    /**
+     * @brief Processes this module
+     * 
+     * We simply ask the WaveReader to extract audio data from the wave source.
+     * 
+     */
+    void process() override;
 };

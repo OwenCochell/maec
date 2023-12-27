@@ -46,7 +46,7 @@ void LatencyModule::meta_process() {
 
     // Get initial time:
 
-    int64_t start = get_time();
+    const int64_t start = get_time();
 
     // Call the module behind us:
 
@@ -54,7 +54,7 @@ void LatencyModule::meta_process() {
 
     // Get stop time:
 
-    int64_t stop = get_time();
+    const int64_t stop = get_time();
 
     // Grab the buffer from the module behind us:
 
@@ -66,7 +66,7 @@ void LatencyModule::meta_process() {
 
     // Get size of buffer:
 
-    int samples = static_cast<int>(this->buff->size() * this->buff->channels());
+    const int samples = static_cast<int>(this->buff->size() * this->buff->channels());
 
     // Update chain timer:
 

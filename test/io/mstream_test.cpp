@@ -79,6 +79,44 @@ TEST_CASE("Base mstream", "[io][mstream]") {
     }
 }
 
+TEST_CASE("Char mstream", "[io][mstream]") {
+
+    SECTION("Input Stream", "Ensures input streams work correctly") {
+
+        CharIStream stream{0, 1, 2, 3, 4, 5};
+
+        SECTION("Get Array", "Ensures the internal array can be retrieved") {
+
+            // Get the array
+            auto arr = stream.get_array();
+
+            // Ensures the array contents are correct:
+
+            for (int i = 0; i < arr.size(); ++i) {
+
+                // Ensure value is what we expect:
+
+                REQUIRE(arr[i] == i);
+            }
+        }
+
+        // Now, ensure we can pull all values from array:
+
+        std::array<char, 6> out{};
+
+        stream.read(out.data(), 6);
+
+        // Ensure values are what we expect:
+
+        for (int i = 0; i < out.size(); ++i) {
+
+            // Ensure value is what we expect:
+
+            REQUIRE(out[i] == i);
+        }
+    }
+}
+
 TEST_CASE("File mstream", "[io][mstream]") {
 
     // Create a file mstream:
@@ -124,8 +162,11 @@ TEST_CASE("File mstream", "[io][mstream]") {
 
             // Read content:
 
-            istream.read(ind.begin(), cont.size());
-            istream.stop();
+            istream.read(ind.begin(), cont.size()+1);
+
+            // Ensure istream is closed:
+
+            REQUIRE(istream.get_state() == FIStream::mstate::stopped);
 
             // Ensure content is the same:
 
