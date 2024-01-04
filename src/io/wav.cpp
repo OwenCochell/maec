@@ -9,7 +9,6 @@
  * 
  */
 
-#include <cstring>
 #include <vector>
 
 #include "io/wav.hpp"
@@ -218,7 +217,7 @@ BufferPointer WaveReader::get_data() {
         // or the number of bytes left in this chunk, whichever is smallest
 
         const int buffer_bytes =
-            (this->buffer_size * this->get_channels()) * this->get_bytes_per_sample();
+            (this->buffer_size * this->get_channels() - read) * this->get_bytes_per_sample();
 
         const int chunk_bytes = static_cast<int>(head.chunk_size - this->chunk_read);
 
@@ -280,11 +279,11 @@ BufferPointer WaveReader::get_data() {
 
             // We are reading in unsigned chars
 
-            for (int i = 0; i < static_cast<int>(tdata.size()); ++i) {
+            for (char i : tdata) {
 
                 // Convert into mf:
 
-                const long double val = uchar_mf(tdata[i]);
+                const long double val = uchar_mf(i);
 
                 // Add to buffer:
 
@@ -295,7 +294,7 @@ BufferPointer WaveReader::get_data() {
 
     // Determine if we need to close the file (reached end):
 
-    if (this->total_read >= this->get_size()) {
+    if (this->total_read >= static_cast<u_int32_t>(this->get_size())) {
 
         // Stop this WaveReader
 

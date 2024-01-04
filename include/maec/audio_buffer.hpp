@@ -232,3 +232,25 @@ int16_t char_int16(T byts) {
 
     return val;
 }
+
+/**
+ * @brief Converts a 16bit integer into byte data
+ * 
+ * This function utilizes endian sage methods for conversions.
+ * 
+ * We will place the result into the provided iterable.
+ * We require 2 bytes to make this conversion, so your pointer should
+ * have space for 2 values!
+ * 
+ * @tparam T Iterate type of output character data
+ * @param val Value to convert
+ * @param byts Iterator to output charter data
+ */
+template<typename T>
+void int16_char(int16_t val, T byts) {
+
+    // Write each part of the value:
+
+    byts[1] = static_cast<signed char>(val >> 8);
+    byts[0] = static_cast<signed char>(val);
+}

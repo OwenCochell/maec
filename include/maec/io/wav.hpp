@@ -34,6 +34,30 @@ struct ChunkHeader {
 
     /// Size of the chunk
     u_int32_t chunk_size = 0;
+
+    /// Size of chunk data
+    static const u_int32_t csize = 4 + 4;
+
+    /**
+     * @brief Determines the size of this chunk
+     * 
+     * @return u_int32_t Size of chunk in bytes
+     */
+    static u_int32_t size() { return csize; }
+
+    /**
+     * @brief Create this chunk using data from a stream
+     * 
+     * @param stream Stream to utilize
+     */
+    void decode(BaseMIStream& stream);
+
+    /**
+     * @brief Converts this chunk into bytes and sends it to the stream
+     * 
+     * @param stream 
+     */
+    void encode(BaseMOStream& stream);
 };
 
 /**
@@ -55,6 +79,16 @@ struct WavHeader {
     /// Format, in this case "WAVE"
     //std::array<char, 4> format = {};
     std::string format = "    ";
+
+    /// Size of this chunk
+    static const u_int32_t csize = 4 + 4 + 4;
+
+    /**
+     * @brief Returns the size of this chunk
+     * 
+     * @return u_int32_t Size of chunk in bytes
+     */
+    static u_int32_t size() { return csize; }
 };
 
 /**
@@ -87,6 +121,16 @@ struct WavFormat {
 
     /// Bits per sample of the wave data
     uint16_t bits_per_sample = 0;
+
+    /// Size of this chunk
+    static const u_int32_t csize = 2 + 2 + 4 + 4 + 2 + 2;
+
+    /**
+     * @brief Returns the size of this chunk
+     * 
+     * @return u_int32_t Size of chunk in bytes
+     */
+    static u_int32_t size() { return csize; }
 };
 
 /**
@@ -103,10 +147,17 @@ struct WavFormat {
  */
 struct UnknownChunk : public ChunkHeader {
 
-    UnknownChunk(int size) : data(size) {}
+    UnknownChunk(u_int32_t size) : data(size) {}
 
     /// Data of unknown chunk
     std::vector<char> data;
+
+    /**
+     * @brief Determines the size of this chunk
+     * 
+     * @return u_int32_t Size of this chunk in bytes
+     */
+    u_int32_t size() const { return ChunkHeader::size() + data.size(); }
 };
 
 /**
@@ -411,7 +462,7 @@ public:
      * @return false Reader is not done
      */
     bool done() const {
-        return this->total_read >= this->get_size() || this->stream->bad(); }
+        return this->total_read >= static_cast<u_int32_t>(this->get_size()) || this->stream->bad(); }
 
     /**
      * @brief Reads audio data from the stream
@@ -468,7 +519,7 @@ private:
     int chunk_read = 0;
 
     /// Total number of bytes read
-    int total_read = 0;
+    u_int32_t total_read = 0;
 
     /// Stream we are reading from
     BaseMIStream* stream = nullptr;
@@ -478,6 +529,23 @@ private:
 
     /// Boolean determining if we require a new chunk
     bool needs_chunk = true;
+};
+
+class WaveWriter : public BaseWave {
+public:
+
+    WaveWriter() = default;
+
+    WaveWriter(BaseMIStream* stream) : stream(stream) {}
+
+private:
+    void write_format_chunk();
+
+    /// Stream we are reading from
+    BaseMIStream* stream = nullptr;
+
+    /// Total number of byte written
+    u_int32_t total_written = 0;
 };
 
 /**

@@ -112,7 +112,7 @@ TEST_CASE("Char mstream", "[io][mstream]") {
 
             // Ensure value is what we expect:
 
-            REQUIRE(out[i] == i);
+            REQUIRE(out.at(i) == i);
         }
     }
 }

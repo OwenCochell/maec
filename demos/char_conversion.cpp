@@ -37,7 +37,7 @@ int main() {
 
     // Fill with random chars:
 
-    random_bytes_engine rbe;
+    const random_bytes_engine rbe;
     std::generate_n(data.begin(), size*2, rbe);
     std::generate_n(data.begin(), size*2, rbe);
 
@@ -129,7 +129,7 @@ int main() {
 
             // Add value to final vector:
 
-            //odata.at(i) = static_cast<long double>(val) / 32768.0;
+            odata.at(i) = static_cast<long double>(val) / 32768.0;
         }
 
         end = std::chrono::high_resolution_clock::now();
