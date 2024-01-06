@@ -234,17 +234,51 @@ int16_t char_int16(T byts) {
 }
 
 /**
+ * @brief Converts bytes data into 32bit integers
+ * 
+ * This function utilizes endian safe methods for conversions.
+ * 
+ * We require 4 bytes to make this conversion,
+ * so your pointer should have at least 3 values in front of it.
+ * 
+ * @tparam T Iterator to byte data
+ * @param byts Bytes data to convert
+ * @return int32_t 32bit integer
+ */
+template<typename T>
+int32_t char_int32(T byts) {
+
+    // Define the value:
+
+    int32_t val = 0;
+
+    // Iterate 4 times over the data:
+
+    for (int i = 0; i < 4; i++) {
+
+        // Shift the current value:
+        val <<= 8;
+
+        // Merge the current byte with value
+        val |= byts[3 - i];
+    }
+
+    // Return this value:
+    return val;
+}
+
+/**
  * @brief Converts a 16bit integer into byte data
  * 
- * This function utilizes endian sage methods for conversions.
+ * This function utilizes endian safe methods for conversions.
  * 
  * We will place the result into the provided iterable.
  * We require 2 bytes to make this conversion, so your pointer should
  * have space for 2 values!
  * 
- * @tparam T Iterate type of output character data
+ * @tparam T Iterator type of output byte data
  * @param val Value to convert
- * @param byts Iterator to output charter data
+ * @param byts Iterator to output byte data
  */
 template<typename T>
 void int16_char(int16_t val, T byts) {
@@ -253,4 +287,31 @@ void int16_char(int16_t val, T byts) {
 
     byts[1] = static_cast<signed char>(val >> 8);
     byts[0] = static_cast<signed char>(val);
+}
+
+/**
+ * @brief Converts a 32bit integer into byte data
+ * 
+ * This function utilizes endian safe methods for conversions.
+ * 
+ * We will place the result into the provided iterable.
+ * We require 4 bytes to make this conversion, so your pointer should
+ * have space for 4 values!
+ * 
+ * @tparam T Iterator type of output byte data
+ * @param val Value to convert
+ * @param byts Iterator to output byte data
+ */
+template<typename T>
+void int32_char(int32_t val, T byts) {
+
+    // Iterate a number of times
+    for (int i = 0; i < 4; i++) {
+
+        // Grab current segment and send to iterator:
+        byts[i] = static_cast<unsigned char>(val & 0xff);
+
+        // Shift current value
+        val >>= 8;
+    }
 }

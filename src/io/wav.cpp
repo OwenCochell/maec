@@ -14,6 +14,88 @@
 #include "io/wav.hpp"
 #include "audio_buffer.hpp"
 
+void ChunkHeader::decode(BaseMIStream& stream) {
+
+    // Create array to hold data:
+    std::array<char, size()> data = {};
+
+    // Copy data into array:
+
+    stream.read(data.begin(), size());
+
+    // Load byte data:
+
+    this->decode(data.begin());
+}
+
+void ChunkHeader::decode(char* byts) {
+
+    // Extract data from array:
+
+    std::copy_n(byts, 4, this->chunk_id.data());
+    this->chunk_size = char_int32(byts + 4);
+}
+
+void ChunkHeader::encode(BaseMOStream& stream) {
+
+    // Create array to hold data:
+    std::array<char, size()> data = {};
+
+    // Convert into bytes:
+
+    encode(data.begin());
+
+    // Write contents to stream:
+
+    stream.write(data.data(), size());
+}
+
+void ChunkHeader::encode(char* byts) {
+
+    // Encode string:
+
+    std::copy_n(this->chunk_id.data(), 4, byts);
+
+    // Encode chunk size:
+
+    int32_char(this->chunk_size, byts + 4);
+}
+
+void WavHeader::decode(BaseMIStream& stream) {
+
+    // Create array to hold data:
+
+    std::array<char, size()> data = {};
+
+    // Copy data into array:
+
+    stream.read(data.begin(), size());
+
+    // Load header data:
+
+    ChunkHeader::decode(data.begin());
+
+    // Load format data:
+
+    std::copy_n(data.begin() + ChunkHeader::size(),
+                WavHeader::size() - ChunkHeader::size(), format.data());
+}
+
+void WavHeader::encode(BaseMOStream& stream) {
+
+    // Create array to hold data:
+
+    std::array<char, size()> data = {};
+
+    // First, ask the header to encode into bytes:
+
+    ChunkHeader::encode(data.begin());
+
+    // Next, encode format data:
+
+    std::copy_n(format.data(), WavHeader::size() - ChunkHeader::size(), data.begin() + ChunkHeader::size());
+}
+
 void WaveReader::start() {
 
     // First, start the stream:
@@ -50,7 +132,7 @@ void WaveReader::start() {
 
     // Save the size of the file:
 
-    this->set_size(head.chunk_size+8);
+    this->set_size(head.chunk_size + 8);
 
     // Next, read the format chunk
     // TODO: Is it always guaranteed that format will always be second chunk?

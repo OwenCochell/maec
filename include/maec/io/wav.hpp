@@ -43,7 +43,7 @@ struct ChunkHeader {
      * 
      * @return u_int32_t Size of chunk in bytes
      */
-    static u_int32_t size() { return csize; }
+    constexpr static u_int32_t size() { return csize; }
 
     /**
      * @brief Create this chunk using data from a stream
@@ -53,11 +53,25 @@ struct ChunkHeader {
     void decode(BaseMIStream& stream);
 
     /**
+     * @brief Create this chunk using byte data
+     * 
+     * @param byts Byte data to utilize
+     */
+    void decode(char* byts);
+
+    /**
      * @brief Converts this chunk into bytes and sends it to the stream
      * 
-     * @param stream 
+     * @param stream Stream to utilize
      */
     void encode(BaseMOStream& stream);
+
+    /**
+     * @brief Converts this chunk into bytes
+     * 
+     * @param byts Byte data to output to
+     */
+    void encode(char* byts);
 };
 
 /**
@@ -67,28 +81,38 @@ struct ChunkHeader {
  * about the wave file we are working with.
  * 
  */
-struct WavHeader {
-
-    /// Chunk ID of the header, in this case "RIFF"
-    //std::array<char, 4> chunk_id = {};
-    std::string chunk_id = "    ";
-
-    /// Chunk size, in this case the size of the file minus 8
-    uint32_t chunk_size = 0;
+struct WavHeader : public ChunkHeader {
 
     /// Format, in this case "WAVE"
     //std::array<char, 4> format = {};
     std::string format = "    ";
 
     /// Size of this chunk
-    static const u_int32_t csize = 4 + 4 + 4;
+    static const u_int32_t csize = ChunkHeader::size() + 4;
 
     /**
      * @brief Returns the size of this chunk
      * 
      * @return u_int32_t Size of chunk in bytes
      */
-    static u_int32_t size() { return csize; }
+    constexpr static u_int32_t size() { return csize; }
+
+    /**
+     * @brief Create this chunk data from a stream.
+     * 
+     * We ask the ChunkHeader class to pull it's generic data,
+     * and from there we pull any necessary values.
+     * 
+     * @param stream Stream to utilize
+     */
+    void decode(BaseMIStream& stream);
+
+    /**
+     * @brief Converts this chunk into bytes and sends it to the stream
+     * 
+     * @param stream Stream to utilize
+     */
+    void encode(BaseMOStream& stream);
 };
 
 /**
