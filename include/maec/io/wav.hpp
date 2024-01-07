@@ -25,6 +25,18 @@
  * This data shares the chunk ID,
  * as well as the size of the chunk.
  * 
+ * Pretty much all chunks inherit this struct.
+ * When encoding, there are no big surprises,
+ * each chunk will configure the header as necessary.
+ * 
+ * For decoding, there are some things to keep in mind.
+ * The values defined here (specifically chunk_size)
+ * will be utilized to decode the rest of the chunk.
+ * These values MUST be accurate to ensure this operation goes well!
+ * 
+ * At the end of the day, 
+ * use the high level WaveReader classes!
+ * They will handle this stuff for you!
  */
 struct ChunkHeader {
 
@@ -125,7 +137,13 @@ struct WavHeader : public ChunkHeader {
  * TODO: We need to have some support for working with compressed wave data,
  * and hold extra parameters encountered.
  */
-struct WavFormat {
+struct WavFormat : public ChunkHeader {
+
+    /// Chunk ID of format chunks
+    const std::string chunk_id = "fmt ";
+
+    /// Size of this chunk
+    const u_int32_t chunk_size = size() - ChunkHeader::size();
 
     /// Format of the wave data, in this case 1
     /// If anything other than 1, compression is utilized
@@ -147,14 +165,28 @@ struct WavFormat {
     uint16_t bits_per_sample = 0;
 
     /// Size of this chunk
-    static const u_int32_t csize = 2 + 2 + 4 + 4 + 2 + 2;
+    static const u_int32_t csize = 2 + 2 + 4 + 4 + 2 + 2 + ChunkHeader::size();
 
     /**
      * @brief Returns the size of this chunk
      * 
      * @return u_int32_t Size of chunk in bytes
      */
-    static u_int32_t size() { return csize; }
+    constexpr static u_int32_t size() { return csize; }
+
+    /**
+     * @brief Creates this Format Chunk for a mstream
+     * 
+     * @param stream Stream to utilize
+     */
+    void decode(BaseMIStream& stream);
+
+    /**
+     * @brief Encodes this Format Chunk and sends it though the mstream
+     * 
+     * @param stream Stream to utilize
+     */
+    void encode(BaseMOStream& stream);
 };
 
 /**

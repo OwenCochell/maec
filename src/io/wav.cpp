@@ -96,6 +96,48 @@ void WavHeader::encode(BaseMOStream& stream) {
     std::copy_n(format.data(), WavHeader::size() - ChunkHeader::size(), data.begin() + ChunkHeader::size());
 }
 
+void WavFormat::decode(BaseMIStream& stream) {
+
+    // Create array to hold data:
+
+    std::array<char, size() - ChunkHeader::size()> data = {};
+
+    // Copy data into array:
+
+    stream.read(data.begin(), size());
+
+    // Load format data:
+
+    this->format = char_int16(data.begin());
+    this->channels = char_int16(data.begin() + 2);
+    this->sample_rate = char_int32(data.begin() + 4);
+    this->byte_rate = char_int32(data.begin() + 8);
+    this->block_align = char_int16(data.begin() + 12);
+    this->bits_per_sample = char_int16(data.begin() + 14);
+}
+
+void WavFormat::encode(BaseMOStream& stream) {
+
+    // Create array of data:
+
+    std::array<char, size()> data = {};
+
+    // Encode chunk data:
+
+    ChunkHeader::encode(data.begin());
+
+    // Encode each value:
+
+    auto pbegin = data.begin() + ChunkHeader::size();
+
+    int16_char(this->format, pbegin);
+    int16_char(this->channels, pbegin + 2);
+    int32_char(this->sample_rate, pbegin + 4);
+    int32_char(this->byte_rate, pbegin + 8);
+    int16_char(this->block_align, pbegin + 12);
+    int16_char(this->bits_per_sample, pbegin + 14);
+}
+
 void WaveReader::start() {
 
     // First, start the stream:
