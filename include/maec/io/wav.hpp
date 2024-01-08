@@ -45,7 +45,7 @@ struct ChunkHeader {
     std::string chunk_id = "    ";
 
     /// Size of the chunk
-    u_int32_t chunk_size = 0;
+    uint32_t chunk_size = 0;
 
     /// Size of chunk data
     static const u_int32_t csize = 4 + 4;
@@ -95,12 +95,18 @@ struct ChunkHeader {
  */
 struct WavHeader : public ChunkHeader {
 
-    /// Format, in this case "WAVE"
-    //std::array<char, 4> format = {};
-    std::string format = "    ";
+    /// Chunk ID of this header, should be RIFF
+    std::string chunk_id = "RIFF";
 
     /// Size of this chunk
-    static const u_int32_t csize = ChunkHeader::size() + 4;
+    uint32_t chunk_size = size();
+
+    /// Format, in this case "WAVE"
+    //std::array<char, 4> format = {};
+    std::string format = "WAVE";
+
+    /// Size of this chunk
+    static const uint32_t csize = ChunkHeader::size() + 4;
 
     /**
      * @brief Returns the size of this chunk
@@ -140,14 +146,14 @@ struct WavHeader : public ChunkHeader {
 struct WavFormat : public ChunkHeader {
 
     /// Chunk ID of format chunks
-    const std::string chunk_id = "fmt ";
+    std::string chunk_id = "fmt ";
 
     /// Size of this chunk
-    const u_int32_t chunk_size = size() - ChunkHeader::size();
+    uint32_t chunk_size = size() - ChunkHeader::size();
 
     /// Format of the wave data, in this case 1
     /// If anything other than 1, compression is utilized
-    uint16_t format = 0;
+    uint16_t format = 1;
 
     /// Number of channels in the wave data
     uint16_t channels = 0;
@@ -165,14 +171,14 @@ struct WavFormat : public ChunkHeader {
     uint16_t bits_per_sample = 0;
 
     /// Size of this chunk
-    static const u_int32_t csize = 2 + 2 + 4 + 4 + 2 + 2 + ChunkHeader::size();
+    static const uint32_t csize = 2 + 2 + 4 + 4 + 2 + 2 + ChunkHeader::size();
 
     /**
      * @brief Returns the size of this chunk
      * 
      * @return u_int32_t Size of chunk in bytes
      */
-    constexpr static u_int32_t size() { return csize; }
+    constexpr static uint32_t size() { return csize; }
 
     /**
      * @brief Creates this Format Chunk for a mstream
@@ -203,7 +209,7 @@ struct WavFormat : public ChunkHeader {
  */
 struct UnknownChunk : public ChunkHeader {
 
-    UnknownChunk(u_int32_t size) : data(size) {}
+    UnknownChunk(uint32_t size) : data(size) { this->chunk_size = size; }
 
     /// Data of unknown chunk
     std::vector<char> data;
@@ -213,7 +219,21 @@ struct UnknownChunk : public ChunkHeader {
      * 
      * @return u_int32_t Size of this chunk in bytes
      */
-    u_int32_t size() const { return ChunkHeader::size() + data.size(); }
+    uint32_t size() const { return ChunkHeader::size() + data.size(); }
+
+    /**
+     * @brief Creates this UnknownChunk for a mstream
+     * 
+     * @param stream Stream to utilize
+     */
+    void decode(BaseMIStream& stream);
+
+    /**
+     * @brief Encodes this UnknownChunk and sends it through the mstream
+     * 
+     * @param stream Stream to utilize
+     */
+    void encode(BaseMOStream& stream);
 };
 
 /**
@@ -575,7 +595,7 @@ private:
     int chunk_read = 0;
 
     /// Total number of bytes read
-    u_int32_t total_read = 0;
+    uint32_t total_read = 0;
 
     /// Stream we are reading from
     BaseMIStream* stream = nullptr;
@@ -594,6 +614,16 @@ public:
 
     WaveWriter(BaseMIStream* stream) : stream(stream) {}
 
+    /**
+     * @brief Starts this wave reader for writing
+     * 
+     * You should call this method before doing any writing!
+     * We will start the mstream,
+     * and write all the necessary pre-data formatting.
+     * 
+     */
+    void start();
+
 private:
     void write_format_chunk();
 
@@ -601,7 +631,7 @@ private:
     BaseMIStream* stream = nullptr;
 
     /// Total number of byte written
-    u_int32_t total_written = 0;
+    uint32_t total_written = 0;
 };
 
 /**

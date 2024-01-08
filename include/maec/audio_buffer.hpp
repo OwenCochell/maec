@@ -260,7 +260,42 @@ int32_t char_int32(T byts) {
         val <<= 8;
 
         // Merge the current byte with value
-        val |= byts[3 - i];
+        val |= static_cast<unsigned char>(byts[3 - i]);
+    }
+
+    // Return this value:
+    return val;
+}
+
+/**
+ * @brief Converts byte data into unsigned 32bit integers
+ * 
+ * This function utilizes endian safe methods for conversions,
+ * and in fact is identical to chat_int32, except this is the unsigned variant.
+ * 
+ * We require 4 bytes to make this conversion.
+ * so your pointer should have at least 3 values in front of it.
+ * 
+ * @tparam T Iterator to byte data
+ * @param byts Byte data to convert
+ * @return uint32_t unsigned 32bit integer
+ */
+template<typename T>
+uint32_t char_uint32(T byts) {
+
+    // Define the value:
+
+    uint32_t val = 0;
+
+    // Iterate 4 times over the data:
+
+    for (int i = 0; i < 4; i++) {
+
+        // Shift the current value:
+        val <<= 8;
+
+        // Merge the current byte with value
+        val |= static_cast<unsigned char>(byts[3 - i]);
     }
 
     // Return this value:

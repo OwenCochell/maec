@@ -177,7 +177,7 @@ TEST_CASE("Base Wave", "[io][wav]") {
 
     SECTION("Defaults", "Ensures the default values are correct") {
 
-        REQUIRE(bwave.get_format() == 0);
+        REQUIRE(bwave.get_format() == 1);
         REQUIRE(bwave.get_channels() == 1);
         REQUIRE(bwave.get_samplerate() == 44100);
         REQUIRE(bwave.get_byterate() == 0);

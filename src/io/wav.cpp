@@ -94,6 +94,10 @@ void WavHeader::encode(BaseMOStream& stream) {
     // Next, encode format data:
 
     std::copy_n(format.data(), WavHeader::size() - ChunkHeader::size(), data.begin() + ChunkHeader::size());
+
+    // Write data to the stream:
+
+    stream.write(data.begin(), data.size());
 }
 
 void WavFormat::decode(BaseMIStream& stream) {
@@ -104,14 +108,14 @@ void WavFormat::decode(BaseMIStream& stream) {
 
     // Copy data into array:
 
-    stream.read(data.begin(), size());
+    stream.read(data.begin(), data.size());
 
     // Load format data:
-
+ 
     this->format = char_int16(data.begin());
     this->channels = char_int16(data.begin() + 2);
-    this->sample_rate = char_int32(data.begin() + 4);
-    this->byte_rate = char_int32(data.begin() + 8);
+    this->sample_rate = char_uint32(data.begin() + 4);
+    this->byte_rate = char_uint32(data.begin() + 8);
     this->block_align = char_int16(data.begin() + 12);
     this->bits_per_sample = char_int16(data.begin() + 14);
 }
@@ -128,7 +132,7 @@ void WavFormat::encode(BaseMOStream& stream) {
 
     // Encode each value:
 
-    auto pbegin = data.begin() + ChunkHeader::size();
+    auto* pbegin = data.begin() + ChunkHeader::size();
 
     int16_char(this->format, pbegin);
     int16_char(this->channels, pbegin + 2);
@@ -136,6 +140,28 @@ void WavFormat::encode(BaseMOStream& stream) {
     int32_char(this->byte_rate, pbegin + 8);
     int16_char(this->block_align, pbegin + 12);
     int16_char(this->bits_per_sample, pbegin + 14);
+
+    // Write data to stream:
+
+    stream.write(data.begin(), data.size());
+}
+
+void UnknownChunk::decode(BaseMIStream& stream) {
+
+    // Read data into vector:
+
+    stream.read(data.data(), data.size());
+}
+
+void UnknownChunk::encode(BaseMOStream& stream) {
+
+    // Encode ChunkHeader:
+
+    ChunkHeader::encode(stream);
+
+    //  Send vector contents to stream:
+
+    stream.write(data.data(), data.size());
 }
 
 void WaveReader::start() {
@@ -152,7 +178,6 @@ void WaveReader::start() {
 
     // Ensure we are in a format we expect:
 
-    //if (strcmp(head.chunk_id.data(), "RIFF") != 0) {
     if (head.chunk_id != "RIFF") {
 
         // Invalid header!
@@ -163,7 +188,6 @@ void WaveReader::start() {
 
     // Ensure the format is something we expect:
 
-    //if (strcmp(head.chunk_id.data(), "WAVE") != 0) {
     if (head.format != "WAVE") {
 
         // Invalid format type!
@@ -219,52 +243,23 @@ void WaveReader::read_chunk_header(ChunkHeader& chunk) {
 
     // Read the chunk header:
 
-    this->stream->read(chunk.chunk_id.data(), 4);
-    this->stream->read(reinterpret_cast<char*>(&chunk.chunk_size), 4);
+    chunk.decode(*stream);
 
     this->total_read += 8;
 }
 
 void WaveReader::read_wave_header(WavHeader& chunk) {
 
-    // Read the generic header data:
-
-    ChunkHeader head;
-
-    this->read_chunk_header(head);
-
     // Read the format data:
 
-    this->stream->read(chunk.format.data(), 4);
+    chunk.decode(*stream);
 
-    // Place contents of the chunk header into the wave header:
-
-    // TODO: Is this line inefficient?
-    chunk.chunk_id = head.chunk_id;
-    chunk.chunk_size = head.chunk_size;
-
-    this->total_read += 4;
+    this->total_read += 4+8;
 }
 
 void WaveReader::read_format_chunk(WavFormat& chunk) {
 
-    // Read the audio format:
-    this->stream->read(reinterpret_cast<char*>(&chunk.format), 2);
-
-    // Read the number of channels
-    this->stream->read(reinterpret_cast<char*>(&chunk.channels), 2);
-
-    // Read the sample rate:
-    this->stream->read(reinterpret_cast<char*>(&chunk.sample_rate), 4);
-
-    // Read the byte rate:
-    this->stream->read(reinterpret_cast<char*>(&chunk.byte_rate), 4);
-
-    // Read the block align:
-    this->stream->read(reinterpret_cast<char*>(&chunk.block_align), 2);
-
-    // Read the bits per sample:
-    this->stream->read(reinterpret_cast<char*>(&chunk.bits_per_sample), 2);
+    chunk.decode(*stream);
 
     this->total_read += 16;
 }
@@ -428,6 +423,17 @@ BufferPointer WaveReader::get_data() {
     // Finally, return buffer pointer:
 
     return bpoint;
+}
+
+void WaveWriter::start() {
+
+    // First, create the wave header:
+
+    WavHeader whead;
+
+    // Write the data:
+
+    whead.encode(*stream);
 }
 
 void WaveSource::start() {
