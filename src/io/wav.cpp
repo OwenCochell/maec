@@ -75,6 +75,11 @@ void WavHeader::decode(BaseMIStream& stream) {
 
     ChunkHeader::decode(data.begin());
 
+    // Load string from chunk header:
+
+    chunk_id = ChunkHeader::chunk_id;
+    chunk_size = ChunkHeader::chunk_size;
+
     // Load format data:
 
     std::copy_n(data.begin() + ChunkHeader::size(),

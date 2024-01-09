@@ -41,7 +41,6 @@
 struct ChunkHeader {
 
     /// Chunk ID of the header
-    //std::array<char, 4> chunk_id = {};
     std::string chunk_id = "    ";
 
     /// Size of the chunk
@@ -98,11 +97,7 @@ struct WavHeader : public ChunkHeader {
     /// Chunk ID of this header, should be RIFF
     std::string chunk_id = "RIFF";
 
-    /// Size of this chunk
-    uint32_t chunk_size = size();
-
     /// Format, in this case "WAVE"
-    //std::array<char, 4> format = {};
     std::string format = "WAVE";
 
     /// Size of this chunk
@@ -612,7 +607,7 @@ public:
 
     WaveWriter() = default;
 
-    WaveWriter(BaseMIStream* stream) : stream(stream) {}
+    WaveWriter(BaseMOStream* stream) : stream(stream) {}
 
     /**
      * @brief Starts this wave reader for writing
@@ -628,7 +623,7 @@ private:
     void write_format_chunk();
 
     /// Stream we are reading from
-    BaseMIStream* stream = nullptr;
+    BaseMOStream* stream = nullptr;
 
     /// Total number of byte written
     uint32_t total_written = 0;
