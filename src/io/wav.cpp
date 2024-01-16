@@ -439,6 +439,40 @@ void WaveWriter::start() {
     // Write the data:
 
     whead.encode(*stream);
+
+    // Add to the total written:
+
+    this->total_written = whead.size();
+
+    // Next, create format chunk:
+
+    WavFormat wformat;
+
+    // Add the attributes of this writer to the chunk:
+
+    wformat.format = this->get_format();
+    wformat.channels = this->get_channels();
+    wformat.sample_rate = this->get_samplerate();
+    wformat.byte_rate = this->get_byterate();
+    wformat.block_align = this->get_blockalign();
+    wformat.bits_per_sample = this->get_bits_per_sample();
+
+    // Encode the chunk:
+
+    wformat.encode(*stream);
+
+    // Add to total written:
+
+    this->total_written = wformat.size();
+
+    // Write header for audio data:
+
+    ChunkHeader chead;
+
+    chead.chunk_id = "data";
+    chead.chunk_size = 0; // Need to rewrite later
+
+    // From this point on, we will only write audio data.
 }
 
 void WaveSource::start() {

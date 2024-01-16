@@ -443,10 +443,8 @@ private:
  * traverse the data in a meaningful way,
  * and extract audio data for use.
  * 
- * Wave data is generic, and can be from anywhere.
- * So, this component can read data from a file,
- * socket, or anything that supports standard C++
- * IO streams.
+ * Wave data is provided to this component via mstreams.
+ * There are many mstreams provided with maec, so check them out!
  * 
  * This reader supports buffered reading,
  * which means we will extract data from the file in chunks,
@@ -602,6 +600,24 @@ private:
     bool needs_chunk = true;
 };
 
+/**
+ * @brief Component for writing wave data.
+ * 
+ * This component simplifies the process for writing wave data.
+ * We will take the configuration of this writer and configure the wave data accordingly.
+ * This means you must configure the wave data configuration
+ * (such as number of channels, sample rate, bits per sample)
+ * before this write is started. If these values are changed after start,
+ * then any audio data written at a later date may be invalid!
+ * 
+ * Like to WaveReader, we utilize mstreams to output audio data.
+ * 
+ * This writer will output wave data in a standard way,
+ * meaning that all all audio data will be in one large data chunk.
+ * We currently do not support writing of any meta chunks,
+ * we do the bare minimum to output audio data.
+ * 
+ */
 class WaveWriter : public BaseWave {
 public:
 
