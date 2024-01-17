@@ -475,6 +475,32 @@ void WaveWriter::start() {
     // From this point on, we will only write audio data.
 }
 
+void WaveWriter::write_data(BufferPointer data) {
+
+    // Create vector of data to write:
+
+    std::vector<char> odata(data->total_capacity() * this->get_bits_per_sample());
+
+    // Determine which encoding path to go down:
+
+    if (this->get_bits_per_sample() == 16) {
+
+        // We are working with 16bit ints,
+        // Iterate over the number of samples:
+
+        for (int i = 0; i < data->total_capacity(); ++i) {
+
+            // Encode this current 
+        }
+
+    }
+
+    else if (this->get_bits_per_sample() == 8) {
+        /* code */
+    }
+    
+}
+
 void WaveSource::start() {
 
     // Start the wave reader:

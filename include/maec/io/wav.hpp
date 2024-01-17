@@ -635,6 +635,17 @@ public:
      */
     void start();
 
+    /**
+     * @brief Writes data to the wave file
+     * 
+     * We encode the given data and write it to our mstream.
+     * We automatically handle the encoding process,
+     * just provide the data and this component will do the rest!
+     * 
+     * @param data Data to write
+     */
+    void write_data(BufferPointer data);
+
 private:
     void write_format_chunk();
 
