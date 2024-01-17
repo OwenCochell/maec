@@ -626,7 +626,7 @@ public:
     WaveWriter(BaseMOStream* stream) : stream(stream) {}
 
     /**
-     * @brief Starts this wave reader for writing
+     * @brief Starts this wave writer
      * 
      * You should call this method before doing any writing!
      * We will start the mstream,
@@ -634,6 +634,15 @@ public:
      * 
      */
     void start();
+
+    /**
+     * @brief Stops this wave writer
+     * 
+     * You should call this method when you are done writing data.
+     * There are some necessary actions that need to be done,
+     * but afterwards we will close the stream.
+     */
+    void stop();
 
     /**
      * @brief Writes data to the wave file
@@ -647,7 +656,6 @@ public:
     void write_data(BufferPointer data);
 
 private:
-    void write_format_chunk();
 
     /// Stream we are reading from
     BaseMOStream* stream = nullptr;

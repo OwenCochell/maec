@@ -22,6 +22,13 @@ int16_t mf_int16(long double val) {
     return static_cast<int16_t>(val * 32767);
 }
 
+unsigned char mf_uchar(long double val) {
+
+    // Multiply and return:
+
+    return static_cast<unsigned char>(val * 255);
+}
+
 long double int16_mf(int16_t val) {
 
     // Divide by largest value:

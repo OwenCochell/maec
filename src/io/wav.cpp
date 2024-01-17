@@ -442,7 +442,7 @@ void WaveWriter::start() {
 
     // Add to the total written:
 
-    this->total_written = whead.size();
+    this->total_written += whead.size();
 
     // Next, create format chunk:
 
@@ -463,7 +463,7 @@ void WaveWriter::start() {
 
     // Add to total written:
 
-    this->total_written = wformat.size();
+    this->total_written += wformat.size();
 
     // Write header for audio data:
 
@@ -472,7 +472,20 @@ void WaveWriter::start() {
     chead.chunk_id = "data";
     chead.chunk_size = 0; // Need to rewrite later
 
+    chead.encode(*stream);
+
+    // Add to total written:
+
+    this->total_written += chead.size();
+
     // From this point on, we will only write audio data.
+}
+
+void WaveWriter::stop() {
+
+    // We NEED to set total file size,
+    // and data chunk size!
+
 }
 
 void WaveWriter::write_data(BufferPointer data) {
@@ -488,17 +501,30 @@ void WaveWriter::write_data(BufferPointer data) {
         // We are working with 16bit ints,
         // Iterate over the number of samples:
 
-        for (int i = 0; i < data->total_capacity(); ++i) {
+        for (auto iter = data->ibegin(); iter < data->iend(); ++iter) {
 
-            // Encode this current 
+            int16_char(mf_int16(*iter), odata.begin() + iter.get_index() * this->get_bytes_per_sample());
         }
-
     }
 
     else if (this->get_bits_per_sample() == 8) {
-        /* code */
+        
+        // We are working with 8bit ints,
+        // Iterate over the number of samples:
+
+        for (auto iter = data->ibegin(); iter < data->iend(); ++iter) {
+
+            odata[iter.get_index()] = static_cast<char>(mf_uchar(*iter));
+        }
     }
-    
+
+    // Finally, write audio data to mstream:
+
+    this->stream->write(odata.data(), odata.size());
+
+    // Add to total written:
+
+    this->total_written += odata.size();
 }
 
 void WaveSource::start() {

@@ -168,6 +168,17 @@ long double mf_null(long double val);
  */
 int16_t mf_int16(long double val);
 
+/**
+ * @brief Converts mf to an unsigned char
+ * 
+ * We multiple the mf by 255,
+ * and cast it to uchar.
+ * 
+ * @param val Value to convert
+ * @return uchar Converted uchar
+ */
+unsigned char mf_uchar(long double val);
+
 // other -> mf
 
 /**
