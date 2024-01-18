@@ -62,7 +62,11 @@ public:
      * 
      * This function will change where the mstream outputs data.
      * You should specify this position in characters,
-     * so to seek to character 5, you should
+     * so to seek to character 5, you should pass 5 to this method.
+     * 
+     * Seeking depends on the mstream that is being utilized,
+     * and some don't support seeking!
+     * However, the mstream will respect this request in the best way it can.
      * 
      */
     virtual void seek(int pos) =0;
@@ -239,7 +243,16 @@ public:
 
     CharIStream() = default;
 
+    CharIStream(int size) : arr(size) {}
+
     CharIStream(std::initializer_list<unsigned char> lst) : arr(lst) {}
+
+    /**
+     * @brief Seeks the index to the given position.
+     * 
+     * @param pos Position to seek to
+     */
+    void seek(int pos) final { this->index = pos; }
 
     /**
      * @brief Reads chars from the array
@@ -382,6 +395,13 @@ class FIStream : public BaseMIStream, public BaseFStream<std::ifstream, std::ifs
 public:
 
     /**
+     * @brief Seeks to the given position
+     *
+     * @param pos Position to seek to
+     */
+    void seek(int pos) final { this->get_stream()->seekg(pos); }
+
+    /**
      * @brief Reads contents from a file
      * 
      * @param byts Char array to store results into
@@ -450,6 +470,13 @@ public:
  */
 class FOStream : public BaseMOStream, public BaseFStream<std::ofstream, std::ofstream::out | std::ofstream::binary> {
 public:
+
+    /**
+     * @brief Seeks to the given position
+     *
+     * @param pos Position to seek to
+     */
+    void seek(int pos) final { this->get_stream()->seekp(pos); }
 
     /**
      * @brief Writes content to a file

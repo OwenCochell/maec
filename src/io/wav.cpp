@@ -483,9 +483,45 @@ void WaveWriter::start() {
 
 void WaveWriter::stop() {
 
-    // We NEED to set total file size,
-    // and data chunk size!
+    std::array<char, 4> sout = {};
 
+    // Determine if we need to correct wave header size:
+
+    if (this->total_written >= 12) {
+
+        // Set total size of file:
+
+        this->stream->seek(8);
+
+        // Encode the total size:
+
+        uint32_char(this->total_written - 8, sout.begin());
+
+        // Write to file:
+
+        this->stream->write(sout.begin(), 4);
+    }
+
+    // Determine if we need to correct data header size:
+
+    if (this->total_written >= 36) {
+
+        // Seek to final data chunk:
+
+        this->stream->seek(32);
+
+        // Encode data chunk size:
+
+        uint32_char(this->total_written - 32, sout.begin());
+
+        // Write to file:
+
+        this->stream->write(sout.begin(), 4);
+    }
+
+    // Finally, stop the stream:
+
+    this->stream->stop();
 }
 
 void WaveWriter::write_data(BufferPointer data) {
@@ -508,7 +544,7 @@ void WaveWriter::write_data(BufferPointer data) {
     }
 
     else if (this->get_bits_per_sample() == 8) {
-        
+
         // We are working with 8bit ints,
         // Iterate over the number of samples:
 
