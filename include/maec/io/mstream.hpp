@@ -38,6 +38,11 @@
  * - stopped - mstream is in stop state, no longer can be utilized
  * - err - mstream is in a bad state, no longer can be utilized
  * 
+ * mstreams are also seekable!
+ * You can ask the mstream to seek to a particular position,
+ * and it will do so for you. From that point,
+ * any operations will be done at the position the stream is at.
+ * 
  * TODO: NEEDS to add flush() capabilities,
  * for flushing any internal values and writing/reading them.
  * We must make it clear that closing will ALWAYS flush, unless an error has occurred.
@@ -45,14 +50,22 @@
  * We should also include mechanisms for keeping track of how much has been read/written.
  * Not sure if these components will do so, maybe create wrapper class for counting?
  * 
- * Some components that can help determine when the stream is now invalid?
- * Such as, error, EOF, closed socket?
  */
 template<bool Input = false, bool Output = false>
 class BaseMStream {
 public:
     /// State definition
     enum mstate { init, started, stopped, err };
+
+    /**
+     * @brief Asks the mstream to seek to a position
+     * 
+     * This function will change where the mstream outputs data.
+     * You should specify this position in characters,
+     * so to seek to character 5, you should
+     * 
+     */
+    virtual void seek(int pos) =0;
 
     /**
      * @brief Start method for mstreams
