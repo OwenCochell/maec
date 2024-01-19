@@ -614,3 +614,44 @@ TEST_CASE("Wave Reader", "[io][wav]") {
         }
     }
 }
+
+TEST_CASE("Wave Writer", "[io][wav]") {
+
+    // Create a WaveWriter:
+
+    WaveWriter wav;
+
+    SECTION("Stream Set", "Ensures we can set the mstream") {
+
+        // Create a dummy mstream:
+
+        CharOStream stream;
+
+        // Set it:
+
+        wav.set_stream(&stream);
+
+        SECTION("Stream Get", "Ensures we can get the mstream") {
+
+            REQUIRE(wav.get_stream() == &stream);
+        }
+    }
+
+    SECTION("16bit Write", "Ensures we can create wave files of 16bit integers") {
+
+        // We use the wave file examples for this test!
+        // Create a stream we can write to:
+
+        CharOStream stream;
+
+        // Add stream to writer:
+
+        wav.set_stream(&stream);
+
+        // Configure the parameters:
+
+        wav.set_bits_per_sample(16);
+        wav.set_samplerate(48000);
+        wav.set_channels(2);
+    }
+}

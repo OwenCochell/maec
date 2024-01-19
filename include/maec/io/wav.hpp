@@ -626,6 +626,26 @@ public:
     WaveWriter(BaseMOStream* stream) : stream(stream) {}
 
     /**
+     * @brief Sets the output mstream to utilize
+     *
+     * This function allows you to set an mstream to read from.
+     * This WaveReader wil read all the data from the mstream provided.
+     *
+     * @param stream New input mstream
+     */
+    void set_stream(BaseMOStream* stream) { this->stream = stream; }
+
+    /**
+     * @brief Gets the output mstream
+     *
+     * This function allows you to get the mstream
+     * this WaveReader utilizes.
+     *
+     * @return BaseMIStream* input mstream
+     */
+    BaseMOStream* get_stream() const { return this->stream; }
+
+    /**
      * @brief Starts this wave writer
      * 
      * You should call this method before doing any writing!

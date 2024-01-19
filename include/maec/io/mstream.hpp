@@ -22,6 +22,7 @@
 #include <string>
 #include <fstream>
 #include <algorithm>
+#include <vector>
 
 /**
  * @brief Base class for mstreams
@@ -237,7 +238,7 @@ private:
     std::vector<unsigned char> arr;
 
     /// Current index of character array
-    int index = 0;
+    std::size_t index = 0;
 
 public:
 
@@ -279,6 +280,61 @@ public:
      * We return a reference to the array utilized by this mstream.
      * Users can configure this array as they see fit.
      * 
+     * @return std::vector<char>& Current array in use
+     */
+    std::vector<unsigned char>& get_array() { return this->arr; }
+};
+
+/**
+ * @brief mstream for writing byte arrays
+ * 
+ * This mstream can write to a byte array.
+ * 
+ * We iterate add values to an array as we are asked to write to it.
+ * The size of this array can be provided,
+ * and we will reserve the initial size.
+ * If we are asked to add values beyond the capacity of the array,
+ * we will change the size to fit our values.
+ * 
+ */
+class CharOStream : public BaseMOStream {
+private:
+
+    /// Vector to store character data in
+    std::vector<unsigned char> arr;
+
+    /// Current index of character array
+    std::size_t index = 0;
+
+public:
+
+    CharOStream() = default;
+
+    CharOStream(int size) : arr(size) {}
+
+    CharOStream(std::initializer_list<unsigned char> lst) : arr(lst) {}
+
+    /**
+     * @brief Seeks the index to the given position
+     * 
+     * @param pos Index to seek to
+     */
+    void seek(int pos) final { this->index = pos; }
+
+    /**
+     * @brief Copys characters to the array
+     * 
+     * @param byts Characters to copy
+     * @param num Number of characters to copy
+     */
+    void write(char* byts, int num) final;
+
+    /**
+     * @brief Gets the array utilized by this mstream
+     *
+     * We return a reference to the array utilized by this mstream.
+     * Users can configure this array as they see fit.
+     *
      * @return std::vector<char>& Current array in use
      */
     std::vector<unsigned char>& get_array() { return this->arr; }

@@ -15,11 +15,22 @@
 
 #include "io/mstream.hpp"
 
+template<bool first, bool second>
+class DummyBaseIOStream : public BaseMStream<first, second> {
+
+    /**
+     * @brief Just do nothing...
+     * 
+     * @param pos Position to be ignored
+     */
+    void seek(int pos) override {}
+};
+
 TEST_CASE("Base mstream", "[io][mstream]") {
 
     // Create a BaseMStream:
 
-    BaseMStream<false, false> test;
+    DummyBaseIOStream<false, false> test;
 
     // Determine default state is correct:
 
@@ -113,6 +124,82 @@ TEST_CASE("Char mstream", "[io][mstream]") {
             // Ensure value is what we expect:
 
             REQUIRE(out.at(i) == i);
+        }
+    }
+
+    SECTION("Output Stream", "Ensures output streams work correctly") {
+
+        // Define some data to fill with:
+
+        std::array<char, 10> data = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+        SECTION("Insertion", "Ensures an empty char mstream can be filled") {
+
+            CharOStream stream;
+
+            // Fill the stream:
+
+            stream.write(data.begin(), data.size());
+
+            // Ensure stream is valid:
+
+            for (int i = 0; i < data.size(); ++i) {
+
+                // Ensure value is accurate:
+
+                REQUIRE(i == stream.get_array().at(i));
+            }
+        }
+
+        SECTION("Overwrite", "Ensures existing data can be overwritten") {
+
+            CharOStream stream = {0,0,0,0,0,0,0,0,0,0};
+
+            // Fill the data:
+
+            stream.write(data.begin(), data.size());
+
+            // Ensure stream is valid:
+
+            for (int i = 0; i < data.size(); ++i) {
+
+                // Ensure value is accurate:
+
+                REQUIRE(i == stream.get_array().at(i));
+            }
+        }
+
+        SECTION("Both", "Ensures we can overwrite and add to a stream") {
+
+            CharOStream stream = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+            // Seek to a position:
+
+            stream.seek(4);
+
+            // Fill stream with content:
+
+            stream.write(data.begin(), data.size());
+
+            // Ensure stream is valid:
+
+            for (int i = 0; i < data.size() + 4; ++i) {
+
+                // Determine if we should be reading zeros:
+
+                if (i < 5) {
+
+                    // Ensure we are reading zeros:
+
+                    REQUIRE(0 == stream.get_array().at(i));
+
+                    continue;
+                }
+
+                // Otherwise, get the value:
+
+                REQUIRE(i - 4 == stream.get_array().at(i));
+            }
         }
     }
 }
