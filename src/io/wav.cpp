@@ -58,7 +58,7 @@ void ChunkHeader::encode(char* byts) {
 
     // Encode chunk size:
 
-    int32_char(this->chunk_size, byts + 4);
+    uint32_char(this->chunk_size, byts + 4);
 }
 
 void WavHeader::decode(BaseMIStream& stream) {
@@ -159,6 +159,10 @@ void UnknownChunk::decode(BaseMIStream& stream) {
 }
 
 void UnknownChunk::encode(BaseMOStream& stream) {
+
+    // First, set the size:
+
+    this->chunk_size = this->data.size();
 
     // Encode ChunkHeader:
 
@@ -491,7 +495,7 @@ void WaveWriter::stop() {
 
         // Set total size of file:
 
-        this->stream->seek(8);
+        this->stream->seek(4);
 
         // Encode the total size:
 
@@ -508,11 +512,11 @@ void WaveWriter::stop() {
 
         // Seek to final data chunk:
 
-        this->stream->seek(32);
+        this->stream->seek(40);
 
         // Encode data chunk size:
 
-        uint32_char(this->total_written - 32, sout.begin());
+        uint32_char(this->total_written - WavHeader::size() - WavFormat::size() - ChunkHeader::size(), sout.begin());
 
         // Write to file:
 
@@ -528,7 +532,7 @@ void WaveWriter::write_data(BufferPointer data) {
 
     // Create vector of data to write:
 
-    std::vector<char> odata(data->total_capacity() * this->get_bits_per_sample());
+    std::vector<char> odata(data->total_capacity() * this->get_bytes_per_sample());
 
     // Determine which encoding path to go down:
 
