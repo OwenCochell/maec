@@ -21,7 +21,6 @@
 
 #include <string>
 #include <fstream>
-#include <algorithm>
 #include <vector>
 
 /**
@@ -263,16 +262,7 @@ public:
      * @param byts Char array to store results into
      * @param num Number of bytes to read
      */
-    void read(char* byts, int num) final {
-
-        // Copy the contents over:
-
-        std::copy_n(arr.begin() + index, num, byts);
-
-        // Increment index:
-
-        this->index += num;
-    }
+    void read(char* byts, int num) final;
 
     /**
      * @brief Gets the array utilized by this mstream
@@ -463,59 +453,19 @@ public:
      * @param byts Char array to store results into
      * @param num Number of bytes to read
      */
-    void read(char* byts, int num) final {
-
-        // Read the data:
-        get_stream()->read(byts, num);
-
-        // Determine if we are in a bad state:
-
-        if (!BaseFStream::good()) {
-
-            // Invalid, just close:
-
-            this->stop();
-        }
-    }
+    void read(char* byts, int num) final;
 
     /**
      * @brief Starts this mstream
      * 
      */
-    void start() final {
-
-        // Call parent start method:
-
-        BaseMIStream::start();
-
-        // Open the fstream:
-
-        open();
-
-        // Determine if we are in a bad state:
-
-        if (!BaseFStream::good()) {
-
-            // We are invalid, set error state:
-
-            this->set_state(BaseMStream::mstate::err);
-        }
-    }
+    void start() final;
 
     /**
      * @brief Stops this mstream
      * 
      */
-    void stop() final {
-
-        // Call parent stop method:
-
-        BaseMIStream::stop();
-
-        // Close the fstream:
-
-        close();
-    }
+    void stop() final;
 };
 
 /**
@@ -540,57 +490,17 @@ public:
      * @param byts Bytes to write to a file
      * @param num Number of bytes to be written
      */
-    void write(char* byts, int num) final {
-
-        // Write the bytes:
-        this->get_stream()->write(byts, num);
-
-        // Determine if we are in a bad state:
-
-        if (!BaseFStream::good()) {
-
-            // Invalid, just close:
-
-            this->stop();
-        }
-    }
+    void write(char* byts, int num) final;
 
     /**
      * @brief Starts this mstream
      * 
      */
-    void start() final {
-
-        // Call parent start method:
-
-        BaseMOStream::start();
-
-        // Open the fstream:
-
-        open();
-
-        // Determine if we are in a bad state:
-
-        if (!BaseFStream::good()) {
-
-            // We are invalid, set error state:
-
-            this->set_state(BaseMStream::mstate::err);
-        }
-    }
+    void start() final;
 
     /**
      * @brief Stops this mstream
      * 
      */
-    void stop() final {
-
-        // Call parent stop method:
-
-        BaseMOStream::stop();
-
-        // Close the fstream:
-
-        close();
-    }
+    void stop() final;
 };

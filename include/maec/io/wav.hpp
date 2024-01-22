@@ -690,11 +690,15 @@ public:
 
 private:
 
+    /**
+     * @brief Adds the given num to the size
+     * 
+     * @param num Number to add to total size
+     */
+    void increment_size(int num) { this->set_size(this->get_size() + num); }
+
     /// Stream we are reading from
     BaseMOStream* stream = nullptr;
-
-    /// Total number of byte written
-    uint32_t total_written = 0;
 };
 
 /**

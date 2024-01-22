@@ -446,7 +446,7 @@ void WaveWriter::start() {
 
     // Add to the total written:
 
-    this->total_written += whead.size();
+    this->increment_size(whead.size());
 
     // Next, create format chunk:
 
@@ -467,7 +467,7 @@ void WaveWriter::start() {
 
     // Add to total written:
 
-    this->total_written += wformat.size();
+    this->increment_size(wformat.size());
 
     // Write header for audio data:
 
@@ -480,7 +480,7 @@ void WaveWriter::start() {
 
     // Add to total written:
 
-    this->total_written += chead.size();
+    this->increment_size(chead.size());
 
     // From this point on, we will only write audio data.
 }
@@ -491,7 +491,7 @@ void WaveWriter::stop() {
 
     // Determine if we need to correct wave header size:
 
-    if (this->total_written >= 12) {
+    if (this->get_size() >= 12) {
 
         // Set total size of file:
 
@@ -499,7 +499,7 @@ void WaveWriter::stop() {
 
         // Encode the total size:
 
-        uint32_char(this->total_written - 8, sout.begin());
+        uint32_char(this->get_size() - 8, sout.begin());
 
         // Write to file:
 
@@ -508,7 +508,7 @@ void WaveWriter::stop() {
 
     // Determine if we need to correct data header size:
 
-    if (this->total_written >= 36) {
+    if (this->get_size() >= 36) {
 
         // Seek to final data chunk:
 
@@ -516,7 +516,7 @@ void WaveWriter::stop() {
 
         // Encode data chunk size:
 
-        uint32_char(this->total_written - WavHeader::size() - WavFormat::size() - ChunkHeader::size(), sout.begin());
+        uint32_char(this->get_size() - WavHeader::size() - WavFormat::size() - ChunkHeader::size(), sout.begin());
 
         // Write to file:
 
@@ -564,7 +564,7 @@ void WaveWriter::write_data(BufferPointer data) {
 
     // Add to total written:
 
-    this->total_written += odata.size();
+    this->increment_size(odata.size());
 }
 
 void WaveSource::start() {
