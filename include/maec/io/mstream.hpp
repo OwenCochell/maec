@@ -21,7 +21,7 @@
 
 #include <string>
 #include <fstream>
-#include <algorithm>
+#include <vector>
 
 /**
  * @brief Base class for mstreams
@@ -62,7 +62,11 @@ public:
      * 
      * This function will change where the mstream outputs data.
      * You should specify this position in characters,
-     * so to seek to character 5, you should
+     * so to seek to character 5, you should pass 5 to this method.
+     * 
+     * Seeking depends on the mstream that is being utilized,
+     * and some don't support seeking!
+     * However, the mstream will respect this request in the best way it can.
      * 
      */
     virtual void seek(int pos) =0;
@@ -233,13 +237,22 @@ private:
     std::vector<unsigned char> arr;
 
     /// Current index of character array
-    int index = 0;
+    std::size_t index = 0;
 
 public:
 
     CharIStream() = default;
 
+    CharIStream(int size) : arr(size) {}
+
     CharIStream(std::initializer_list<unsigned char> lst) : arr(lst) {}
+
+    /**
+     * @brief Seeks the index to the given position.
+     * 
+     * @param pos Position to seek to
+     */
+    void seek(int pos) final { this->index = pos; }
 
     /**
      * @brief Reads chars from the array
@@ -249,16 +262,7 @@ public:
      * @param byts Char array to store results into
      * @param num Number of bytes to read
      */
-    void read(char* byts, int num) final {
-
-        // Copy the contents over:
-
-        std::copy_n(arr.begin() + index, num, byts);
-
-        // Increment index:
-
-        this->index += num;
-    }
+    void read(char* byts, int num) final;
 
     /**
      * @brief Gets the array utilized by this mstream
@@ -266,6 +270,61 @@ public:
      * We return a reference to the array utilized by this mstream.
      * Users can configure this array as they see fit.
      * 
+     * @return std::vector<char>& Current array in use
+     */
+    std::vector<unsigned char>& get_array() { return this->arr; }
+};
+
+/**
+ * @brief mstream for writing byte arrays
+ * 
+ * This mstream can write to a byte array.
+ * 
+ * We iterate add values to an array as we are asked to write to it.
+ * The size of this array can be provided,
+ * and we will reserve the initial size.
+ * If we are asked to add values beyond the capacity of the array,
+ * we will change the size to fit our values.
+ * 
+ */
+class CharOStream : public BaseMOStream {
+private:
+
+    /// Vector to store character data in
+    std::vector<unsigned char> arr;
+
+    /// Current index of character array
+    std::size_t index = 0;
+
+public:
+
+    CharOStream() = default;
+
+    CharOStream(int size) : arr(size) {}
+
+    CharOStream(std::initializer_list<unsigned char> lst) : arr(lst) {}
+
+    /**
+     * @brief Seeks the index to the given position
+     * 
+     * @param pos Index to seek to
+     */
+    void seek(int pos) final { this->index = pos; }
+
+    /**
+     * @brief Copys characters to the array
+     * 
+     * @param byts Characters to copy
+     * @param num Number of characters to copy
+     */
+    void write(char* byts, int num) final;
+
+    /**
+     * @brief Gets the array utilized by this mstream
+     *
+     * We return a reference to the array utilized by this mstream.
+     * Users can configure this array as they see fit.
+     *
      * @return std::vector<char>& Current array in use
      */
     std::vector<unsigned char>& get_array() { return this->arr; }
@@ -382,64 +441,31 @@ class FIStream : public BaseMIStream, public BaseFStream<std::ifstream, std::ifs
 public:
 
     /**
+     * @brief Seeks to the given position
+     *
+     * @param pos Position to seek to
+     */
+    void seek(int pos) final { this->get_stream()->seekg(pos); }
+
+    /**
      * @brief Reads contents from a file
      * 
      * @param byts Char array to store results into
      * @param num Number of bytes to read
      */
-    void read(char* byts, int num) final {
-
-        // Read the data:
-        get_stream()->read(byts, num);
-
-        // Determine if we are in a bad state:
-
-        if (!BaseFStream::good()) {
-
-            // Invalid, just close:
-
-            this->stop();
-        }
-    }
+    void read(char* byts, int num) final;
 
     /**
      * @brief Starts this mstream
      * 
      */
-    void start() final {
-
-        // Call parent start method:
-
-        BaseMIStream::start();
-
-        // Open the fstream:
-
-        open();
-
-        // Determine if we are in a bad state:
-
-        if (!BaseFStream::good()) {
-
-            // We are invalid, set error state:
-
-            this->set_state(BaseMStream::mstate::err);
-        }
-    }
+    void start() final;
 
     /**
      * @brief Stops this mstream
      * 
      */
-    void stop() final {
-
-        // Call parent stop method:
-
-        BaseMIStream::stop();
-
-        // Close the fstream:
-
-        close();
-    }
+    void stop() final;
 };
 
 /**
@@ -452,62 +478,29 @@ class FOStream : public BaseMOStream, public BaseFStream<std::ofstream, std::ofs
 public:
 
     /**
+     * @brief Seeks to the given position
+     *
+     * @param pos Position to seek to
+     */
+    void seek(int pos) final { this->get_stream()->seekp(pos); }
+
+    /**
      * @brief Writes content to a file
      * 
      * @param byts Bytes to write to a file
      * @param num Number of bytes to be written
      */
-    void write(char* byts, int num) final {
-
-        // Write the bytes:
-        this->get_stream()->write(byts, num);
-
-        // Determine if we are in a bad state:
-
-        if (!BaseFStream::good()) {
-
-            // Invalid, just close:
-
-            this->stop();
-        }
-    }
+    void write(char* byts, int num) final;
 
     /**
      * @brief Starts this mstream
      * 
      */
-    void start() final {
-
-        // Call parent start method:
-
-        BaseMOStream::start();
-
-        // Open the fstream:
-
-        open();
-
-        // Determine if we are in a bad state:
-
-        if (!BaseFStream::good()) {
-
-            // We are invalid, set error state:
-
-            this->set_state(BaseMStream::mstate::err);
-        }
-    }
+    void start() final;
 
     /**
      * @brief Stops this mstream
      * 
      */
-    void stop() final {
-
-        // Call parent stop method:
-
-        BaseMOStream::stop();
-
-        // Close the fstream:
-
-        close();
-    }
+    void stop() final;
 };

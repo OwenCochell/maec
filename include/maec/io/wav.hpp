@@ -40,6 +40,12 @@
  */
 struct ChunkHeader {
 
+    ChunkHeader() = default;
+
+    ChunkHeader(std::string cid) : chunk_id(std::move(cid)) {}
+    ChunkHeader(uint32_t csi) : chunk_size(csi) {}
+    ChunkHeader(std::string cid, uint32_t csi) : chunk_id(std::move(cid)), chunk_size(csi) {}
+
     /// Chunk ID of the header
     std::string chunk_id = "    ";
 
@@ -47,14 +53,14 @@ struct ChunkHeader {
     uint32_t chunk_size = 0;
 
     /// Size of chunk data
-    static const u_int32_t csize = 4 + 4;
+    static const uint32_t csize = 4 + 4;
 
     /**
      * @brief Determines the size of this chunk
      * 
      * @return u_int32_t Size of chunk in bytes
      */
-    constexpr static u_int32_t size() { return csize; }
+    constexpr static uint32_t size() { return csize; }
 
     /**
      * @brief Create this chunk using data from a stream
@@ -94,8 +100,7 @@ struct ChunkHeader {
  */
 struct WavHeader : public ChunkHeader {
 
-    /// Chunk ID of this header, should be RIFF
-    std::string chunk_id = "RIFF";
+    WavHeader() : ChunkHeader("RIFF") {}
 
     /// Format, in this case "WAVE"
     std::string format = "WAVE";
@@ -108,7 +113,7 @@ struct WavHeader : public ChunkHeader {
      * 
      * @return u_int32_t Size of chunk in bytes
      */
-    constexpr static u_int32_t size() { return csize; }
+    constexpr static uint32_t size() { return csize; }
 
     /**
      * @brief Create this chunk data from a stream.
@@ -140,12 +145,8 @@ struct WavHeader : public ChunkHeader {
  */
 struct WavFormat : public ChunkHeader {
 
-    /// Chunk ID of format chunks
-    std::string chunk_id = "fmt ";
-
-    /// Size of this chunk
-    uint32_t chunk_size = size() - ChunkHeader::size();
-
+    WavFormat() : ChunkHeader("fmt ", size() - ChunkHeader::size()) {}
+ 
     /// Format of the wave data, in this case 1
     /// If anything other than 1, compression is utilized
     uint16_t format = 1;
@@ -281,7 +282,10 @@ public:
      * 
      * @param chan New channel count to set
      */
-    void set_channels(int chan) { this->channels = chan;}
+    void set_channels(int chan) { this->channels = chan;
+        this->set_byterate(this->channels * this->get_samplerate() * this->get_bytes_per_sample());
+        this->set_blockalign(this->channels * this->get_bytes_per_sample());
+    }
 
     /**
      * @brief Gets the samplerate of the wave data
@@ -298,7 +302,9 @@ public:
      *
      * @param samp New samplerate to set
      */
-    void set_samplerate(int samp) { this->sample_rate = samp; }
+    void set_samplerate(int samp) { this->sample_rate = samp;
+        this->set_byterate(this->sample_rate * this->get_channels() * this->get_bytes_per_sample());
+    }
 
     /**
      * @brief Gets the byte rate of the wave data
@@ -365,7 +371,10 @@ public:
      * 
      * @param bps Number of bits per sample to set
      */
-    void set_bits_per_sample(int bps) { this->bits_per_sample = bps; this->bytes_per_sample = bps / 8; }
+    void set_bits_per_sample(int bps) { this->bits_per_sample = bps; this->bytes_per_sample = bps / 8;
+        this->set_byterate(this->bytes_per_sample * this->get_samplerate() * this->get_channels());
+        this->set_blockalign(this->bytes_per_sample * this->get_channels());
+    }
 
     /**
      * @brief Gets the number of bytes per sample
@@ -388,7 +397,11 @@ public:
      * 
      * @param bps Number of bytes per sample to set
      */
-    void set_bytes_per_sample(int bps) { this->bytes_per_sample = bps; this->bits_per_sample = bps * 8; }
+    void set_bytes_per_sample(int bps) { this->bytes_per_sample = bps; this->bits_per_sample = bps * 8;
+        this->set_byterate(this->bytes_per_sample * this->get_samplerate() *
+                           this->get_channels());
+        this->set_blockalign(this->bytes_per_sample * this->get_channels());
+    }
 
     /**
      * @brief Gets the size of the wave file
@@ -626,6 +639,26 @@ public:
     WaveWriter(BaseMOStream* stream) : stream(stream) {}
 
     /**
+     * @brief Sets the output mstream to utilize
+     *
+     * This function allows you to set an mstream to read from.
+     * This WaveReader wil read all the data from the mstream provided.
+     *
+     * @param stream New input mstream
+     */
+    void set_stream(BaseMOStream* stream) { this->stream = stream; }
+
+    /**
+     * @brief Gets the output mstream
+     *
+     * This function allows you to get the mstream
+     * this WaveReader utilizes.
+     *
+     * @return BaseMIStream* input mstream
+     */
+    BaseMOStream* get_stream() const { return this->stream; }
+
+    /**
      * @brief Starts this wave writer
      * 
      * You should call this method before doing any writing!
@@ -657,11 +690,15 @@ public:
 
 private:
 
+    /**
+     * @brief Adds the given num to the size
+     * 
+     * @param num Number to add to total size
+     */
+    void increment_size(int num) { this->set_size(this->get_size() + num); }
+
     /// Stream we are reading from
     BaseMOStream* stream = nullptr;
-
-    /// Total number of byte written
-    uint32_t total_written = 0;
 };
 
 /**
@@ -669,6 +706,8 @@ private:
  * 
  * This module reads audio data from a wave source,
  * and allows this audio data to be integrated into a chain.
+ * We automatically configure this module with the wave file 
+ * parameters, which forward modules can utilize.
  * 
  * The required wave reading operations are done at start time,
  * so you may see some latency when the chain is started.

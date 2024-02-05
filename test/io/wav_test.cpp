@@ -9,9 +9,12 @@
  *
  */
 
-#include <catch2/catch_test_macros.hpp>
-
 #include "io/wav.hpp"
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <random>
+
 #include "io/mstream.hpp"
 
 /**
@@ -194,10 +197,10 @@ TEST_CASE("Base Wave", "[io][wav]") {
         bwave.set_format(1);
         bwave.set_channels(3);
         bwave.set_samplerate(4);
-        bwave.set_byterate(5);
-        bwave.set_blockalign(6);
         bwave.set_bits_per_sample(16);
         bwave.set_size(8);
+        bwave.set_byterate(5);
+        bwave.set_blockalign(6);
 
         SECTION("Getter", "Ensures changes can be retrieved") {
 
@@ -210,6 +213,71 @@ TEST_CASE("Base Wave", "[io][wav]") {
             REQUIRE(bwave.get_bytes_per_sample() == 2);
             REQUIRE(bwave.get_size() == 8);
         }
+    }
+
+    SECTION("Byterate Setter", "Ensures we can auto-set our byterate") {
+
+        // Set some initial values:
+
+        bwave.set_channels(1);
+        bwave.set_samplerate(1);
+        bwave.set_bytes_per_sample(1);
+
+        // Ensure value is correct:
+
+        REQUIRE(bwave.get_byterate() == 1);
+
+        // Change Channel:
+
+        bwave.set_channels(2);
+
+        REQUIRE(bwave.get_byterate() == 2);
+
+        // Change samplerate:
+
+        bwave.set_samplerate(48000);
+
+        REQUIRE(bwave.get_byterate() == 2 * 48000);
+
+        // Change bytes per sample:
+
+        bwave.set_bytes_per_sample(5);
+
+        REQUIRE(bwave.get_byterate() == 5 * 48000 * 2);
+
+        // Just for fun, also adjust the bits per sample:
+
+        bwave.set_bits_per_sample(16);
+
+        REQUIRE(bwave.get_byterate() == 2 * 48000 * 2);
+    }
+
+    SECTION("Blockalign Setter", "Ensures we can auto-set our byterate") {
+
+        // Set some initial values:
+
+        bwave.set_channels(1);
+        bwave.set_bytes_per_sample(1);
+
+        REQUIRE(bwave.get_blockalign() == 1);
+
+        // Set the chanels:
+
+        bwave.set_channels(2);
+
+        REQUIRE(bwave.get_blockalign() == 2);
+
+        // Set the bytes per sample:
+
+        bwave.set_bytes_per_sample(3);
+
+        REQUIRE(bwave.get_blockalign() == 2 * 3);
+
+        // Just for fun, change bits per sample:
+
+        bwave.set_bits_per_sample(16);
+
+        REQUIRE(bwave.get_blockalign() == 2 * 2);
     }
 }
 
@@ -612,5 +680,313 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
             REQUIRE(wav.done());
         }
+    }
+}
+
+TEST_CASE("Wave Writer", "[io][wav]") {
+
+    // Create a WaveWriter:
+
+    WaveWriter wav;
+
+    SECTION("Stream Set", "Ensures we can set the mstream") {
+
+        // Create a dummy mstream:
+
+        CharOStream stream;
+
+        // Set it:
+
+        wav.set_stream(&stream);
+
+        SECTION("Stream Get", "Ensures we can get the mstream") {
+
+            REQUIRE(wav.get_stream() == &stream);
+        }
+    }
+
+    SECTION("16bit Write", "Ensures we can create wave files of 16bit integers") {
+
+        // We use the wave file examples for this test!
+        // Create a stream we can write to:
+
+        CharOStream stream;
+
+        // Add stream to writer:
+
+        wav.set_stream(&stream);
+
+        // Configure the parameters:
+
+        wav.set_bits_per_sample(16);
+        wav.set_samplerate(48000);
+        wav.set_channels(2);
+
+        // Start the writer:
+
+        wav.start();
+
+        // Create a buffer with audio data to write:
+
+        BufferPointer buff = std::make_unique<AudioBuffer>(data_wavs.size());
+
+        // Convert values:
+
+        for (int i = 0; i < data_wavs.size(); ++i) {
+
+            // Convert into mf:
+
+            buff->at(i) = int16_mf(data_wavs.at(i));
+        }
+
+        // Write to writer:
+
+        wav.write_data(std::move(buff));
+
+        // Stop the writer:
+
+        wav.stop();
+
+        // Ensure contents are equal:
+
+        for (int i = 0; i < wavs.get_array().size(); ++i) {
+
+            REQUIRE(wavs.get_array().at(i) == stream.get_array().at(i));
+        }
+    }
+
+    SECTION("8bit Wave", "Ensures we can create wave files of 8bit integers") {
+
+        // We use the wave file examples for this test!
+        // Create a stream we can write to:
+
+        CharOStream stream;
+
+        // Add stream to writer:
+
+        wav.set_stream(&stream);
+
+        // Configure the parameters:
+
+        wav.set_bits_per_sample(8);
+        wav.set_samplerate(48000);
+        wav.set_channels(2);
+
+        // Start the writer:
+
+        wav.start();
+
+        // Create a buffer with audio data to write:
+
+        BufferPointer buff = std::make_unique<AudioBuffer>(data_wavb.size());
+
+        // Convert values:
+
+        for (int i = 0; i < data_wavb.size(); ++i) {
+
+            // Convert into mf:
+
+            buff->at(i) = uchar_mf(data_wavb.at(i));
+        }
+
+        // Write to writer:
+
+        wav.write_data(std::move(buff));
+
+        // Stop the writer:
+
+        wav.stop();
+
+        // Ensure contents are equal:
+
+        for (int i = 0; i < wavb.get_array().size(); ++i) {
+
+            REQUIRE(wavb.get_array().at(i) == stream.get_array().at(i));
+        }
+    }
+
+    SECTION("8bit Wave Multi", "Ensures we can write multiple buffers correctly") {
+
+        // We use the wave file examples for this test!
+        // Create a stream we can write to:
+
+        CharOStream stream;
+
+        // Add stream to writer:
+
+        wav.set_stream(&stream);
+
+        // Configure the parameters:
+
+        wav.set_bits_per_sample(8);
+        wav.set_samplerate(48000);
+        wav.set_channels(2);
+
+        // Start the writer:
+
+        wav.start();
+
+        // Create a buffer with audio data to write:
+
+        BufferPointer buff1 = std::make_unique<AudioBuffer>(data_wavb.size() / 2);
+        BufferPointer buff2 = std::make_unique<AudioBuffer>(data_wavb.size() / 2);
+
+        // Convert values:
+
+        for (int i = 0; i < data_wavb.size() / 2; ++i) {
+
+            // Convert into mf:
+
+            buff1->at(i) = uchar_mf(data_wavb.at(i));
+            buff2->at(i) = uchar_mf(data_wavb.at(i + data_wavb.size() / 2));
+        }
+
+        // Write to writer:
+
+        wav.write_data(std::move(buff1));
+        wav.write_data(std::move(buff2));
+
+        // Stop the writer:
+
+        wav.stop();
+
+        // Ensure contents are equal:
+
+        for (int i = 0; i < wavb.get_array().size(); ++i) {
+
+            REQUIRE(wavb.get_array().at(i) == stream.get_array().at(i));
+        }
+    }
+}
+
+TEST_CASE("Random Wave", "[io][wav]") {
+
+    // We create a random wave file and read it using our components
+
+    // Create an output stream:
+
+    CharOStream ostream;
+          
+    // Create writer:
+
+    WaveWriter wwav;
+
+    // Bind stream to writer:
+
+    wwav.set_stream(&ostream);
+
+    // Create a random number generator:
+
+    std::default_random_engine rand;
+
+    // Seed random number generator:
+
+    std::mt19937 gen(rand());
+
+    // We are working with 8bit integers for space reasons:
+
+    wwav.set_bits_per_sample(16);
+
+    // Determine a sample rate:
+
+    std::uniform_int_distribution sdist(44100, 48000);
+    const int sample_rate = sdist(gen);
+
+    // Determine channel count:
+
+    std::uniform_int_distribution cdist(1, 8);
+    const int channels = cdist(gen);
+
+    // Configure the writer:
+
+    wwav.set_samplerate(sample_rate);
+    wwav.set_channels(channels);
+
+    // Determine a number of samples to be generated:
+    // (Must be a multiple of channel count)
+
+    std::uniform_int_distribution ndist(1, 100);
+    const int num_frames = ndist(gen) * channels;
+
+    // Generate the number of frames:
+
+    BufferPointer inb = std::make_unique<AudioBuffer>(num_frames / channels, channels);
+    AudioBuffer backup(num_frames / channels, channels);
+
+    std::uniform_int_distribution gdist(0, 255);
+
+    for (auto iter = inb->ibegin(); iter != inb->iend(); ++iter) {
+
+        // Create the frame:
+
+        const long double frame = uchar_mf(gdist(gen));
+
+        *iter = frame;
+        backup.at(iter.get_index()) = frame;
+    }
+
+    // Start the wave writer:
+
+    wwav.start();
+
+    // Write buffer to writer:
+
+    wwav.write_data(std::move(inb));
+
+    // Stop the writer:
+
+    wwav.stop();
+
+    // Create input stream:
+
+    CharIStream istream;
+
+    // Set output array as input array:
+
+    istream.get_array() = ostream.get_array();
+
+    // Create wave reader:
+
+    WaveReader rwav;
+
+    // Bind stream to wave reader:
+
+    rwav.set_stream(&istream);
+
+    // Start the reader:
+
+    rwav.start();
+
+    // Set the buffer size to hold entire collection of frames:
+
+    rwav.set_buffer_size(num_frames / channels);
+
+    // Get data:
+
+    auto outb = rwav.get_data();
+
+    // Now ensure the parameters are the same:
+
+    REQUIRE(wwav.get_bits_per_sample() == rwav.get_bits_per_sample());
+    REQUIRE(wwav.get_blockalign() == rwav.get_blockalign());
+    REQUIRE(wwav.get_byterate() == rwav.get_byterate());
+    REQUIRE(wwav.get_bytes_per_sample() == rwav.get_bytes_per_sample());
+    REQUIRE(wwav.get_channels() == rwav.get_channels());
+    REQUIRE(wwav.get_format() == rwav.get_format());
+    REQUIRE(wwav.get_samplerate() == rwav.get_samplerate());
+    REQUIRE(wwav.get_size() == rwav.get_size());
+
+    // Ensure frames are the same:
+
+    REQUIRE(outb->total_capacity() == backup.total_capacity());
+    REQUIRE(outb->channels() == backup.channels());
+    REQUIRE(outb->channel_capacity() == backup.channel_capacity());
+    REQUIRE(outb->size() == backup.size());
+
+    for (int i = 0; i < outb->total_capacity(); ++i) {
+
+        // Ensure samples are the same:
+
+        REQUIRE_THAT(outb->at(i), Catch::Matchers::WithinAbs(backup.at(i), 0.0001));
     }
 }

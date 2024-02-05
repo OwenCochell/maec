@@ -58,7 +58,7 @@ void ChunkHeader::encode(char* byts) {
 
     // Encode chunk size:
 
-    int32_char(this->chunk_size, byts + 4);
+    uint32_char(this->chunk_size, byts + 4);
 }
 
 void WavHeader::decode(BaseMIStream& stream) {
@@ -159,6 +159,10 @@ void UnknownChunk::decode(BaseMIStream& stream) {
 }
 
 void UnknownChunk::encode(BaseMOStream& stream) {
+
+    // First, set the size:
+
+    this->chunk_size = this->data.size();
 
     // Encode ChunkHeader:
 
@@ -442,7 +446,7 @@ void WaveWriter::start() {
 
     // Add to the total written:
 
-    this->total_written += whead.size();
+    this->increment_size(whead.size());
 
     // Next, create format chunk:
 
@@ -463,7 +467,7 @@ void WaveWriter::start() {
 
     // Add to total written:
 
-    this->total_written += wformat.size();
+    this->increment_size(wformat.size());
 
     // Write header for audio data:
 
@@ -476,23 +480,59 @@ void WaveWriter::start() {
 
     // Add to total written:
 
-    this->total_written += chead.size();
+    this->increment_size(chead.size());
 
     // From this point on, we will only write audio data.
 }
 
 void WaveWriter::stop() {
 
-    // We NEED to set total file size,
-    // and data chunk size!
+    std::array<char, 4> sout = {};
 
+    // Determine if we need to correct wave header size:
+
+    if (this->get_size() >= 12) {
+
+        // Set total size of file:
+
+        this->stream->seek(4);
+
+        // Encode the total size:
+
+        uint32_char(this->get_size() - 8, sout.begin());
+
+        // Write to file:
+
+        this->stream->write(sout.begin(), 4);
+    }
+
+    // Determine if we need to correct data header size:
+
+    if (this->get_size() >= 36) {
+
+        // Seek to final data chunk:
+
+        this->stream->seek(40);
+
+        // Encode data chunk size:
+
+        uint32_char(this->get_size() - WavHeader::size() - WavFormat::size() - ChunkHeader::size(), sout.begin());
+
+        // Write to file:
+
+        this->stream->write(sout.begin(), 4);
+    }
+
+    // Finally, stop the stream:
+
+    this->stream->stop();
 }
 
 void WaveWriter::write_data(BufferPointer data) {
 
     // Create vector of data to write:
 
-    std::vector<char> odata(data->total_capacity() * this->get_bits_per_sample());
+    std::vector<char> odata(data->total_capacity() * this->get_bytes_per_sample());
 
     // Determine which encoding path to go down:
 
@@ -508,7 +548,7 @@ void WaveWriter::write_data(BufferPointer data) {
     }
 
     else if (this->get_bits_per_sample() == 8) {
-        
+
         // We are working with 8bit ints,
         // Iterate over the number of samples:
 
@@ -524,7 +564,7 @@ void WaveWriter::write_data(BufferPointer data) {
 
     // Add to total written:
 
-    this->total_written += odata.size();
+    this->increment_size(odata.size());
 }
 
 void WaveSource::start() {

@@ -282,7 +282,7 @@ int32_t char_int32(T byts) {
  * @brief Converts byte data into unsigned 32bit integers
  * 
  * This function utilizes endian safe methods for conversions,
- * and in fact is identical to chat_int32, except this is the unsigned variant.
+ * and in fact is identical to char_int32, except this is the unsigned variant.
  * 
  * We require 4 bytes to make this conversion.
  * so your pointer should have at least 3 values in front of it.
@@ -360,4 +360,26 @@ void int32_char(int32_t val, T byts) {
         // Shift current value
         val >>= 8;
     }
+}
+
+/**
+ * @brief Converts a 32bit integer into byte data
+ *
+ * This function utilizes endian safe methods for conversions,
+ * and in fact is identical to uint32_char, except this is the unsigned variant.
+ *
+ * We will place the result into the provided iterable.
+ * We require 4 bytes to make this conversion, so your pointer should
+ * have space for 4 values!
+ *
+ * @tparam T Iterator type of output byte data
+ * @param val Value to convert
+ * @param byts Iterator to output byte data
+ */
+template<typename T>
+void uint32_char(uint32_t val, T byts) {
+
+    // Just cast and call:
+
+    int32_char(static_cast<uint32_t>(val), byts);
 }

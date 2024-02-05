@@ -32,7 +32,6 @@
  * and conventional modules is that we will NEVER process back modules.
  */
 class SourceModule : public AudioModule {
-
     public:
 
         /**
@@ -44,4 +43,22 @@ class SourceModule : public AudioModule {
          * 
          */
         void meta_process() override;
+
+        /**
+         * @brief Meta start method
+         * 
+         * As we have no backward modules,
+         * we just start ourselves.
+         * 
+         */
+        void meta_start() override { this->start(); }
+
+        /**
+         * @brief Meta stop method
+         * 
+         * Again, we have no backward modules,
+         * we just start ourselves.
+         * 
+         */
+        void meta_stop() override { this->start(); }
 };
