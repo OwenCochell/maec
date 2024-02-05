@@ -20,6 +20,38 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
     AudioModule mod;
 
+    SECTION("State", "Ensures the module will set it's own state correctly") {
+
+        // Ensure initial state is valid:
+
+        REQUIRE(mod.get_state() == AudioModule::State::Created);
+
+        // Start the module:
+
+        mod.start();
+
+        // Ensure our state is correct:
+
+        REQUIRE(mod.get_state() == AudioModule::State::Started);
+
+        // Finish the module:
+
+        mod.finish();
+
+        // Ensure our state is correct:
+        // (Automatically skips finishing state)
+
+        REQUIRE(mod.get_state() == AudioModule::State::Finished);
+
+        // Finally, stop the module:
+
+        mod.stop();
+
+        // Ensure the state is correct:
+
+        REQUIRE(mod.get_state() == AudioModule::State::Stopped);
+    }
+
     SECTION("CreateBuffer", "Ensures we can create a buffer") {
 
         // Create the buffer:
@@ -110,5 +142,16 @@ TEST_CASE("AudioModule Test", "[mod]") {
         // Call the meta process:
 
         mod.meta_process();
+    }
+
+    SECTION("Meta Start", "Ensures we can meta start") {
+
+        // Link the two modules:
+
+        mod.bind(&mod2);
+
+        // Meta start the first:
+
+        mod.meta_start();
     }
 }

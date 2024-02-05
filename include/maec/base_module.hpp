@@ -45,18 +45,16 @@
  * 
  */
 class BaseModule {
-
-    private:
-
+    public:
         /// The types of states we can be:
 
-        enum class State {Created, Started, Running, Finishing, Finished, Stopped};
-
-        /// The state type of this module:
-
-        State state_type =State::Created;
-
-    public:
+        enum class State {
+            Created,
+            Started,
+            Finishing,
+            Finished,
+            Stopped
+        };
 
         BaseModule() =default;
 
@@ -134,4 +132,8 @@ class BaseModule {
          */
         State get_state() {return this->state_type;}
 
+    private:
+        /// The state type of this module:
+
+        State state_type = State::Created;
 };
