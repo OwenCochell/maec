@@ -11,7 +11,7 @@
 
 #include "audio_module.hpp"
 
-void AudioModule::meta_process() {  // NOLINT(misc-no-recursion): No recursion cycles present, chain will eventually end
+void AudioModule::meta_process() {  // NOLINT(misc-no-recursion): No recursion cycles present, valid chains will eventually end
 
     // Call the module behind us:
 
@@ -24,6 +24,28 @@ void AudioModule::meta_process() {  // NOLINT(misc-no-recursion): No recursion c
     // Call the processing module of our own:
 
     this->process();
+}
+
+void AudioModule::meta_start() {  // NOLINT(misc-no-recursion): No recursion cycles present, valid chains will eventually end
+
+    // Ask the previous module to start:
+
+    this->backward->meta_start();
+
+    // Grab the module info:
+
+    this->info = *(this->backward->get_info());
+
+    // Start this current module:
+
+    this->start();
+}
+
+void AudioModule::meta_stop() {  // NOLINT(misc-no-recursion): No recursion cycles present, valid chains will eventually end
+
+    // Yeah, just ask for previous module to stop:
+
+    this->backward->meta_stop();
 }
 
 void AudioModule::set_buffer(std::unique_ptr<AudioBuffer> inbuff) {

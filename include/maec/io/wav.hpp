@@ -706,6 +706,8 @@ private:
  * 
  * This module reads audio data from a wave source,
  * and allows this audio data to be integrated into a chain.
+ * We automatically configure this module with the wave file 
+ * parameters, which forward modules can utilize.
  * 
  * The required wave reading operations are done at start time,
  * so you may see some latency when the chain is started.

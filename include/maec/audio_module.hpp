@@ -95,10 +95,10 @@ class AudioModule : public BaseModule {
         ChainInfo* chain = nullptr;
 
         /// Pointer to the audio module we are attached to
-        AudioModule* forward=nullptr;
+        AudioModule* forward = nullptr;
 
         /// Pointer to the audio module that is attached to us
-        AudioModule* backward=nullptr;
+        AudioModule* backward = nullptr;
 
     protected:
 
@@ -149,15 +149,63 @@ class AudioModule : public BaseModule {
 
         /**
          * @brief Meta process method
-         * 
+         *
          * This method contains all the meta code such as
          * retrieving the buffer from the previous module,
-         * and calling the necessary processing methods. 
-         * 
+         * and calling the necessary processing methods.
+         *
          * Most users will not need to alter the code in this module,
          * but some advanced modules will need to, such as the audio mixers.
          */
         virtual void meta_process();
+
+        /**
+         * @brief Meta start method
+         * 
+         * This method contains all meta start operations.
+         * 'Meta' operations are not necessarily related to audio processing,
+         * and are instead related to chain and module operations that
+         * are required for normal operation.
+         * We essentially set the stage for audio processing.
+         * This method will:
+         * 
+         * - Start the backward module
+         * - Extract backward info and set it to ours
+         * - Start current module
+         * 
+         * This method is intended to prepare this module,
+         * and other modules in the chain, for processing.
+         * This allows for modules to recursively start one another,
+         * and for module info to propagate through the chain.
+         * 
+         * Most of the time, it is unecessary to 
+         * overload this method yourself
+         * unless you are working with an advanced module.
+         * 
+         * TODO: We should really hash out how chains are started in sinks.
+         * I am happy to say that users should call 'meta_start()' in the sink.
+         */
+        virtual void meta_start();
+
+        /**
+         * @brief Meta stop method
+         * 
+         * This method contains all meta stop operations.
+         * This method will:
+         * 
+         * - Stop the backward module
+         * 
+         * Yeah, that is about it.
+         * This method is intended to prepare this module,
+         * and other modules in the chain, for stop.
+         * This allows modules to recursively stop one another.
+         * 
+         * Again, most of the time, it is unecessary to
+         * overload this method yourself
+         * unless you are working with an advanced module.
+         * 
+         */
+        virtual void meta_stop();
 
         /**
          * @brief Set the buffer object
