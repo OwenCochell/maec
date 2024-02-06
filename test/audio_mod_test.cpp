@@ -78,6 +78,10 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
     AudioModule mod2;
 
+    // Create the SourceModule, stops backward sampling issues:
+
+    SourceModule smod;
+
     SECTION("Set Forward", "Ensures we can properly set the forward module") {
 
         // Set the forward module:
@@ -131,13 +135,9 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
     SECTION("Meta Process", "Ensures we can meta process a chain") {
 
-        // Create the SourceModule, stops backward sampling issues:
-
-        SourceModule mod2;
-
         // Bind the modules:
 
-        mod.bind(&mod2);
+        mod.bind(&smod);
 
         // Call the meta process:
 
@@ -146,12 +146,51 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
     SECTION("Meta Start", "Ensures we can meta start") {
 
+        // Set some crazy info in the start module:
+
+        auto* info = smod.get_info();
+
+        info->channels = 99;
+        info->in_buffer = 0;
+        info->out_buffer = 12345;
+        info->sample_rate = 6789;
+
         // Link the two modules:
 
-        mod.bind(&mod2);
+        mod.bind(&smod);
 
         // Meta start the first:
 
         mod.meta_start();
+
+        // Ensure both have been started:
+
+        REQUIRE(mod.get_state() == AudioModule::State::Started);
+        REQUIRE(smod.get_state() == AudioModule::State::Started);
+
+        // Ensure module info is valid:
+
+        auto* info2 = mod.get_info();
+
+        REQUIRE(info2->channels == 99);
+        REQUIRE(info2->in_buffer == 0);
+        REQUIRE(info2->out_buffer == 12345);
+        REQUIRE(info2->sample_rate == 6789);
+    }
+
+    SECTION("Meta Stop", "Ensures we can meta stop") {
+
+        // Link the two modules:
+
+        mod.bind(&smod);
+
+        // Meta stop the first:
+
+        mod.meta_stop();
+
+        // Ensure both have been started:
+
+        REQUIRE(mod.get_state() == AudioModule::State::Stopped);
+        REQUIRE(smod.get_state() == AudioModule::State::Stopped);
     }
 }

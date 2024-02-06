@@ -60,5 +60,5 @@ class SourceModule : public AudioModule {
          * we just start ourselves.
          * 
          */
-        void meta_stop() override { this->start(); }
+        void meta_stop() override { this->stop(); }
 };

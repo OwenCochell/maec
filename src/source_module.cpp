@@ -16,5 +16,4 @@ void SourceModule::meta_process() {
     // Call the processing module of our own:
 
     this->process();
-
 }

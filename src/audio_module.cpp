@@ -46,6 +46,10 @@ void AudioModule::meta_stop() {  // NOLINT(misc-no-recursion): No recursion cycl
     // Yeah, just ask for previous module to stop:
 
     this->backward->meta_stop();
+
+    // Stop this current module:
+
+    this->stop();
 }
 
 void AudioModule::set_buffer(std::unique_ptr<AudioBuffer> inbuff) {
