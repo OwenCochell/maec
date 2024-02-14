@@ -32,6 +32,10 @@ void AudioModule::meta_start() {  // NOLINT(misc-no-recursion): No recursion cyc
 
     this->backward->meta_start();
 
+    // Set our state:
+
+    BaseModule::stop();
+
     // Grab the module info:
 
     this->info = *(this->backward->get_info());
@@ -47,9 +51,46 @@ void AudioModule::meta_stop() {  // NOLINT(misc-no-recursion): No recursion cycl
 
     this->backward->meta_stop();
 
+    // Set our state:
+
+    BaseModule::stop();
+
     // Stop this current module:
 
     this->stop();
+}
+
+void AudioModule::meta_finish() {  // NOLINT(misc-no-recursion): No recursion cycles present, valid chains eventually end
+
+    // Ask backward module to stop:
+
+    this->backward->meta_stop();
+
+    // Set our state:
+
+    BaseModule::finish();
+
+    // Stop this current module:
+
+    this->finish();
+}
+
+void AudioModule::done() {
+
+    // Call parent done method:
+
+    BaseModule::done();
+
+    // Report to the chain that we are done:
+
+    ++(this->chain->module_finish);
+}
+
+void AudioModule::finish() {
+
+    // Call done immediately:
+
+    this->done();
 }
 
 void AudioModule::set_buffer(std::unique_ptr<AudioBuffer> inbuff) {

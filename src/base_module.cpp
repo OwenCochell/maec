@@ -24,10 +24,6 @@ void BaseModule::stop() {
 void BaseModule::finish() {
     // Set the state to finishing:
     this->state_type = State::Finishing;
-
-    // Call the finish method:
-
-    this->done();
 }
 
 void BaseModule::done() {

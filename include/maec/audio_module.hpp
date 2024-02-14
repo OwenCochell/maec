@@ -70,6 +70,13 @@ struct ChainInfo {
 
     /// Number of audio channels
     int channels = 1;
+
+    /// Number of modules in chain
+    int module_num = 1;
+
+    // Number of modules ready to stop:
+
+    int module_finish = 0;
 };
 
 /**
@@ -78,6 +85,7 @@ struct ChainInfo {
  * These modules are designed to work with audio data.
  * Audio modules can be attached to each other to form a chain,
  * and audio data will flow them as they are linked.
+ * A module chain is essentially a complicated doubly linked list!
  * 
  * Audio modules are share a pointer to an 'audio_info' struct,
  * which will be used to share information between modules.
@@ -194,10 +202,11 @@ class AudioModule : public BaseModule {
          * This method will:
          * 
          * - Stop the backward module
+         * - Stop ourselves
          * 
          * Yeah, that is about it.
          * This method is intended to prepare this module,
-         * and other modules in the chain, for stop.
+         * and other modules in the chain, for stopping.
          * This allows modules to recursively stop one another.
          * 
          * Again, most of the time, it is unecessary to
@@ -206,6 +215,45 @@ class AudioModule : public BaseModule {
          * 
          */
         virtual void meta_stop();
+
+        /**
+         * @brief Meta finish method
+         * 
+         * This method contains all meta finish operations.
+         * This method will:
+         * 
+         * - Finish backward module
+         * - Finish ourselves
+         * 
+         * Again, not very crazy.
+         * This method is intended to prepare this module,
+         * and other modules in the chain, for finishing.
+         * 
+         * Most of the time, it is unecessary to overload this method yourself
+         * unless you are working with an advanced module.
+         * 
+         */
+        virtual void meta_finish();
+
+        /**
+         * @brief Custom AudioModule done method
+         * 
+         * This method simply reports our finish state to the chain.
+         * It is REQUIRED for children to call this method,
+         * as the chain will continue forever without proper module done reporting.
+         * 
+         */
+        void done() override;
+
+        /**
+         * @brief Custom AudioModule finish method
+         * 
+         * This method by default calls our done method immediately.
+         * Any complicated modules may overload this method
+         * and place custom finish logic here.
+         * 
+         */
+        void finish() override;
 
         /**
          * @brief Set the buffer object
