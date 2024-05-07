@@ -11,6 +11,8 @@
 
 #include <iostream>
 
+#include "dsp/const.hpp"
+
 #ifdef ALSA_F
 
 #include "io/alsa_module.hpp"

@@ -14,8 +14,11 @@
 #pragma once
 
 #include <functional>
+#include <utility>
 
 #include "audio_module.hpp"
+#include "sink_module.hpp"
+#include "meta_audio.hpp"
 
 /**
  * @brief A component that represents a parameter
@@ -30,63 +33,38 @@
  * 
  * - Static values that do not change
  * - Output from other modules
- * - Custom methods defined by users
  * 
  * These parameters offer a modular framework for defining sources for values.
- * Users can define a function that will be called each time we require a value.
+ * Under the hood, this component is a sink,
+ * meaning users can attach modules and chains to this parameter.
+ * When we are asked to get parameter data, we process the backward modules
+ * and return the AudioBuffer for use.
+ * Developers can preform this workflow themselves,
+ * or they can simply call the get() method which does all this in one call.
+ * 
+ * It is important to note that this component MUST be included in all state operations!
+ * Otherwise, this component may preform oddly or break.
+ * An easy way to do this would be to call the necessary state functions in your module.
+ * 
  * We also offer some methods for simplifying configuration.
  * Using the proper methods, we can auto-configure this class for getting values
- * from an AudioModule.
+ * from an AudioModule, or this component can configured to return a constant value.
+ * Since this component is a sink, one can configure it as any maec module.
  * 
  * One possible use of this component is to offer the ability for parameters to change over time.
  * For example, one could attach a SineOscillator, which would cause the this parameter to represent a sine wave.
  * This allows for components to be modulated.
+ * 
  */
-class ModuleParameter {
-
-    using value_func = std::function<long double(ModuleParameter*)>;
+class ModuleParameter : public SinkModule {
 
     private:
-
-        /// Function to retrieve values
-        value_func func = nullptr;
 
         /// A constant value to be returned
         long double value = 0;
 
-        /// An AudioBuffer holding the current audio data:
-        std::unique_ptr<AudioBuffer> buff = nullptr;
-
-        /// The current AudioModule we are working with:
-        AudioModule* mod = nullptr;
-
-        /// The current iterator:
-        AudioBuffer::InterIterator<long double> siter;
-
-        /// The current end iterator:
-        AudioBuffer::InterIterator<long double> eiter;
-
-        /**
-         * @brief A friend function to get constant value
-         * 
-         * We set this as the value function
-         * if we are optimized for returning a constant value.
-         * 
-         * @param mod ModuleParameter to get value from
-         * @return long double Current value
-         */
-        friend long double get_constant(ModuleParameter* mod);
-
-        /**
-         * @brief A friend function to get values via a module
-         * 
-         * We set this as the module function
-         * if we are optimized for returning values from a module.
-         * 
-         * @param mod ModuleParameter to get value from
-         * @return long double 
-         */
-        friend long double get_module(ModuleParameter* mod);
+        /// Pointer to ConstModule
+        std::unique_ptr<ConstModule> const_mod = nullptr;
 
     public:
 
@@ -111,27 +89,17 @@ class ModuleParameter {
          * 
          * @param imod Module to track
          */
-        ModuleParameter(AudioModule* imod) { this->set_module(imod); }
+        ModuleParameter(AudioModule* imod) { this->bind(imod); }
 
         /**
-         * @brief Gets the current value
+         * @brief Gets the current buffer
          * 
-         * Under the hood, we call the value function.
-         * We simply return what this gives us
+         * We meta process and backward modules,
+         * and then return the AudioBuffer.
          * 
-         * @return long double Current value
+         * @return AudioBuffer Buffer of values to work with
          */
-        long double get() { return this->func(this); }
-
-        /**
-         * @brief Set the value function
-         * 
-         * This sets the function to be used
-         * for getting values.
-         * 
-         * @param fn Value function to utilize
-         */
-        void set_function(ModuleParameter::value_func fnc) { this->func = fnc; }
+        BufferPointer get();
 
         /**
          * @brief Configures this parameter for constant values.
@@ -142,17 +110,4 @@ class ModuleParameter {
          * @param val Value to set
          */
         void set_constant(long double val);
-
-        /**
-         * @brief Configures this parameter for module sampling
-         * 
-         * This sets the module we are tracking to the one provided,
-         * and sets the value function to the 'get_module()' method.
-         * 
-         * @param imod Module to set
-         */
-        void set_module(AudioModule* imod);
 };
-
-// Type alias representing a value function
-using value_func = std::function<long double(ModuleParameter*)>;

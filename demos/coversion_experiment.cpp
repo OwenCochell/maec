@@ -27,12 +27,12 @@ const long double TWO_PI = 2.0 * M_PI;
 
 float conv(long double val) { return int16_t(val * 32768.0); }
 
-int main(int argc , char** argv) {
+int main() {
 
     // Create vector of initial data:
 
-    int num = 1000;
-    int iter = 1000;
+    const int num = 1000;
+    const int iter = 1000;
 
     std::vector<long double> vec(num);
 

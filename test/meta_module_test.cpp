@@ -13,7 +13,6 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "meta_audio.hpp"
-#include "base_oscillator.hpp"
 #include "fund_oscillator.hpp"
 
 TEST_CASE("MetaCount Test", "[meta][count]") {
@@ -29,7 +28,7 @@ TEST_CASE("MetaCount Test", "[meta][count]") {
 
     // Create constant oscillator:
 
-    ConstantOscillator con(5.0);
+    ConstModule con(5.0);
 
     // Bind the constant oscillator:
 
@@ -379,5 +378,61 @@ TEST_CASE("UniformBuffer Test", "[meta]") {
                 REQUIRE_THAT(*tier, Catch::Matchers::WithinAbs(tier.get_index() + (i * osize), 0.0001));
             }
         }
+    }
+}
+
+TEST_CASE("ConstModule Test", "[meta]") {
+
+    // Create the oscillator:
+
+    ConstModule osc;
+
+    SECTION("Construct") {
+
+        // Ensure the initial value is 0.0:
+
+        REQUIRE(osc.get_value() == 0.0);
+
+        // Construct a new oscillator with a value of 1.0:
+
+        ConstModule osc2(1.0);
+
+        // Ensure the initial value is 1.0:
+
+        REQUIRE(osc2.get_value() == 1.0);
+    }
+
+    // Set the value:
+
+    osc.set_value(1.0);
+
+    SECTION("Getter") {
+
+        // Ensure value has been properly set:
+
+        REQUIRE(osc.get_value() == 1.0);
+    }
+
+    // Process the oscillator:
+
+    osc.process();
+
+    // Get the buffer:
+
+    auto buff = osc.get_buffer();
+
+    // Ensure the buffer is not null:
+
+    REQUIRE(buff != nullptr);
+
+    // Ensure the buffer is the correct size:
+
+    REQUIRE(buff->size() == 440);
+
+    // Ensure the buffer is filled with the correct value:
+
+    for (auto& val : *buff) {
+
+        REQUIRE(val == 1.0);
     }
 }

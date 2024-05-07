@@ -13,7 +13,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "module_mixer.hpp"
-#include "base_oscillator.hpp"
+#include "meta_audio.hpp"
 
 TEST_CASE("ModuleMixUp Tests", "[mixer]") {
 
@@ -42,7 +42,7 @@ TEST_CASE("ModuleMixUp Tests", "[mixer]") {
 
         // Create the modules:
 
-        ConstantOscillator osc1(0.50);
+        ConstModule osc1(0.50);
 
         // Attach the modules:
 
@@ -108,8 +108,8 @@ TEST_CASE("ModuleMixDown Tests", "[mixer]") {
 
         // Create the modules:
 
-        ConstantOscillator osc1(0.25);
-        ConstantOscillator osc2(0.25);
+        ConstModule osc1(0.25);
+        ConstModule osc2(0.25);
 
         // Attach the modules:
 
@@ -171,8 +171,8 @@ TEST_CASE("MultiMix Tests", "[mixer]") {
 
         // Create the modules:
 
-        ConstantOscillator osc1(0.25);
-        ConstantOscillator osc2(0.25);
+        ConstModule osc1(0.25);
+        ConstModule osc2(0.25);
 
         // Attach the modules:
 

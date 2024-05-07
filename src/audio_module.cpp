@@ -11,6 +11,12 @@
 
 #include "audio_module.hpp"
 
+#include <memory>
+#include <utility>
+
+#include "audio_buffer.hpp"
+#include "base_module.hpp"
+
 void AudioModule::meta_process() {  // NOLINT(misc-no-recursion): No recursion cycles present, valid chains will eventually end
 
     // Call the module behind us:
@@ -34,11 +40,7 @@ void AudioModule::meta_start() {  // NOLINT(misc-no-recursion): No recursion cyc
 
     // Set our state:
 
-    BaseModule::stop();
-
-    // Grab the module info:
-
-    this->info = *(this->backward->get_info());
+    BaseModule::start();
 
     // Start this current module:
 
@@ -64,7 +66,7 @@ void AudioModule::meta_finish() {  // NOLINT(misc-no-recursion): No recursion cy
 
     // Ask backward module to stop:
 
-    this->backward->meta_stop();
+    this->backward->meta_finish();
 
     // Set our state:
 
@@ -73,6 +75,24 @@ void AudioModule::meta_finish() {  // NOLINT(misc-no-recursion): No recursion cy
     // Stop this current module:
 
     this->finish();
+}
+
+void AudioModule::info_sync() {
+
+    // By default, copy AudioInfo from front:
+
+    this->info = *(this->forward->get_info());
+}
+
+void AudioModule::meta_info_sync() {  // NOLINT(misc-no-recursion): No recursion cycles present, valid chains eventually end
+
+    // Preform the current info sync:
+
+    this->info_sync();
+
+    // Preform backwards meta sync:
+
+    this->backward->meta_info_sync();
 }
 
 void AudioModule::done() {

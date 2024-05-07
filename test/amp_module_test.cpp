@@ -9,11 +9,13 @@
  * 
  */
 
+#include "amp_module.hpp"
+
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include "amp_module.hpp"
-#include "base_oscillator.hpp"
+#include "meta_audio.hpp"
 
 TEST_CASE("BaseAmplitude Test", "[amp]") {
 
@@ -59,7 +61,7 @@ TEST_CASE("AmplitudeScale Test", "[amp]") {
 
         // Create constant oscillator:
 
-        ConstantOscillator osc(0.5);
+        ConstModule osc(0.5);
 
         // Bind the module together:
 
@@ -94,7 +96,7 @@ TEST_CASE("AmplitudeAdd Test", "[amp]") {
 
         // Create constant oscillator:
 
-        ConstantOscillator osc(1);
+        ConstModule osc(1);
 
         // Bind the module together:
 

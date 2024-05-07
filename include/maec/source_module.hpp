@@ -61,4 +61,13 @@ class SourceModule : public AudioModule {
          * 
          */
         void meta_stop() override { this->stop(); }
+
+        /**
+         * @brief Meta info sink method
+         * 
+         * We simply call the info sink method for this module,
+         * we do NOT preform any syncs on backwards modules
+         * 
+         */
+        void meta_info_sync() override { this->info_sync(); }
 };

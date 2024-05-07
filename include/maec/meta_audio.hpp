@@ -365,3 +365,53 @@ class UniformBuffer : public AudioModule {
          */
         void meta_process() override { this->process(); }
 };
+
+/**
+ * @brief Generates buffers filled with a given value
+ *
+ * We will create and fill a vector with the given value.
+ * You can set this number with the set_value() method,
+ * or by passing a double to the class constructor.
+ * Otherwise, the default value is 0.0.
+ *
+ */
+class ConstModule : public SourceModule {
+
+private:
+    /// The value to return
+    long double value = 0.0;
+
+public:
+    ConstModule() = default;
+
+    /**
+     * @brief Construct a new Constant Oscillator object
+     *
+     * @param invalue Value to use in buffer creation
+     */
+    ConstModule(long double invalue) : value(invalue) {}
+
+    /**
+     * @brief Set the value to use in buffer creation
+     *
+     * @param invalue Value to use in buffer creation
+     */
+    void set_value(long double invalue) { this->value = invalue; }
+
+    /**
+     * @brief Get the value object
+     *
+     * We return the value that will be used in buffer creation.
+     *
+     * @return long double
+     */
+    long double get_value() const { return this->value; }
+
+    /**
+     * @brief Override process method
+     *
+     * We will fill a buffer filled with the given value.
+     *
+     */
+    void process() override;
+};

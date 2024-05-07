@@ -10,6 +10,7 @@ set(MISC_FILES
     fft_radix2_benchmark.cpp
     mstream_bench.cpp
     char_conversion.cpp
+    call_benchmark.cpp
 )
 
 # Finally, build and link all misc. demo files:

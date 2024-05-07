@@ -10,7 +10,6 @@ set(TEST_FILES
     meta_module_test.cpp
     fund_oscillator_test.cpp
     envelope_test.cpp
-    constant_oscillator_test.cpp
     chrono_test.cpp
     audio_mod_test.cpp
     amp_module_test.cpp

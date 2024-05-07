@@ -23,10 +23,17 @@ void SinkModule::meta_process() {
 
         // Claim it's buffer
 
-        buff = std::move(this->get_backward()->get_buffer());
+        buff = this->get_backward()->get_buffer();
 
         // Process ? :
 
         this->process();
     }
+}
+
+void SinkModule::info_sync() {
+
+    // Configure the AudioInfo:
+
+    this->get_info()->from_chain(this->chain_instance);
 }

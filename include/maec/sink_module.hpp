@@ -54,7 +54,10 @@ class SinkModule : public AudioModule {
 
         /// The number of periods
         int periods = 1;
- 
+
+        /// ChainInfo instance, to be shared with backward modules
+        ChainInfo chain_instance;
+
     public:
 
         /**
@@ -63,7 +66,12 @@ class SinkModule : public AudioModule {
          * Default constructor.
          * We simply set the default squishier to squish_null
          */
-        SinkModule() =default;
+        SinkModule() {
+
+            // Assign pointer:
+
+            this->set_chain_info(&chain_instance);
+        }
 
         /**
          * @brief Gets the periods for this sink module
@@ -106,4 +114,12 @@ class SinkModule : public AudioModule {
          * TODO: Create methods to allow squished format to be choosen
          */
         void meta_process() override;
+
+        /**
+         * @brief Preforms an info sync
+         * 
+         * We configure the AudioInfo to match the settings in ChainInfo.
+         * 
+         */
+        void info_sync() override;
 };

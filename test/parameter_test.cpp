@@ -10,28 +10,31 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-
-#include <vector>
 #include <memory>
+#include <vector>
 
-#include "module_param.hpp"
-#include "base_oscillator.hpp"
-#include "fund_oscillator.hpp"
+#include "audio_buffer.hpp"
 #include "meta_audio.hpp"
+#include "module_param.hpp"
 
 TEST_CASE("Module Parameter Tests", "[param]") {
 
     // Construct the parameters:
 
-    const ModuleParameter param;
     ModuleParameter const_param(5.0);
 
     SECTION("Constant Parameter Functionality", "Ensure we can use constant parameters") {
 
-        // Ensure we can get a value:
+        // Ensures we can get a constant value:
 
-        REQUIRE_THAT(const_param.get(), Catch::Matchers::WithinAbs(5., 0.0001));
+        auto buff = const_param.get();
+
+        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(5., 0.0001));
+        }
 
         // Now, change the value:
 
@@ -39,9 +42,14 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
         // Test the values multiple times:
 
-        for(int i = 0; i < 20; ++i) {
+        for(int i = 0; i < 5; ++i) {
 
-            REQUIRE_THAT(const_param.get(), Catch::Matchers::WithinAbs(3., 0.0001));
+            buff = const_param.get();
+
+            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+
+                REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(3., 0.0001));
+            }
         }
     }
 
@@ -53,7 +61,7 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
         // Create a module to use:
 
-        ConstantOscillator osc(3.0);
+        ConstModule osc(3.0);
 
         // Create a parameter:
 
@@ -61,11 +69,12 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
         // Ensure the value is accurate:
 
-        REQUIRE_THAT(mod_param.get(), Catch::Matchers::WithinAbs(3.0, 0.0001));
+        auto buffp = mod_param.get();
 
-        // Do something a bit crazier:
+        for (auto iter = buffp->ibegin(); iter < buffp->iend(); ++iter) {
 
-        const SineOscillator sine(440.0);
+            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(3.0, 0.0001));
+        }
 
         // Create a dummy module:
 
@@ -79,13 +88,15 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
         // Set the source module
 
-        mod_param.set_module(&src);
+        mod_param.bind(&src);
 
         // Now, ensure values are accurate:
 
-        for(int i = 0; i < 10 * 4; ++i) {
+        buffp = mod_param.get();
 
-            REQUIRE_THAT(mod_param.get(), Catch::Matchers::WithinAbs(data.at(i % 10), 0.0001));
+        for (int i = 0; i < data.size(); ++i) {
+
+            REQUIRE_THAT(buffp->at(i), Catch::Matchers::WithinAbs(data.at(i), 0.0001));
         }
     }
 }

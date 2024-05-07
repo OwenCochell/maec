@@ -12,7 +12,6 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "sink_module.hpp"
-#include "base_oscillator.hpp"
 #include "meta_audio.hpp"
 
 TEST_CASE("SinkModule Test", "[sink]") {
@@ -20,6 +19,13 @@ TEST_CASE("SinkModule Test", "[sink]") {
     // Create a SinkModule:
 
     SinkModule sink;
+
+    SECTION("ChainInfo", "Ensures the chain info is correct") {
+
+        // Ensures the ChainInfo is present:
+        
+        REQUIRE(sink.get_chain_info() != nullptr);
+    }
 
     SECTION("Period", "Ensure the period getter/setter is correct") {
 
@@ -40,7 +46,7 @@ TEST_CASE("SinkModule Test", "[sink]") {
 
         // Create a ConstantOscillator:
 
-        ConstantOscillator oconst(5);
+        ConstModule oconst(5);
 
         // Create a count module:
 

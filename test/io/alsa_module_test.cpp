@@ -14,7 +14,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "io/alsa_module.hpp"
-#include "base_oscillator.hpp"
+#include "meta_audio.hpp"
 
 TEST_CASE("ALSABase Test", "[alsa]") {
 
@@ -101,7 +101,7 @@ TEST_CASE("ALSASink Test", "[alsa][sink]") {
 
         // Create a ConstantOscillator:
 
-        ConstantOscillator oconst(0.5);
+        ConstModule oconst(0.5);
 
         // Bind the modules together:
 

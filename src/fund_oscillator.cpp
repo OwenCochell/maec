@@ -14,7 +14,6 @@
 #include "fund_oscillator.hpp"
 
 #include <cmath>
-#include <vector>
 
 const long double TWO_PI = 2.0 * M_PI;
 

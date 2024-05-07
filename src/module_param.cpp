@@ -11,40 +11,20 @@
 
 #include "module_param.hpp"
 
-long double get_constant(ModuleParameter* mod) { return mod->value; }
+#include <memory>
 
-long double get_module(ModuleParameter* mod) {
+#include "audio_buffer.hpp"
+#include "meta_audio.hpp"
 
-    // First, determine if we need to sample:
+BufferPointer ModuleParameter::get() {
 
-    if ( mod->siter == mod->eiter ) {
+    // First, meta process:
 
-        // Sample the back module:
+    this->meta_process();
 
-        mod->mod->meta_process();
+    // Next, return buffer:
 
-        // Grab the buffer:
-
-        mod->buff = mod->mod->get_buffer();
-
-        // Create a start iterator:
-
-        mod->siter = mod->buff->ibegin();
-        mod->eiter = mod->buff->iend();
-    }
-
-    // Finally, just return the current value:
-
-    long double val = *(mod->siter);
-
-    // Increment the iterator
-
-    ++(mod->siter);
-
-    // Finally, return val:
-
-    return val;
-
+    return this->get_buffer();
 }
 
 void ModuleParameter::set_constant(long double val) {
@@ -53,25 +33,9 @@ void ModuleParameter::set_constant(long double val) {
 
     this->value = val;
 
-    // Set the value function:
+    // Set the constant module:
 
-    this->func = &get_constant;
-}
+    this->const_mod = std::make_unique<ConstModule>(val);
 
-void ModuleParameter::set_module(AudioModule* imod) {
-
-    // Set the underlying module:
-
-    this->mod = imod;
-
-    // Reset the iterators:
-
-    this->siter = AudioBuffer::InterIterator<long double>();
-    this->eiter = AudioBuffer::InterIterator<long double>();
-
-    this->buff = nullptr;
-
-    // Finally, the function:
-
-    this->func = &get_module;
+    this->bind(this->const_mod.get());
 }

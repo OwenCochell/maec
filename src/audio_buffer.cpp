@@ -11,6 +11,15 @@
 
 #include "audio_buffer.hpp"
 
+#include <memory>
+
+std::unique_ptr<AudioBuffer> create_buffer(int size, int channels) {
+
+    // Allocate the new buffer:
+
+    return std::make_unique<AudioBuffer>(size, channels);
+}
+
 float mf_float(long double val) { return static_cast<float>(val); }
 
 long double mf_null(long double val) { return val; }

@@ -10,8 +10,10 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
+#include <utility>
 
 #include "audio_module.hpp"
+#include "base_module.hpp"
 #include "source_module.hpp"
 
 TEST_CASE("AudioModule Test", "[mod]") {
@@ -19,6 +21,11 @@ TEST_CASE("AudioModule Test", "[mod]") {
     // Construct the AudioModule:
 
     AudioModule mod;
+
+    // Add some dummy chain info:
+
+    ChainInfo dumm;
+    mod.set_chain_info(&dumm);
 
     SECTION("State", "Ensures the module will set it's own state correctly") {
 
@@ -130,6 +137,94 @@ TEST_CASE("AudioModule Test", "[mod]") {
             // Set the info:
 
             mod.set_info(info2);
+
+            // Ensures the info is correct:
+
+            REQUIRE(mod.get_info()->in_buffer == 0);
+        }
+    }
+
+    SECTION("GetChainInfo", "Ensures we can properly get and set ChainInfo") {
+
+        // Ensure default is correct:
+
+        REQUIRE(mod2.get_chain_info() == nullptr);
+
+        SECTION("SetChainInfo", "Ensures we can properly set the chain info") {
+
+            // Create some info:
+
+            ChainInfo info;
+
+            // Change some attributes:
+
+            info.buffer_size = 989;
+            info.channels = 123;
+            info.module_finish = 2;
+            info.module_num = 3;
+            info.sample_rate = 3456;
+
+            // Set the info:
+
+            mod2.set_chain_info(&info);
+
+            // Get the info that was added:
+
+            auto* ainfo = mod2.get_chain_info();
+
+            // Ensure the values are correct:
+
+            REQUIRE(ainfo->buffer_size == info.buffer_size);
+            REQUIRE(ainfo->channels == info.channels);
+            REQUIRE(ainfo->module_finish == info.module_finish);
+            REQUIRE(ainfo->module_num == info.module_num);
+            REQUIRE(ainfo->sample_rate == info.sample_rate);
+        }
+    }
+
+    SECTION("InfoSync", "Ensures we can correctly preform a sync operation") {
+
+        // Define some crazy AudioInfo:
+
+        auto* audio_info = mod.get_info();
+
+        audio_info->channels = 99;
+        audio_info->in_buffer = 123;
+        audio_info->out_buffer = 456;
+
+        // Link the modules together:
+
+        mod.bind(&mod2);
+
+        // Preform the info sync:
+
+        mod2.info_sync();
+
+        // Ensure the info is correct:
+
+        auto* saudio_info = mod2.get_info();
+
+        REQUIRE(saudio_info->channels == 99);
+        REQUIRE(saudio_info->in_buffer == 123);
+        REQUIRE(saudio_info->out_buffer == 456);
+
+        SECTION("MetaInfoSync", "Ensures we can preform a meta info sync") {
+
+            // Bind the source:
+
+            mod2.bind(&smod);
+
+            // Preform a meta sink operation:
+
+            mod2.meta_info_sync();
+
+            // Ensure the source is correct:
+
+            auto* ssaudio_info = smod.get_info();
+
+            REQUIRE(ssaudio_info->channels == 99);
+            REQUIRE(ssaudio_info->in_buffer == 123);
+            REQUIRE(ssaudio_info->out_buffer == 456);
         }
     }
 
@@ -146,15 +241,6 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
     SECTION("Meta Start", "Ensures we can meta start") {
 
-        // Set some crazy info in the start module:
-
-        auto* info = smod.get_info();
-
-        info->channels = 99;
-        info->in_buffer = 0;
-        info->out_buffer = 12345;
-        info->sample_rate = 6789;
-
         // Link the two modules:
 
         mod.bind(&smod);
@@ -167,15 +253,6 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
         REQUIRE(mod.get_state() == AudioModule::State::Started);
         REQUIRE(smod.get_state() == AudioModule::State::Started);
-
-        // Ensure module info is valid:
-
-        auto* info2 = mod.get_info();
-
-        REQUIRE(info2->channels == 99);
-        REQUIRE(info2->in_buffer == 0);
-        REQUIRE(info2->out_buffer == 12345);
-        REQUIRE(info2->sample_rate == 6789);
     }
 
     SECTION("Meta Stop", "Ensures we can meta stop") {

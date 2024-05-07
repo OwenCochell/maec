@@ -152,3 +152,14 @@ void UniformBuffer::process() {
 
     this->index = 0;
 }
+
+void ConstModule::process() {
+
+    // Create a new buffer:
+
+    this->set_buffer(this->create_buffer());
+
+    // Fill the buffer with the value:
+
+    std::fill(this->buff->sbegin(), this->buff->send(), this->value);
+}
