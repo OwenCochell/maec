@@ -12,7 +12,88 @@
 #pragma once
 
 #include "source_module.hpp"
+#include "module_param.hpp"
 
+/**
+ * @brief A base class for all oscillators
+ *
+ * This class is the base class for all oscillators.
+ * This class offers no real functionality, but is
+ * used for identifying oscillators.
+ *
+ * By default, we pull the initial frequencies from the
+ * module info object, if provided.
+ * However, the frequency (among other things)
+ * can be defined by the user.
+ * TODO: ^ FIX THIS ABOVE STATEMENT! IT"S BAD!
+ *
+ * Optionally, the frequency can be defined by the user in hertz
+ * (see TODO: WRITE THIS for help getting this value).
+ * The sample rate can also be defined by the user,
+ * as well as the phase, which determines the start index of the sine wave.
+ *
+ * The phase can also be set, which determines the offset of the frequency.
+ * So, for example, you can set the index to 10 instead of starting at 0.
+ * We determine the index at a given time by dividing by the sampling rate.
+ */
+class BaseOscillator : public SourceModule {
+
+protected:
+    /// The current phase of the oscillator
+    double phase = 0;
+
+    /// Frequency Parameter
+    double freq = 0;
+
+public:
+    BaseOscillator() = default;
+
+    /**
+     * @brief Construct a new Sine Oscillator object
+     *
+     * @param freq The frequency of the oscillator
+     * @param ph The phase of the oscillator
+     *
+     */
+    BaseOscillator(long double freq, double pha) : phase(pha), freq(freq) {}
+
+    /**
+     * @brief Construct a new Sine Oscillator object, but only define the
+     * frequency
+     *
+     * @param freq The frequency of the oscillator
+     *
+     */
+    BaseOscillator(long double freq) : freq(freq) {}
+
+    /**
+     * @brief Gets the frequency of this oscillator
+     * 
+     * @return double Frequency of oscillator in hertz
+     */
+    double get_frequency() const { return this->freq; }
+
+    /**
+     * @brief Sets the frequency of this oscillator
+     * 
+     * @param fre New frequency in hertz
+     */
+    void set_frequency(double fre) { this->freq = fre; }
+
+    /**
+     * @brief Gets the phase of this oscillator
+     *
+     * @return int Current phase
+     */
+    double get_phase() const { return this->phase; }
+
+    /**
+     * @brief Sets the phase of this oscillator
+     *
+     * @param phs Phase to set
+     */
+    void set_phase(int phs) { this->phase = phs; }
+};
 
 /**
  * @brief A base class for all oscillators
@@ -25,6 +106,7 @@
  * module info object, if provided.
  * However, the frequency (among other things)
  * can be defined by the user.
+ * TODO: ^ FIX THIS ABOVE STATEMENT! IT"S BAD!
  * 
  * Optionally, the frequency can be defined by the user in hertz
  * (see TODO: WRITE THIS for help getting this value).
@@ -35,62 +117,27 @@
  * So, for example, you can set the index to 10 instead of starting at 0.
  * We determine the index at a given time by dividing by the sampling rate.
  */
-class BaseOscillator : public SourceModule {
+class BaseModulatedOscillator : public SourceModule {
 
     protected:
 
         /// The current phase of the oscillator
-        long double phase = 0;
+        double phase = 0;
 
-        /// The frequency of the oscillator
-        long double frequency = 0;
-
-        /// The sample rate of the oscillator
-        long double sample_rate = 0;
+        /// Frequency Parameter
+        ModuleParam freq;
 
     public:
-
-        /**
-         * @brief Construct a new Sine Oscillator object
-         * 
-         * If no parameters are defined, then we 
-         * pull them from the AudioInfo object.
-         */
-        BaseOscillator() {
-
-            // Get the frequency from the module info object:
-
-            // Get the sample rate from the module info object:
-
-            this->sample_rate = this->get_info()->sample_rate;
-
-            // Set the phase:
-
-            this->phase = 0;
-        }
+        BaseModulatedOscillator() = default;
 
         /**
          * @brief Construct a new Sine Oscillator object
          * 
          * @param freq The frequency of the oscillator
-         * @param sr The sample rate of the oscillator
          * @param ph The phase of the oscillator
          *
          */
-        BaseOscillator(long double freq, long double sr, long double ph) {
-
-            // Set the frequency:
-
-            this->frequency = freq;
-
-            // Set the sampling rate:
-
-            this->sample_rate = sr;
-
-            // Set the phase:
-
-            this->phase = ph;
-        }
+        BaseModulatedOscillator(long double freq, double pha) : phase(pha), freq(freq) {}
 
         /**
          * @brief Construct a new Sine Oscillator object, but only define the frequency
@@ -98,26 +145,29 @@ class BaseOscillator : public SourceModule {
          * @param freq The frequency of the oscillator
          * 
          */
-        BaseOscillator(long double freq) {
-
-            // Get the sample rate from the module info object:
-
-            this->sample_rate = this->get_info()->sample_rate;
-
-            // Set the frequency:
-
-            this->frequency = freq;
-
-            // Set the phase:
-
-            this->phase = 0;
-
-        }
+        BaseModulatedOscillator(long double freq) : freq(freq) {}
 
         /**
-         * @brief Gets the frequency of this oscillator
+         * @brief Gets the frequency parameter
          * 
-         * @return long double Frequency in Hertz
+         * This parameter allows for modules to be attached to this oscillator,
+         * allowing for the frequency to be modulated.
+         * 
+         * @return ModuleParameter* Frequency parameter
          */
-        long double get_frequency() const { return this->frequency; }
+        ModuleParam* get_frequency() { return &(this->freq); }
+
+        /**
+         * @brief Gets the phase of this oscillator
+         * 
+         * @return int Current phase
+         */
+        double get_phase() const { return this->phase; }
+
+        /**
+         * @brief Sets the phase of this oscillator
+         * 
+         * @param phs Phase to set
+         */
+        void set_phase(int phs) { this->phase = phs; }
 };

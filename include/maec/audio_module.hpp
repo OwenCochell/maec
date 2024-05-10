@@ -37,7 +37,7 @@
 struct ChainInfo {
 
     /// Sample rate of audio data, if applicable
-    long double sample_rate = SAMPLE_RATE;
+    double sample_rate = SAMPLE_RATE;
 
     /// Size of buffer entering the sink
     int buffer_size = BUFF_SIZE;
@@ -68,7 +68,7 @@ struct ChainInfo {
 struct ModuleInfo {
 
     /// The sample rate of the audio data, if applicable
-    long double sample_rate = SAMPLE_RATE;
+    double sample_rate = SAMPLE_RATE;
 
     /// Size of the incoming audio buffer
     int in_buffer = BUFF_SIZE;

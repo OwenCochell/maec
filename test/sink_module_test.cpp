@@ -20,12 +20,43 @@ TEST_CASE("SinkModule Test", "[sink]") {
 
     SinkModule sink;
 
+    SECTION("InfoSync", "Ensures we sync info from ChainInfo") {
+
+        // Set some crazy values:
+
+        auto* info = sink.get_chain_info();
+
+        info->buffer_size = 123;
+        info->channels = 55;
+        info->sample_rate = 678;
+
+        // Preform the info sync:
+
+        sink.info_sync();
+
+        // Ensure values are correct:
+
+        auto* ainfo = sink.get_info();
+
+        REQUIRE(ainfo->in_buffer == info->buffer_size);
+        REQUIRE(ainfo->out_buffer == info->buffer_size);
+        REQUIRE(ainfo->channels == info->channels);
+        REQUIRE(ainfo->sample_rate == info->sample_rate);
+    }
+
     SECTION("ChainInfo", "Ensures the chain info is correct") {
 
         // Ensures the ChainInfo is present:
         
         REQUIRE(sink.get_chain_info() != nullptr);
     }
+}
+
+TEST_CASE("PeriodSink", "[sink]") {
+
+    // Create a period sink:
+
+    PeriodSink sink;
 
     SECTION("Period", "Ensure the period getter/setter is correct") {
 

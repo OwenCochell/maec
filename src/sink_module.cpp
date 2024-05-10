@@ -11,11 +11,18 @@
 
 #include "sink_module.hpp"
 
-void SinkModule::meta_process() {
+void SinkModule::info_sync() {
+
+    // Configure the AudioInfo:
+
+    this->get_info()->from_chain(this->chain_instance);
+}
+
+void PeriodSink::meta_process() {
 
     // Iterate a number of times based upon our period
 
-    for(int i = 0; i < this->periods; ++i) {
+    for (int i = 0; i < this->periods; ++i) {
 
         // Call the module behind us:
 
@@ -29,11 +36,4 @@ void SinkModule::meta_process() {
 
         this->process();
     }
-}
-
-void SinkModule::info_sync() {
-
-    // Configure the AudioInfo:
-
-    this->get_info()->from_chain(this->chain_instance);
 }

@@ -131,7 +131,7 @@ std::unique_ptr<AudioBuffer> AudioModule::create_buffer(int channels) {
 
     // Allocate the new buffer:
 
-    return std::make_unique<AudioBuffer>(this->info.out_buffer, channels);
+    return std::make_unique<AudioBuffer>(this->info.out_buffer, channels, this->info.sample_rate);
 }
 
 std::unique_ptr<AudioBuffer> AudioModule::create_buffer(int size, int channels) {

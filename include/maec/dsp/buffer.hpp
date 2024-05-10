@@ -1011,7 +1011,7 @@ public:
      * @param size The size of each channel, AKA the number of samples per channel
      * @param channels The number of channels in this buffer, by default 1
      */
-    explicit Buffer(int size, int channels = 1) : buff(size*channels), csize(size), nchannels(channels) {
+    explicit Buffer(int size, int channels = 1, double sra = SAMPLE_RATE) : buff(size*channels), csize(size), nchannels(channels), sample_rate(sra) {
 
         // Reserve the buffer with the given info:
 

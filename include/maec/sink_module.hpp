@@ -52,9 +52,6 @@ class SinkModule : public AudioModule {
 
     private:
 
-        /// The number of periods
-        int periods = 1;
-
         /// ChainInfo instance, to be shared with backward modules
         ChainInfo chain_instance;
 
@@ -74,52 +71,73 @@ class SinkModule : public AudioModule {
         }
 
         /**
-         * @brief Gets the periods for this sink module
-         * 
-         * The period is the number of times the backward modules
-         * will be sampled before outputting the audio data.
-         * 
-         * For example, if we have a period of 3,
-         * then we will sample the back modules 3 times
-         * and merge them into one buffer for output.
-         * To build on this example, if the module chain
-         * buffer size is 440, then the final output buffer
-         * will have the size of:
-         * 
-         * 440 * 3 = 1320
-         * 
-         * @return int Number of periods
-         */
-        int get_period() const { return periods; }
-
-        /**
-         * @brief Set the number of periods for this sink module
-         * 
-         * Again, the period is the number of times the backward
-         * modules will be sampled before outputting the audio data.
-         * 
-         * @param period Number of periods
-         */
-        void set_period(int period) { this->periods = period; }
-
-        /**
-         * @brief Meta processing for sinks
-         * 
-         * We are similar to the default AudioModule meta-process() method,
-         * except that we also take into account the period number,
-         * and will do the necessary operations to create the full buffer.
-         * 
-         * By default, we represent this buffer in an interleaved format
-         * 
-         * TODO: Create methods to allow squished format to be choosen
-         */
-        void meta_process() override;
-
-        /**
          * @brief Preforms an info sync
          * 
          * We configure the AudioInfo to match the settings in ChainInfo.
          * 
          */
         void info_sync() override;
+};
+
+/**
+ * @brief Sink with period functionality
+ *
+ * This sink behaves identically to the SinkModule,
+ * with the exception that this sink provides period functionality.
+ *
+ * A 'period' is a chunk of audio.
+ * Some backends utilize periods to split up their output buffers,
+ * so instead of generating one large chunk of audio,
+ * we generate many smaller chunks of audio that are then outputted.
+ * We offer methods to change the period,
+ * and we automatically handle it for you.
+ * 
+ * This sink could be used in contexts where periods are utilized.
+ */
+class PeriodSink : public SinkModule {
+private:
+
+    /// Number of periods per process
+    int periods = 1;
+
+public:
+
+    /**
+     * @brief Gets the periods for this sink module
+     * 
+     * The period is the number of times the backward modules
+     * will be sampled before outputting the audio data.
+     * 
+     * For example, if we have a period of 3,
+     * then we will sample the back modules 3 times
+     * and merge them into one buffer for output.
+     * To build on this example, if the module chain
+     * buffer size is 440, then the final output buffer
+     * will have the size of:
+     *
+     * 440 * 3 = 1320
+     *
+     * @return int Number of periods
+     */
+    int get_period() const { return periods; }
+
+    /**
+     * @brief Set the number of periods for this sink module
+     * 
+     * Again, the period is the number of times the backward
+     * modules will be sampled before outputting the audio data.
+     * 
+     * @param period Number of periods
+     */
+    void set_period(int period) { this->periods = period; }
+
+    /**
+     * @brief Meta processing for sinks
+     * 
+     * We are similar to the default AudioModule meta-process() method,
+     * except that we also take into account the period number,
+     * and will do the necessary operations to create the full buffer.
+     * 
+     */
+    void meta_process() override;
 };

@@ -14,9 +14,10 @@
 #include <memory>
 
 #include "audio_buffer.hpp"
+#include "audio_module.hpp"
 #include "meta_audio.hpp"
 
-BufferPointer ModuleParameter::get() {
+BufferPointer ModuleParam::get() {
 
     // First, meta process:
 
@@ -27,7 +28,7 @@ BufferPointer ModuleParameter::get() {
     return this->get_buffer();
 }
 
-void ModuleParameter::set_constant(long double val) {
+void ModuleParam::set_constant(long double val) {
 
     // Set the underlying value:
 
@@ -38,4 +39,24 @@ void ModuleParameter::set_constant(long double val) {
     this->const_mod = std::make_unique<ConstModule>(val);
 
     this->bind(this->const_mod.get());
+}
+
+void ModuleParam::conf_mod(AudioModule* mod) {
+
+    // Set module as forward:
+
+    this->set_forward(mod);
+
+    // Grab configuration info and set as chain info:
+
+    auto* chain_info = this->get_chain_info();
+    auto* conf_info = mod->get_info();
+
+    chain_info->buffer_size = conf_info->in_buffer;
+    chain_info->channels = conf_info->channels;
+    chain_info->sample_rate = conf_info->sample_rate;
+
+    // Preform chain info sync:
+
+    this->meta_info_sync();
 }

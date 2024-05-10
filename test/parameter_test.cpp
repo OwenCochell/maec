@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "audio_buffer.hpp"
+#include "audio_module.hpp"
 #include "meta_audio.hpp"
 #include "module_param.hpp"
 
@@ -23,7 +24,40 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
     // Construct the parameters:
 
-    ModuleParameter const_param(5.0);
+    ModuleParam const_param(5.0);
+
+    SECTION("ModuleConfig", "Ensures we can preform module configuration") {
+
+        // Create a module to be used:
+
+        AudioModule mod;
+
+        // Set some crazy values:
+
+        auto* info = mod.get_info();
+
+        info->channels = 123;
+        info->in_buffer = 456;
+        info->sample_rate = 789;
+
+        // Preform the configuration:
+
+        const_param.conf_mod(&mod);
+
+        // Ensure the info sync worked correctly:
+
+        auto* chain_info = const_param.get_chain_info();
+        auto* module_info = const_param.get_info();
+
+        REQUIRE(chain_info->buffer_size == info->in_buffer);
+        REQUIRE(chain_info->channels == info->channels);
+        REQUIRE(chain_info->sample_rate == info->sample_rate);
+
+        REQUIRE(module_info->channels == info->channels);
+        REQUIRE(module_info->sample_rate == info->sample_rate);
+        REQUIRE(module_info->in_buffer == info->in_buffer);
+        REQUIRE(module_info->out_buffer == info->in_buffer);
+    }
 
     SECTION("Constant Parameter Functionality", "Ensure we can use constant parameters") {
 
@@ -65,7 +99,7 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
         // Create a parameter:
 
-        ModuleParameter mod_param(&osc);
+        ModuleParam mod_param(&osc);
 
         // Ensure the value is accurate:
 

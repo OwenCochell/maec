@@ -41,6 +41,19 @@ using BufferPointer = std::unique_ptr<AudioBuffer>;
 std::unique_ptr<AudioBuffer> create_buffer(int size, int channels);
 
 /**
+ * @brief Create an AudioBuffer
+ * 
+ * Creates a buffer object and returns the result.
+ * The resulting pointer will be unique, and has ownership of the buffer.
+ * 
+ * @param size Size of buffer to create
+ * @param channels Channels in AudioBuffer
+ * @param sample_rate Sample rate of audio data
+ * @return std::unique_ptr<AudioBuffer> Newly created buffer
+ */
+std::unique_ptr<AudioBuffer> create_buffer(int size, int channels, int sample_rate);
+
+/**
  * @brief Components that squish and split audio buffers.
  *
  * Audio buffers are great for representing audio information

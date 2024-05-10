@@ -9,10 +9,13 @@
  * 
  */
 
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
-
 #include "fund_oscillator.hpp"
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <vector>
+
 #include "base_oscillator.hpp"
 
 // Vector of an ideal sine wave, generated in Audacity
