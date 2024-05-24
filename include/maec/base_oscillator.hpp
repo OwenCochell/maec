@@ -117,7 +117,7 @@ public:
  * So, for example, you can set the index to 10 instead of starting at 0.
  * We determine the index at a given time by dividing by the sampling rate.
  */
-class BaseModulatedOscillator : public SourceModule {
+class BaseModulatedOscillator : public ParamModule<1> {
 
     protected:
 
@@ -128,7 +128,7 @@ class BaseModulatedOscillator : public SourceModule {
         ModuleParam freq;
 
     public:
-        BaseModulatedOscillator() = default;
+        BaseModulatedOscillator() : ParamModule<1>(&freq) {}
 
         /**
          * @brief Construct a new Sine Oscillator object
@@ -137,7 +137,8 @@ class BaseModulatedOscillator : public SourceModule {
          * @param ph The phase of the oscillator
          *
          */
-        BaseModulatedOscillator(long double freq, double pha) : phase(pha), freq(freq) {}
+        BaseModulatedOscillator(long double freq, double pha)
+            : phase(pha), freq(freq) {}
 
         /**
          * @brief Construct a new Sine Oscillator object, but only define the frequency
@@ -145,7 +146,8 @@ class BaseModulatedOscillator : public SourceModule {
          * @param freq The frequency of the oscillator
          * 
          */
-        BaseModulatedOscillator(long double freq) : freq(freq) {}
+        BaseModulatedOscillator(long double freq)
+            : freq(freq) {}
 
         /**
          * @brief Gets the frequency parameter

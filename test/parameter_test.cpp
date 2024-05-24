@@ -134,3 +134,65 @@ TEST_CASE("Module Parameter Tests", "[param]") {
         }
     }
 }
+
+TEST_CASE("ParamModule Test", "[param][mod]") {
+
+    // Create the parameters:
+
+    ModuleParam par1(0.);
+    ModuleParam par2(1.);
+    ModuleParam par3(2.);
+
+    // Create the module:
+
+    ParamModule<3> mod(&par1, &par2, &par3);
+
+    SECTION("GetArray", "Ensures array contents are valid") {
+
+        // Get the array:
+
+        auto* arr = mod.get_array();
+
+        // Ensure array contents are correct:
+
+        REQUIRE(arr->at(0) == &par1);
+        REQUIRE(arr->at(1) == &par2);
+        REQUIRE(arr->at(2) == &par3);
+    }
+
+    SECTION("Start", "Ensures parameters are started correctly") {
+
+        // Start the module:
+
+        mod.start();
+
+        // Iterate over params:
+
+        auto* arr = mod.get_array();
+
+        for (ModuleParam* param : *arr) {
+
+            // Ensure this param is started:
+
+            REQUIRE(param->get_state() == ModuleParam::State::Started);
+        }
+    }
+
+    SECTION("Stop", "Ensures parameters are stopped correctly") {
+
+        // Stop the module:
+
+        mod.stop();
+
+        // Iterate over params:
+
+        auto* arr = mod.get_array();
+
+        for (ModuleParam* param : *arr) {
+
+            // Ensure this param is stopped:
+
+            REQUIRE(param->get_state() == ModuleParam::State::Stopped);
+        }
+    }
+}

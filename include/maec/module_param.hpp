@@ -153,16 +153,32 @@ class ModuleParam : public SinkModule {
  * The best way to populate this class is to provide pointers to
  * you ModuleParams via construction.
  * 
+ * TODO: Maybe meta-start would be more appropriate?
  */
 template <int num>
 class ParamModule : public AudioModule {
 private:
-    std::array<ModuleParam*, num> params = {};
+    std::array<ModuleParam*, num> params;
 
 public:
     ParamModule() = default;
 
-    ParamModule(std::initializer_list<ModuleParam*> lst) : params(lst) {}
+    /**
+     * @brief Accepts an initializer list of param pointers
+     * 
+     * Classes can define a list of parameters to be added to the array
+     * that can be managed by this class.
+     * 
+     */
+    template<typename... Args>
+    ParamModule(Args&&... args) : params{std::forward<Args>(args)...} {}
+
+    /**
+     * @brief Gets the underlying array
+     * 
+     * @return std::array<ModuleParam*, num>* Pointer to underlying array
+     */
+    std::array<ModuleParam*, num>* get_array() { return &params; }
 
     /**
      * @brief Starts this module and all attached parameters
@@ -209,6 +225,7 @@ public:
      * as we first preform the child sync,
      * then preform meta syncs for all attached parameters.
      * 
+     * TODO: Yeah this breaks the standard so far, see todo at top
      */
     void meta_info_sync() override {
 
@@ -225,6 +242,6 @@ public:
 
         // Finally, continue info sync for backwards modules:
 
-        this->backward->meta_info_sync();
+        this->get_backward()->meta_info_sync();
     }
 };
