@@ -280,7 +280,7 @@ public:
  * 
  * This mstream can write to a byte array.
  * 
- * We iterate add values to an array as we are asked to write to it.
+ * We add values to an array as we are asked to write to it.
  * The size of this array can be provided,
  * and we will reserve the initial size.
  * If we are asked to add values beyond the capacity of the array,

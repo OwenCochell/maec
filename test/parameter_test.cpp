@@ -19,6 +19,8 @@
 #include "audio_module.hpp"
 #include "meta_audio.hpp"
 #include "module_param.hpp"
+#include "sink_module.hpp"
+#include "source_module.hpp"
 
 TEST_CASE("Module Parameter Tests", "[param]") {
 
@@ -193,6 +195,78 @@ TEST_CASE("ParamModule Test", "[param][mod]") {
             // Ensure this param is stopped:
 
             REQUIRE(param->get_state() == ModuleParam::State::Stopped);
+        }
+    }
+
+    SECTION("Info Sync", "Ensures parameters are synced correctly") {
+
+        // Define values to test:
+
+        const int bsize = 1234;
+        const int channels = 22;
+        const int sampler = 753;
+
+        // Define a dummy sink:
+
+        SinkModule sink;
+
+        // Define a dummy source:
+
+        SourceModule source;
+
+        // Bind the sink/source:
+
+        sink.bind(&mod)->bind(&source);
+
+        // Set some crazy values:
+
+        auto* cinfo = sink.get_chain_info();
+
+        cinfo->buffer_size = bsize;
+        cinfo->channels = channels;
+        cinfo->sample_rate = sampler;
+
+        // Preform chain info sync:
+
+        sink.meta_info_sync();
+
+        // Ensure sync has occurred:
+
+        auto* arr = mod.get_array();
+
+        for (ModuleParam* param : *arr) {
+
+            // Get the info:
+
+            auto* info = param->get_info();
+            auto* mcinfo = param->get_chain_info();
+
+            // Ensure values are accurate:
+
+            REQUIRE(mcinfo->buffer_size == bsize);
+            REQUIRE(mcinfo->channels == channels);
+            REQUIRE(mcinfo->sample_rate == sampler);
+
+            REQUIRE(info->in_buffer == bsize);
+            REQUIRE(info->out_buffer == bsize);
+            REQUIRE(info->channels == channels);
+            REQUIRE(info->sample_rate == sampler);
+
+            // Just for fun, ensure previous module is synced correctly:
+
+            auto* back = param->get_backward();
+
+            info = back->get_info();
+            mcinfo = back->get_chain_info();
+
+            REQUIRE(mcinfo->buffer_size == bsize);
+            REQUIRE(mcinfo->channels == channels);
+            REQUIRE(mcinfo->sample_rate == sampler);
+
+            REQUIRE(info->in_buffer == bsize);
+            REQUIRE(info->out_buffer == bsize);
+            REQUIRE(info->channels == channels);
+            REQUIRE(info->sample_rate == sampler);
         }
     }
 }

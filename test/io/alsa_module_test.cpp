@@ -26,7 +26,7 @@ TEST_CASE("ALSABase Test", "[alsa]") {
 
         // Get the number of devices:
 
-        int total = alsa.get_device_count();
+        int const total = alsa.get_device_count();
 
         // Now, iterate over the devices:
 
@@ -74,7 +74,7 @@ TEST_CASE("ALSABase Test", "[alsa]") {
 
         // Start the ALSABase:
 
-        alsa.alsa_start(44100, 440);
+        alsa.alsa_start();
     }
 }
 

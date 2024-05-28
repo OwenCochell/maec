@@ -20,44 +20,51 @@
 #include <alsa/asoundlib.h>
 
 #include <string>
+#include <utility>
 
 #include "sink_module.hpp"
 
 /**
  * @brief A struct containing info on an ALSA device
- *
+ * 
  * This struct contains various info on specific ALSA devices.
- *
+ * 
  * We contain:
- *
+ * 
  * - Device index
  * - Device name
  * - Device description
  * - Device IO type, be it Input or Output
  * - Maximum number of channels this device supports
  * - Minimum channels this device supports
- * - Current number of channels on this device
+ * - Current number of channels on this device *
  * - Maximum period size
  * - Minimum period size
- * - Current period size
+ * - Current period size *
  * - Maximum number of periods
  * - Minimum number of periods
- * - Number of periods
+ * - Number of periods *
+ * - Sample Rate *
+ * - Maximum sample rate
+ * - Minimum sample rate
+ * - Buffer Size
+ * - Maximum buffer size
+ * - Minimum buffer size
  * - Value determining if we failed to load
- *
+ * 
+ * The values you are most likely interested in
+ * are represented by an asterisk (*)
+ * 
  * We are used by the ALSA modules to represent these devices.
  * You can use these structs to work with and understand these devices,
  * as well as tell the ALSA module which device to utilize.
- *
+ * 
  * When returned by the ALSA class,
  * this struct will contain all default values for this specific device.
  * If you wish to change settings, simply change the values specified here
  * and pass it along to the ALSA module.
  * It will use the values specified here.
- *
- * If any of these values are -1, then the ALSA module
- * will use the default recommended value from ALSA.
- *
+ * 
  * Sometimes, when attempting to load extra device information,
  * we fail to load for whatever reason.
  * If this occurs, then the ALSABase will not continue to load device info,
@@ -65,7 +72,12 @@
  * You can determine if a device failed to load extra info
  * if load_fail is 'true'.
  * If this value is 'true', then it is not recommended to use this device.
- *
+ * 
+ * To leave a value unconstrained, allowing ALSA to recommend a value,
+ * simply make it 0.
+ * This device does assume some good defaults,
+ * such as 1 channel and a sample rate of 44100.
+ * Again, these can be changed or made unconstrained.
  */
 struct DeviceInfo {
 
@@ -93,13 +105,13 @@ struct DeviceInfo {
     /// Number of periods for this device
     unsigned int period = 0;
 
-    /// Maximum period size for this device
+    /// Maximum period size for this device in bytes
     unsigned long period_size_max = 0;
 
-    /// Minimum period size for this device
+    /// Minimum period size for this device in bytes
     unsigned long period_size_min = 0;
 
-    /// Period size for this device
+    /// Period size for this device in bytes
     unsigned long period_size = 0;
 
     /// Number of channels for this device
@@ -120,10 +132,41 @@ struct DeviceInfo {
     /// Period time
     unsigned int period_time = -1;
 
+    /// Total buffer size
     unsigned long buffer_size = 0;
+
+    /// Max buffer size
+    unsigned long buffer_size_min = 0;
+
+    /// Min buffer size
+    unsigned long buffer_size_max = 0;
+
+    /// Sample rate of this device
+    unsigned int sample_rate = 44100;
+
+    /// Maximum device sample rate
+    unsigned int sample_rate_max = 0;
+
+    /// Minimum device sample rate
+    unsigned int sample_rate_min = 0;
 
     /// Boolean determining if we failed to load
     bool load_fail = false;
+
+    /// Format IDs
+    enum class Format {
+
+        S8,   // Signed 8bit int (char)
+        U8,   // Unsigned 8bit int (char)
+        S16,  // Signed 16bit int (short)
+        U16,  // Unsigned 16bit int (short)
+        S32,  // Signed 32bit int
+        U32,  // Unsigned 32bit int
+        F,    // 32bit Float
+    };
+
+    /// Current format to utilize
+    Format format = Format::S16;
 
     DeviceInfo() = default;
 
@@ -154,6 +197,24 @@ struct DeviceInfo {
      * @param hint The current device to extract hints from
      */
     void create_device(void** hint, int id);
+
+    /**
+     * @brief Updates this device info
+     * 
+     * We pull default values from ALSA,
+     * while also setting values that are provided.
+     * For example, if a user set the period size
+     * and the number of channels,
+     * then this method will set those values and ask ALSA
+     * to provide recommended values.
+     * 
+     * It is HIGHLY recommended to call this function
+     * every time you change parameters!
+     * Not doing so could lead to a bad or even invalid
+     * ALSA configuration.
+     * 
+     */
+    void update();
 };
 
 /**
@@ -162,11 +223,11 @@ struct DeviceInfo {
  * We define a class that works with ALSA.
  * We define the framework for querying and selecting ALSA devices.
  * All ALSA modules must inherit this class!
- *
+ * 
  * By default, we setup the configured device (the default device if not
  * specified) at start time. At stop time, we destroy the device and any other
  * components that are not needed. During processing, we do nothing.
- *
+ * 
  * Please note, this class does NOT implement MAEC modules,
  * meaning that this class does not support binding, processing,
  * start/stop, ect.
@@ -184,9 +245,6 @@ class ALSABase {
    protected:
     /// The ALSA PCM interface
     snd_pcm_t* pcm = nullptr;
-
-    /// The ALSA PCM hardware parameters
-    snd_pcm_hw_params_t* params = nullptr;
 
     /// Return code of the last write
     int return_code = 0;
@@ -213,7 +271,7 @@ class ALSABase {
      *
      * @param device Device to use for audio operations
      */
-    void set_device(DeviceInfo device) { this->device = device; }
+    void set_device(DeviceInfo device) { this->device = std::move(device); }
 
     /**
      * @brief Set the ALSA device using it's name
@@ -227,7 +285,7 @@ class ALSABase {
      *
      * @param device Name of the ALSA device to use
      */
-    void set_device(std::string device) {
+    void set_device(const std::string& device) {
 
         this->set_device(this->get_device_by_name(device));
     }
@@ -261,50 +319,50 @@ class ALSABase {
 
     /**
      * @brief Gets the number of devices we have to work with
-     *
+     * 
      * We return the number of devices available for use
-     *
+     * 
      * @return int Number of devices available for use
      */
     int get_device_count();
 
     /**
      * @brief Gets a device by it's id
-     *
+     * 
      * We grab the device at the given id
      * and return it's info.
      * If this index does not exist, then we do something!!!
      * TODO: IMPLEMENT THIS!
-     *
-     * @param id ID of the device
+     * 
+     * @param index ID of the device
      * @return DeviceInfo Information about retrieved device
      */
-    DeviceInfo get_device_by_id(int id);
+    DeviceInfo get_device_by_id(int index);
 
     /**
      * @brief Gets a device by it's name
-     *
+     * 
      * We search all devices until we find one
      * that has the given name.
      * If we are unable to find a device with the given name,
      * then we DO STUFF.
      * TODO: Yeah, you know
-     *
+     * 
      * @param name name of the device to get
      * @return DeviceInfo Information about retrieved device
      */
-    DeviceInfo get_device_by_name(std::string name);
+    DeviceInfo get_device_by_name(const std::string& name);
 
     /**
      * @brief Starts this module.
-     *
+     * 
      * We configure the necessary ALSA parameters,
      * and ensure everything is initialized.
-     *
+     * 
      * @param sample_rate The sample of the device to open
      * @param buffer_size The buffer size of the device to open
      */
-    void alsa_start(int sample_rate, int buffer_size);
+    void alsa_start();
 
     /**
      * @brief Stops the underlying ALSA components
@@ -322,9 +380,17 @@ class ALSABase {
  * We consume audio data from the back modules
  * and send them out to the selected ALSA device.
  * We inherit most functionality from the ALSAModule class.
- *
+ * 
+ * Handling chain info for this module is interesting.
+ * By default, this module will get chain info from ALSA.
+ * This means that you should utilize ALSADevice
+ * to configure any values you want, NOT the ChainInfo 
+ * or ModuleInfo as you may do normally.
+ * Also, if you allow ALSA to determine default values,
+ * then the chain will reflect these values. 
+ * 
  */
-class ALSASink : public ALSABase, public SinkModule {
+class ALSASink : public ALSABase, public PeriodSink {
 
    public:
     /**
@@ -347,15 +413,28 @@ class ALSASink : public ALSABase, public SinkModule {
     /**
      * @brief Starts this module
      *
-     * We set the period numbers to
-     * the value set by the SinkModule we inherit.
-     *
-     * We also upcall the original start method in ALSAModule
+     * We simply pass the configuration
+     * info ALSABase for proper ALSA configuration
      *
      */
     void start() override;
 
+    /**
+     * @brief Stops this module.
+     * 
+     * We simply upcall the alsa_stop() method.
+     * 
+     */
     void stop() override { this->alsa_stop(); }
+
+    /**
+     * @brief Preforms an info sync for this module.
+     * 
+     * We set the necessary period size,
+     * and sets the desired buffer size.
+     * 
+     */
+    void info_sync() override;
 };
 
 #endif

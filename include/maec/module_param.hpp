@@ -14,7 +14,6 @@
 #pragma once
 
 #include <functional>
-#include <initializer_list>
 #include <utility>
 #include <array>
 
@@ -158,6 +157,8 @@ class ModuleParam : public SinkModule {
 template <int num>
 class ParamModule : public AudioModule {
 private:
+
+    /// Array containing the module parameters
     std::array<ModuleParam*, num> params;
 
 public:

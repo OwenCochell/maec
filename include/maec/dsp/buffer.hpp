@@ -553,24 +553,24 @@ private:
  * without any regard to channels.
  * This class offers some methods for accessing the raw signal data
  * without having to worry about the complexity of channels.
- *
+ * 
  * Some of these iterators are:
- *
+ * 
  * sequential_iterator - Iterates over each channel sequentially (see below)
  * interlaced_iterator - Iterates over each channel in an interleaved manner (again, see below) 
  * group_iterator - Iterates over each channel and provdes a
  * group of samples from each channel (please, see below)
- *
+ * 
  * Each iterator can be useful for different reasons and purposes.
  * Please understand the differences between each iterator and how
  * each operation could be useful!
- *
+ * 
  * Finally, this class contains some info about the signal data itself,
  * specifically the channel count and sample rate.
  * If these are not utilized, these can be ignored or not set.
- *
+ *  
  * TODO:
- *
+ * 
  * Function names for iterators are kinda weird?
  * Like why get_position instead of get_sample()?
  *
@@ -1011,7 +1011,7 @@ public:
      * @param size The size of each channel, AKA the number of samples per channel
      * @param channels The number of channels in this buffer, by default 1
      */
-    explicit Buffer(int size, int channels = 1, double sra = SAMPLE_RATE) : buff(size*channels), csize(size), nchannels(channels), sample_rate(sra) {
+    explicit Buffer(int size, int channels = 1, double sra = SAMPLE_RATE) : csize(size), nchannels(channels), sample_rate(sra), buff(size*channels) {
 
         // Reserve the buffer with the given info:
 
@@ -1469,17 +1469,17 @@ public:
     }
 
 private:
-    /// Sample rate in Hertz
-    double sample_rate = SAMPLE_RATE;
-
-    /// The underlying vector of audio data
-    std::vector<T> buff;
-
     /// Size of each channel
     int csize = 0;
 
     /// Number of channels in this buffer
     int nchannels = 0;
+
+    /// Sample rate in Hertz
+    double sample_rate = SAMPLE_RATE;
+
+    /// The underlying vector of audio data
+    std::vector<T> buff;
 
     /// Various friend defintions
     friend class Buffer::SeqIterator<T>;

@@ -9,9 +9,10 @@
  * 
  */
 
-#include <catch2/catch_test_macros.hpp>
-
 #include "chrono.hpp"
+
+#include <catch2/catch_test_macros.hpp>
+#include <cstdint>
 
 TEST_CASE("ChainTimer Test", "[chrono]") {
 
@@ -112,8 +113,8 @@ TEST_CASE("ChainTimer Test", "[chrono]") {
 
     // Set some values for testing:
 
-    int npf = 5;
-    int samples = 10;
+    int const npf = 5;
+    int const samples = 10;
 
     // Set a new NPF:
 

@@ -31,12 +31,12 @@ void SineOscillator::process() {
 
         // Calculate the sine wave:
 
-        *iter = sin(static_cast<double>(TWO_PI * this->freq * this->phase /
+        *iter = sin(static_cast<double>(TWO_PI * this->get_frequency() * this->get_phase() /
                                         this->buff->get_samplerate()));
 
         // Increment the phase:
 
-        this->phase++;
+        this->inc_phase(1);
     }
 }
 
@@ -57,7 +57,7 @@ void SquareOscillator::process() {
 
         // Calculate the square wave:
 
-        *iter = (modf(static_cast<double>(this->freq * this->phase /
+        *iter = (modf(static_cast<double>(this->get_frequency() * this->get_phase() /
                                           this->buff->get_samplerate()),
                       &placeholder) < 0.5)
                     ? 1.0
@@ -65,7 +65,7 @@ void SquareOscillator::process() {
 
         // Increment the phase:
 
-        this->phase++;
+        this->inc_phase(1);
     }
 }
 
@@ -87,7 +87,7 @@ void SawtoothOscillator::process() {
 
         // Calculate the sawtooth wave:
 
-        *iter = (2.0 * modf(static_cast<double>(this->freq * this->phase /
+        *iter = (2.0 * modf(static_cast<double>(this->get_frequency() * this->get_phase() /
                                                     this->buff->get_samplerate() +
                                                 0.5),
                             &placeholder)) -
@@ -95,7 +95,7 @@ void SawtoothOscillator::process() {
 
         // Increment the phase:
 
-        this->phase++;
+        this->inc_phase(1);
     }
 }
 
@@ -118,7 +118,7 @@ void TriangleOscillator::process() {
         // Calculate the triangle wave:
 
         long double temp =
-            modf(static_cast<double>(this->freq * this->phase /
+            modf(static_cast<double>(this->get_frequency() * this->get_phase() /
                                      this->buff->get_samplerate()),
                  &placeholder);
 
@@ -138,7 +138,7 @@ void TriangleOscillator::process() {
 
         // Increment the phase:
 
-        this->phase++;
+        this->inc_phase(1);
     }
 }
 
@@ -154,7 +154,7 @@ void ModSineOscillator::process() {
 
     // Get the frequency data:
 
-    auto fdata = this->freq.get();
+    auto fdata = this->get_frequency()->get();
 
     // Fill the buffer with the sine wave:
 
@@ -163,7 +163,7 @@ void ModSineOscillator::process() {
 
         // Determine the current value:
 
-        *iter = sin(this->phase * TWO_PI);
+        *iter = sin(this->get_phase() * TWO_PI);
 
         // Get current frequency value:
 
@@ -171,7 +171,7 @@ void ModSineOscillator::process() {
 
         // Determine the new phase:
 
-        this->phase += freqv * (1 / sampler);
+        this->inc_phase(freqv * (1 / sampler));
     }
 }
 
@@ -187,7 +187,7 @@ void ModSquareOscillator::process() {
 
     // Get the frequency data:
 
-    auto fdata = this->freq.get();
+    auto fdata = this->get_frequency()->get();
 
     // Create a placeholder:
 
@@ -200,7 +200,7 @@ void ModSquareOscillator::process() {
 
         // Calculate the square wave:
 
-        *iter = (modf(static_cast<double>(this->phase),
+        *iter = (modf(static_cast<double>(this->get_phase()),
                       &placeholder) < 0.5)
                     ? 1.0
                     : -1.0;
@@ -211,7 +211,7 @@ void ModSquareOscillator::process() {
 
         // Determine the new phase:
 
-        this->phase += freqv * (1 / sampler);
+        this->inc_phase(freqv * (1 / sampler));
     }
 }
 
@@ -227,7 +227,7 @@ void ModSawtoothOscillator::process() {
 
     // Get frequency data:
 
-    auto fdata = this->freq.get();
+    auto fdata = this->get_frequency()->get();
 
     // Create a placeholder:
 
@@ -241,7 +241,7 @@ void ModSawtoothOscillator::process() {
         // Calculate the sawtooth wave:
 
         *iter = (2.0 *
-                 modf(static_cast<double>(this->phase + 0.5),
+                 modf(static_cast<double>(this->get_phase() + 0.5),
                       &placeholder)) -1.0;
 
         // Get the frequency value:
@@ -250,7 +250,7 @@ void ModSawtoothOscillator::process() {
 
         // Determine the new phase:
 
-        this->phase += freqv * (1 / sampler);
+        this->inc_phase(freqv * (1 / sampler));
     }
 }
 
@@ -266,7 +266,7 @@ void ModTriangleOscillator::process() {
 
     // Get frequency data:
 
-    auto fdata = this->freq.get();
+    auto fdata = this->get_frequency()->get();
 
     // Create a placeholder:
 
@@ -280,7 +280,7 @@ void ModTriangleOscillator::process() {
         // Calculate the triangle wave:
 
         long double temp =
-            modf(static_cast<double>(this->phase),
+            modf(static_cast<double>(this->get_phase()),
                  &placeholder);
 
         if (temp < 0.25) {
@@ -303,6 +303,6 @@ void ModTriangleOscillator::process() {
 
         // Determine the new phase:
 
-        this->phase += freqv * (1 / sampler);
+        this->inc_phase(freqv * (1 / sampler));
     }
 }

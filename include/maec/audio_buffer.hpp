@@ -113,7 +113,7 @@ void squish_inter(AudioBuffer* buff, const It& iter, Func oper) { std::transform
  */
 template <typename It, typename Func>
 void squish_seq(AudioBuffer* buff, const It& iter, Func oper) {
-    std::transform(buff->ibegin(), buff->send(), iter, oper);
+    std::transform(buff->sbegin(), buff->send(), iter, oper);
 }
 
 /**
@@ -196,10 +196,35 @@ long double mf_null(long double val);
 int16_t mf_int16(long double val);
 
 /**
+ * @brief Converts mf to a unsigned 16bit integer
+ * 
+ * We multiply the mf by 32767,
+ * flip the most significant bit,
+ * and cast it to uint16_t
+ * 
+ * @param val Value to convert 
+ * @return uint16_t Converted uint16_t
+ */
+uint16_t mf_uint16(long double val);
+
+/**
+ * @brief Converts mf to a char
+ * 
+ * We multiply the mf by 127
+ * and cast it to char.
+ * 
+ * @param val Value to convert
+ * @return char Converted uint16_t
+ */
+char mf_char(long double val);
+
+/**
  * @brief Converts mf to an unsigned char
  * 
- * We multiple the mf by 255,
- * and cast it to uchar.
+ * We add one to the given value
+ * Divide the result by 2,
+ * multiply by 255,
+ * and then round.
  * 
  * @param val Value to convert
  * @return uchar Converted uchar
@@ -220,10 +245,32 @@ unsigned char mf_uchar(long double val);
 long double int16_mf(int16_t val);
 
 /**
+ * @brief Converts an unsigned 16bit integer to mf 
+ *
+ * We first normalize the value by 65535,
+ * double it, and then subtract by 1.
+ * 
+ * @param val Value to convert
+ * @return long double 
+ */
+long double uint16_mf(uint16_t val);
+
+/**
+ * @brief Converts a char to mf
+ * 
+ * We simply cast the char to mf
+ * and then divide by 127;
+ * 
+ * @param val Value to convert
+ * @return long double Converted mf
+ */
+long double char_mf(char val);
+
+/**
  * @brief Converts a unsigned char to mf
  * 
- * We divide the char by 255
- * and then cast to mf
+ * We first normalize the value by 255,
+ * double it, and then subtract 1. 
  * 
  * @param val Value to convert
  * @return long double Converted mf
@@ -390,15 +437,15 @@ void int32_char(int32_t val, T byts) {
 }
 
 /**
- * @brief Converts a 32bit integer into byte data
- *
+ * @brief Converts an unsigned 32bit integer into byte data
+ * 
  * This function utilizes endian safe methods for conversions,
  * and in fact is identical to uint32_char, except this is the unsigned variant.
- *
+ * 
  * We will place the result into the provided iterable.
  * We require 4 bytes to make this conversion, so your pointer should
  * have space for 4 values!
- *
+ * 
  * @tparam T Iterator type of output byte data
  * @param val Value to convert
  * @param byts Iterator to output byte data
@@ -408,5 +455,5 @@ void uint32_char(uint32_t val, T byts) {
 
     // Just cast and call:
 
-    int32_char(static_cast<uint32_t>(val), byts);
+    int32_char(static_cast<int32_t>(val), byts);
 }

@@ -13,9 +13,15 @@
 
 #include "io/alsa_module.hpp"
 
-#include <iostream>
+#include <alsa/control.h>
+#include <alsa/pcm.h>
 
-#include "chrono.hpp"
+#include <cstdint>
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include "audio_buffer.hpp"
 
 void DeviceInfo::create_device(void** hint, int id) {
 
@@ -82,15 +88,67 @@ void DeviceInfo::create_device(void** hint, int id) {
         return;
     }
 
+    this->update();
+}
+
+void DeviceInfo::update() {
+
     // Allocate the hardware parameters:
 
     snd_pcm_hw_params_t* params = nullptr;
 
     snd_pcm_hw_params_alloca(&params);
 
+    // Now, get our device:
+
+    snd_pcm_t* pcm = nullptr;
+
+    int err =
+        snd_pcm_open(&pcm, this->name.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
+
+    if (err != 0) {
+
+        // We have encountered an error, DO NOT CONTINUE!
+
+        this->load_fail = true;
+
+        return;
+    }
+
     // Fill the hardware parameters for our device:
 
     snd_pcm_hw_params_any(pcm, params);
+
+    // Set some default values:
+
+    int a = snd_pcm_hw_params_set_access(pcm, params,
+                                         SND_PCM_ACCESS_RW_INTERLEAVED);
+
+    // Determine if we should set values:
+
+    if (this->channels != 0) {
+
+        snd_pcm_hw_params_set_channels(pcm, params, this->channels);
+    }
+
+    if (this->sample_rate != 0) {
+
+        snd_pcm_hw_params_set_rate(pcm, params, this->sample_rate, 0);
+    }
+
+    if (this->period != 0) {
+
+        snd_pcm_hw_params_set_periods(pcm, params, this->period, 0);
+    }
+
+    if (this->period_size != 0) {
+
+        snd_pcm_hw_params_set_period_size(pcm, params, this->period_size, 0);
+    }
+
+    // Commit the parameters:
+
+    int commit = snd_pcm_hw_params(pcm, params);
 
     // Now, do some querying:
 
@@ -107,6 +165,14 @@ void DeviceInfo::create_device(void** hint, int id) {
     snd_pcm_hw_params_get_periods(params, &this->period, 0);
     snd_pcm_hw_params_get_period_size(params, &this->period_size, 0);
     snd_pcm_hw_params_get_period_time(params, &this->period_time, 0);
+
+    snd_pcm_hw_params_get_rate(params, &this->sample_rate, 0);
+    snd_pcm_hw_params_get_rate_max(params, &this->sample_rate_max, 0);
+    snd_pcm_hw_params_get_rate_min(params, &this->sample_rate_min, 0);
+
+    snd_pcm_hw_params_get_buffer_size(params, &this->buffer_size);
+    snd_pcm_hw_params_get_buffer_size_max(params, &this->buffer_size_max);
+    snd_pcm_hw_params_get_buffer_size_min(params, &this->buffer_size_min);
 
     // Do some freeing:
 
@@ -182,7 +248,7 @@ DeviceInfo ALSABase::get_device_by_id(int index) {
     return info;
 }
 
-DeviceInfo ALSABase::get_device_by_name(std::string name) {
+DeviceInfo ALSABase::get_device_by_name(const std::string& name) {
 
     // Define some values:
 
@@ -204,7 +270,7 @@ DeviceInfo ALSABase::get_device_by_name(std::string name) {
 
         // Get the name from the hint:
 
-        std::string hname (snd_device_name_get_hint(*n, "NAME"));
+        std::string const hname(snd_device_name_get_hint(*n, "NAME"));
 
         // Determine if the name is our target:
 
@@ -233,7 +299,7 @@ DeviceInfo ALSABase::get_device_by_name(std::string name) {
     return info;
 }
 
-void ALSABase::alsa_start(int sample_rate, int buffer_size) {
+void ALSABase::alsa_start() {
 
     // TODO: Implement error checking and correction!
 
@@ -241,48 +307,33 @@ void ALSABase::alsa_start(int sample_rate, int buffer_size) {
 
     int err = snd_pcm_open(&(this->pcm), this->device.name.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
 
-    // Set the options:
-    // TODO: Figure out how we sample the AudioInfo struct!
+    // Allocate the hardware parameters:
 
-    snd_pcm_hw_params_alloca(&(this->params));
+    snd_pcm_hw_params_t* params = nullptr;
+
+    snd_pcm_hw_params_alloca(&params);
 
     // Now configure some options:
     // TODO: Figure out all of this:
 
     // Fill the parameters with default values:
 
-    int tah = snd_pcm_hw_params_any(pcm, this->params);
+    int tah = snd_pcm_hw_params_any(pcm, params);
 
     // TODO: Figure out if wrong access will mess things up...
 
     // Enable resampling:
 
-    int h = snd_pcm_hw_params_set_rate_resample(pcm, this->params, 1);
+    int h = snd_pcm_hw_params_set_rate_resample(pcm, params, 1);
 
     // Set some non-negotiable values:
 
-    int a = snd_pcm_hw_params_set_access(pcm, this->params, SND_PCM_ACCESS_RW_INTERLEAVED);
-	int b = snd_pcm_hw_params_set_format(pcm, this->params, SND_PCM_FORMAT_S16); // THIS FAILS, ONLY WITH FLOAT_64
-	int c = snd_pcm_hw_params_set_channels(pcm, this->params,  this->device.channels);
-	int d = snd_pcm_hw_params_set_rate(pcm, this->params, sample_rate, 0);
-
-    // Determine if we should attempt to set the number of periods:
-
-    if (this->device.period > 0) {
-
-        // We have a request, get it close:
-
-        int pcode = snd_pcm_hw_params_set_periods_near(pcm, params, &(this->device.period), 0);
-    }
-
-    // Determine if we should attempt to set the period size:
-
-    if (this->device.period_size > 0) {
-
-        // We have a request, get it close:
-
-        int pscode = snd_pcm_hw_params_set_period_size_near(pcm, params, &(this->device.period_size), 0);
-    }
+    int a = snd_pcm_hw_params_set_access(pcm, params, SND_PCM_ACCESS_RW_INTERLEAVED);
+	int b = snd_pcm_hw_params_set_format(pcm, params, SND_PCM_FORMAT_S16); // THIS FAILS, ONLY WITH FLOAT_64
+	int c = snd_pcm_hw_params_set_channels(pcm, params,  this->device.channels);
+	int d = snd_pcm_hw_params_set_rate(pcm, params, this->device.sample_rate, 0);
+    int eee = snd_pcm_hw_params_set_period_size(pcm, params, this->device.period_size, 0);
+    snd_pcm_hw_params_set_periods(pcm, params, this->device.period, 0);
 
     // Commit the parameters:
 
@@ -326,26 +377,13 @@ void ALSABase::alsa_stop() {
 
 void ALSASink::process() {
 
-    int64_t start = get_time();
-
     // First, define our temporary vector:
 
     std::vector<int16_t> temp(buff->size() * buff->channels());
 
-    auto tthing = buff->size();
-
     // Next, squish it:
 
     squish_inter(this->buff.get(), temp.begin(), &mf_int16);
-
-    auto thing = temp.size();
-
-    int64_t stop = get_time();
-
-    std::cout << "Squish Latency:" << std::endl;
-    std::cout << stop - start << std::endl;
-
-    // int state = snd_pcm_state(this->pcm);
 
     // Determine if we need to prepare the device again:
 
@@ -362,8 +400,6 @@ void ALSASink::process() {
     this->return_code =
         snd_pcm_writei(this->pcm, reinterpret_cast<int16_t*>(temp.data()),
                        static_cast<snd_pcm_uframes_t>(temp.size()));
-
-    std::cout << this->return_code << std::endl;
 
     if (this->return_code == -EPIPE) {
         // Underrun occurred
@@ -385,15 +421,21 @@ void ALSASink::start() {
 
     // Next, upcall:
 
-    ALSABase::alsa_start(this->get_info()->sample_rate, this->get_info()->out_buffer);
+    ALSABase::alsa_start();
+}
 
-    // Next, set the new period number:
+void ALSASink::info_sync() {
 
-    //this->set_period(this->get_device().period);
+    // Set the period number:
 
-    // Set the new buffer size:
+    this->set_period(this->get_device().period);
 
-    this->get_info()->out_buffer = this->get_device().period_size / 4;
+    // Set the desired buffer size:
+
+    auto bsize = this->get_device().period_size / 2;
+
+    this->get_info()->out_buffer = bsize;
+    this->get_info()->in_buffer = bsize;
 }
 
 #endif

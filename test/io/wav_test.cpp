@@ -11,10 +11,17 @@
 
 #include "io/wav.hpp"
 
+#include <array>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
 #include <random>
+#include <utility>
 
+#include "audio_buffer.hpp"
 #include "io/mstream.hpp"
 
 /**
@@ -60,7 +67,7 @@ CharIStream wavb = {
     0x52, 0x49, 0x46, 0x46, 0x38, 0, 0, 0, 0x57, 0x41, 0x56, 0x45,  // WAVE header
     0x66, 0x6D, 0x74, 0x20, 0x10, 0, 0, 0, 0x01, 0, 0x02, 0, 0x80, 0xbb, 0, 0, 0, 0x77, 0x01, 0x00, 0x02, 0x00, 0x08, 0x00,  // FORMAT chunk
     0x64, 0x61, 0x74, 0x61, 0x14, 0x00, 0x00, 0x00, // DATA header
-    0x85, 0xff, 0x9d, 0xff, // Data (till end of array)
+    0x85, 0xff, 0x9d, 0xff, // Data (till end of array) FAILS AT FIRST VALUE IN LINE!
     0x42, 0xff, 0x9b, 0xff,
     0x72, 0xff, 0x7d, 0xff,
     0xe0, 0xff, 0x07, 0xff,
@@ -799,6 +806,10 @@ TEST_CASE("Wave Writer", "[io][wav]") {
 
         // Ensure contents are equal:
 
+        // Fails at i=44
+
+        auto blah = wavb.get_array().at(44);
+
         for (int i = 0; i < wavb.get_array().size(); ++i) {
 
             REQUIRE(wavb.get_array().at(i) == stream.get_array().at(i));
@@ -866,7 +877,7 @@ TEST_CASE("Random Wave", "[io][wav]") {
     // Create an output stream:
 
     CharOStream ostream;
-          
+
     // Create writer:
 
     WaveWriter wwav;

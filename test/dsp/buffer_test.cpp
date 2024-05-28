@@ -9,13 +9,13 @@
  *
  */
 
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
-
 #include "dsp/buffer.hpp"
 
 #include <algorithm>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <utility>
+#include <vector>
 
 // Dummy data to work with
 
@@ -604,8 +604,9 @@ TEST_CASE("Buffer Test", "[buff]") {
 
             // Finally, ensure that all values are 454
 
-            bool res = std::all_of(buff.ibegin(), buff.iend(),
-                                   [](long double num) { return num == 454.0; });
+            bool const res =
+                std::all_of(buff.ibegin(), buff.iend(),
+                            [](long double num) { return num == 454.0; });
 
             REQUIRE(res);
         }
@@ -637,8 +638,9 @@ TEST_CASE("Buffer Test", "[buff]") {
 
             // Finally, ensure that all values are 454
 
-            bool res = std::all_of(buff.sbegin(), buff.send(),
-                                   [](long double num) { return num == 454.0; });
+            bool const res =
+                std::all_of(buff.sbegin(), buff.send(),
+                            [](long double num) { return num == 454.0; });
 
             REQUIRE(res);
         }
@@ -802,8 +804,9 @@ TEST_CASE("Ring Buffer Test", "[buff][ring]") {
 
             // Finally, ensure that all values are 454
 
-            bool res = std::all_of(ring.begin(), ring.end(),
-                                   [](long double num) { return num == 454.0; });
+            bool const res =
+                std::all_of(ring.begin(), ring.end(),
+                            [](long double num) { return num == 454.0; });
 
             REQUIRE(res);
         }

@@ -13,6 +13,7 @@ set(TEST_FILES
     chrono_test.cpp
     audio_mod_test.cpp
     amp_module_test.cpp
+    audio_buffer_test.cpp
     io/mstream_test.cpp
     io/wav_test.cpp
     io/alsa_module_test.cpp

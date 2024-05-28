@@ -32,58 +32,27 @@ int main() {
 
     std::cout << "Creating saw oscillator ..." << std::endl;
 
-    SawtoothOscillator saw(440.0);
-
-    std::cout << "Creating LatencyModule ..." << std::endl;
-
-    LatencyModule latency;
-
-    std::cout << "Creating filter module ..." << std::endl;
-
-    SincFilter sinc;
-
-    // Set type to lowpass:
-
-    sinc.set_type(FilterType::LowPass);
-
-    // Set low frequency to 440:
-
-    sinc.set_start_freq(440.);
-    sinc.set_stop_freq(1760.);
-
-    // Set the size:
-
-    const int kern_size = 201;
-
-    sinc.set_size(kern_size);
+    SineOscillator saw(440.0);
 
     // Bind the modules:
 
     std::cout << "Binding the modules ..." << std::endl;
 
-    sinc.bind(&saw);
-    latency.bind(&sinc);
-    sink.bind(&latency);
-    //latency.bind(&saw);
-    //sink.bind(&latency);
+    sink.bind(&saw);
 
-    // Start all modules:
+    // Meta sync and start the chain:
 
-    sinc.start();
-    sink.start();
-    saw.start();
-    latency.start();
+    sink.meta_info_sync();
+    sink.meta_start();
 
     // Temporary buffer size - Prevent underruns? TAKE INTO ACCOUNT THE SIZE OF THE FORMAT!
 
     // sink.get_info()->out_buffer = 524288 / 4;
     // saw.get_info()->out_buffer = 524288 / 4;
-    saw.get_info()->out_buffer = (sink.get_info()->out_buffer - kern_size + 1);
+    //saw.get_info()->out_buffer = (sink.get_info()->out_buffer);
     //saw.get_info()->out_buffer = sink.get_info()->out_buffer;
 
     // Get expected period time:
-
-    int period_time = sink.get_device().period_time * 1000;
  
     // Finally, meta process forever!
 
@@ -92,12 +61,6 @@ int main() {
         std::cout << "Processing ..." << std::endl;
 
         sink.meta_process();
-
-        std::cout << latency.latency() << std::endl;
-        std::cout << latency.average_latency() << std::endl;
-        std::cout << latency.time() << std::endl;
-        std::cout << latency.time() - period_time << std::endl;
-        std::cout << period_time << std::endl;
     }
 
     sink.stop();

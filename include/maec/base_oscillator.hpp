@@ -20,25 +20,23 @@
  * This class is the base class for all oscillators.
  * This class offers no real functionality, but is
  * used for identifying oscillators.
+ * 'Oscillators' in the context of maec are components that
+ * generate a periodic waveform at a given frequency.
  *
- * By default, we pull the initial frequencies from the
- * module info object, if provided.
- * However, the frequency (among other things)
- * can be defined by the user.
- * TODO: ^ FIX THIS ABOVE STATEMENT! IT"S BAD!
- *
- * Optionally, the frequency can be defined by the user in hertz
- * (see TODO: WRITE THIS for help getting this value).
- * The sample rate can also be defined by the user,
- * as well as the phase, which determines the start index of the sine wave.
- *
- * The phase can also be set, which determines the offset of the frequency.
- * So, for example, you can set the index to 10 instead of starting at 0.
- * We determine the index at a given time by dividing by the sampling rate.
+ * This class pulls a lot of configuration info
+ * from the module info object,
+ * so parameters such as channels, buffer size, and sample rate
+ * should be altered there.
+ * 
+ * The frequency must be set by the user in hertz.
+ * This can be done via constructor or by setters. 
+ * 
+ * The phase can also be configured,
+ * and this should be in radians.
  */
 class BaseOscillator : public SourceModule {
 
-protected:
+private:
     /// The current phase of the oscillator
     double phase = 0;
 
@@ -92,34 +90,19 @@ public:
      *
      * @param phs Phase to set
      */
-    void set_phase(int phs) { this->phase = phs; }
+    void set_phase(double phs) { this->phase = phs; }
+
+    /**
+     * @brief Increments the phase by the provided amount
+     * 
+     * @param inc Value to increment phase by
+     */
+    void inc_phase(double inc) { this->phase += inc; }
 };
 
-/**
- * @brief A base class for all oscillators
- * 
- * This class is the base class for all oscillators.
- * This class offers no real functionality, but is
- * used for identifying oscillators.
- *
- * By default, we pull the initial frequencies from the
- * module info object, if provided.
- * However, the frequency (among other things)
- * can be defined by the user.
- * TODO: ^ FIX THIS ABOVE STATEMENT! IT"S BAD!
- * 
- * Optionally, the frequency can be defined by the user in hertz
- * (see TODO: WRITE THIS for help getting this value).
- * The sample rate can also be defined by the user,
- * as well as the phase, which determines the start index of the sine wave.
- * 
- * The phase can also be set, which determines the offset of the frequency.
- * So, for example, you can set the index to 10 instead of starting at 0.
- * We determine the index at a given time by dividing by the sampling rate.
- */
 class BaseModulatedOscillator : public ParamModule<1> {
 
-    protected:
+    private:
 
         /// The current phase of the oscillator
         double phase = 0;
@@ -171,5 +154,12 @@ class BaseModulatedOscillator : public ParamModule<1> {
          * 
          * @param phs Phase to set
          */
-        void set_phase(int phs) { this->phase = phs; }
+        void set_phase(double phs) { this->phase = phs; }
+
+        /**
+         * @brief Increments the phase by a provided amount
+         * 
+         * @param inc Value to increment phase by
+         */
+        void inc_phase(double inc) { this->phase += inc; }
 };
