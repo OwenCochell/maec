@@ -288,6 +288,8 @@ long double uchar_mf(unsigned char val);
  * These functions follow the same naming convention mentioned above.
  */
 
+// char -> other
+
 /**
  * @brief Converts byte data into 16bit integers
  * 
@@ -386,6 +388,8 @@ uint32_t char_uint32(T byts) {
     // Return this value:
     return val;
 }
+
+// other -> char
 
 /**
  * @brief Converts a 16bit integer into byte data

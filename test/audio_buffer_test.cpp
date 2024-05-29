@@ -16,8 +16,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <cstdint>
 
-TEST_CASE("Create Functions", "Ensure creation functions work") {
+TEST_CASE("Create Functions", "[buffer]") {
 
     SECTION("Create Buffer", "Ensures we can create buffers of a given size and channel count") {
 
@@ -45,7 +46,7 @@ TEST_CASE("Create Functions", "Ensure creation functions work") {
     }
 }
 
-TEST_CASE("Conversion", "Test conversion functions") {
+TEST_CASE("Conversion", "[byte]") {
 
     // Values to test:
 
@@ -134,7 +135,7 @@ TEST_CASE("Conversion", "Test conversion functions") {
     }
 }
 
-TEST_CASE("Squishers", "Test squishier functions") {
+TEST_CASE("Squishers", "[buff][byte]") {
 
     // Define some buffers:
 
@@ -149,7 +150,7 @@ TEST_CASE("Squishers", "Test squishier functions") {
 
     // Define output buffer:
 
-    std::array<long double, 9> odata{};
+    std::array<long double, 9> odata = {};
 
     SECTION("Inter", "Ensures interleaved squishers work correctly") {
 
@@ -167,15 +168,75 @@ TEST_CASE("Squishers", "Test squishier functions") {
 
     SECTION("Seq", "Ensures sequential squishers work correctly") {
 
-        //squish_seq(&buff, odata.begin(), mf_null);
-
-        std::copy_n(buff.sbegin(), 9, odata.begin());
+        squish_seq(&buff, odata.begin(), mf_null);
 
         // Ensure data is accurate:
 
         for (int i = 0; i < odata.size(); ++i) {
 
             REQUIRE(sidata.at(i) == odata.at(i));
+        }
+    }
+}
+
+TEST_CASE("Byte Conversion", "[byte]") {
+
+    std::array<unsigned char, 8> char_data = {196, 129, 78, 142, 112, 132, 33, 196};
+    std::array<unsigned char, 8> odata = {};
+
+    const int16_t int16 = 33220;
+
+    const int32_t int32 = -1907457596;
+    const uint32_t uint32 = 2.3875097e9;
+
+    SECTION("From Char", "Ensures we can create data from chars") {
+
+        SECTION("int16", "Create int16 from char") {
+
+            REQUIRE(char_int16(char_data.data()) == int16);
+        }
+
+        SECTION("int32", "Create int32 from char") {
+
+            REQUIRE(char_int32(char_data.data()) == int32);
+        }
+
+        SECTION("uint32", "Create uint32 from char") {
+
+            REQUIRE(char_uint32(char_data.data()) == uint32);
+        }
+    }
+
+    SECTION("To Char", "Ensures we can convert data to chars") {
+
+        SECTION("int16", "Create char from int16") {
+
+            int16_char(int16, odata.begin());
+
+            for (int i = 0; i < 2; ++i) {
+
+                REQUIRE(char_data.at(i) == odata.at(i));
+            }
+        }
+
+        SECTION("int32", "Create char from int32") {
+
+            int32_char(int32, odata.begin());
+
+            for (int i = 0; i < 4; ++i) {
+
+                REQUIRE(char_data.at(i) == odata.at(i));
+            }
+        }
+
+        SECTION("uint32", "Create char from uint32") {
+
+            uint32_char(uint32, odata.begin());
+
+            for (int i = 0; i < 4; ++i) {
+
+                REQUIRE(char_data.at(i) == odata.at(i));
+            }
         }
     }
 }
