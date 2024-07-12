@@ -11,6 +11,7 @@ set(MISC_FILES
     mstream_bench.cpp
     char_conversion.cpp
     call_benchmark.cpp
+    vector_pass.cpp
 )
 
 # Finally, build and link all misc. demo files:
