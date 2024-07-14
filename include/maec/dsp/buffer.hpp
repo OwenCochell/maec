@@ -1082,6 +1082,21 @@ public:
         }
     }
 
+    /// Destructor
+    ~Buffer() = default;
+
+    /// Copy constructor
+    Buffer(const Buffer&) = default;
+
+    /// Move Constructor
+    Buffer(Buffer&&) noexcept = default;
+
+    /// Copy assignment
+    Buffer& operator=(const Buffer&) noexcept = default;
+
+    /// Move assignment
+    Buffer& operator=(Buffer&&) noexcept = default;
+
     /**
      * @brief Set the Sample Rate of this buffer
      *
@@ -1192,6 +1207,23 @@ public:
     void reserve() { buff.reserve(this->total_capacity()); }
 
     /**
+     * @brief Pre-allocates the buffer to a certain size.
+     *
+     * This tells the underlying vector to allocate memory
+     * beforehand, which leads to faster performance
+     * when writing (and reading, but to a lesser degree...),
+     * so it is recommended to allocate the vector before any operations.
+     *
+     * See: https://cplusplus.com/reference/vector/vector/reserve/
+     * For more info.
+     * 
+     * We reserve the size using the value provided to us.
+     * 
+     * @param size Size to reserve buffer
+     */
+    void reserve(std::size_t size) { buff.reserve(size); }
+
+    /**
      * @brief Resizes the vector size
      *
      * This method resizes the vector to the provided elements.
@@ -1214,6 +1246,25 @@ public:
      *
      */
     void shrink() { this->buff.shrink_to_fit(); }
+
+    /**
+     * @brief Removes all values from vector
+     *
+     * This removes all values from the buffer,
+     * which will leave the container with a size of 0.
+     * A reallocation may occur, so the capacity may remain unchanged.
+     *
+     * This function is great for resetting the state of the vector
+     * to something sane.
+     * In particular, after a buffer has been destroyed during a move
+     * (source of move),
+     * then this function can be used to reset the vector to a workable state.
+     * From there, you can manipulate and reset the vector as usual.
+     *
+     * See: https://cplusplus.com/reference/vector/vector/clear/
+     * For more info
+     */
+    void clear() { this->buff.clear(); }
 
     /**
      * @brief Gets the value at the given channel and sample.
@@ -1566,7 +1617,7 @@ class RingBuffer {
          *
          */
         RingIterator() = default;
-
+ 
         /**
          * @brief Construct a new RingIterator object
          *

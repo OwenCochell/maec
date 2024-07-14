@@ -135,32 +135,24 @@ protected:
     std::unique_ptr<AudioBuffer> buff = nullptr;
 
 public:
-    /**
-     * @brief Construct a new Audio Module object
-     *
-     * We also create a AudioInfo struct for use
-     *
-     */
+
+    /// Default Constructor
     AudioModule() = default;
 
-    /**
-     * @brief Destroy the Audio Module object
-     *
-     */
+    /// Destructor
     ~AudioModule() override = default;
 
-    /**
-     * @brief Copy constructor
-     *
-     */
+    /// Copy Constructor
     AudioModule(const AudioModule&) = delete;
 
-    /**
-     * @brief Copy assignment operator
-     *
-     * @return AudioModule&
-     */
+    /// Move Constructor
+    AudioModule(AudioModule&&) noexcept = default;
+
+    /// Copy assignment operator
     AudioModule& operator=(const AudioModule&) = delete;
+
+    /// Move assignment operator
+    AudioModule& operator=(AudioModule&&) = default;
 
     /**
      * @brief Function called when processing is necessary.

@@ -24,8 +24,13 @@
 #include <algorithm>
 #include <random>
 
+#include "dsp/buffer.hpp"
+
+/// Vector type
+using Vect = Buffer<long double>;
+
 /// Vector pointer type
-using VecPoint = std::unique_ptr<std::vector<long double>>;
+using VecPoint = std::unique_ptr<Vect>;
 
 /// Random device
 std::random_device rd;
@@ -48,8 +53,8 @@ int main() {
     // Define parameters:
 
     const int size = 10000;  // Size of each vector
-    const int num = 20;  // Number of vectors to test
-    const int iters = 1000;  // Number of repetitions
+    const int num = 50;  // Number of vectors to test
+    const int iters = 100;  // Number of repetitions
 
     std::cout << "+======================================+" << '\n';
     std::cout << " !Benchmarking vector pass performance!" << '\n';
@@ -82,7 +87,7 @@ int main() {
 
         auto start = std::chrono::high_resolution_clock::now();
 
-        std::array<std::vector<long double>, num> v_arr;
+        std::array<Vect, num> v_arr;
 
         auto stop = std::chrono::high_resolution_clock::now();
 
@@ -118,6 +123,19 @@ int main() {
                 continue;
             }
 
+            // Otherwise, just copy contents:
+
+            auto start = std::chrono::high_resolution_clock::now();
+
+            v_arr[i].reserve(size);
+
+            std::copy_n(v_arr[i-1].begin(), size, v_arr[i].begin());
+
+            auto stop = std::chrono::high_resolution_clock::now();
+
+            v_update +=
+                std::chrono::duration<double, std::milli>(stop - start).count();
+
             if (i == num - 1) {
 
                 // Destroy the buffer:
@@ -133,22 +151,7 @@ int main() {
                 v_destroy +=
                     std::chrono::duration<double, std::milli>(stop - start)
                         .count();
-
-                continue;
             }
-
-            // Otherwise, just copy contents:
-
-            auto start = std::chrono::high_resolution_clock::now();
-
-            v_arr[i].reserve(size);
-
-            std::copy_n(v_arr[i-1].begin(), size, v_arr[i].begin());
-
-            auto stop = std::chrono::high_resolution_clock::now();
-
-            v_update +=
-                std::chrono::duration<double, std::milli>(stop - start).count();
         }
     }
 
@@ -190,7 +193,7 @@ int main() {
                 auto start = std::chrono::high_resolution_clock::now();
 
                 vpoint_arr[0] =
-                    std::make_unique<std::vector<long double>>(size);
+                    std::make_unique<Vect>(size);
 
                 std::transform(vpoint_arr[0]->begin(), vpoint_arr[0]->end(),
                                vpoint_arr[0]->begin(), rand_val);
@@ -198,25 +201,6 @@ int main() {
                 auto stop = std::chrono::high_resolution_clock::now();
 
                 vpoint_create +=
-                    std::chrono::duration<double, std::milli>(stop - start)
-                        .count();
-
-                continue;
-            }
-
-            // Determine if we are done and need to destroy:
-
-            if (i == num - 1) {
-
-                // Destroy buffer:
-
-                auto start = std::chrono::high_resolution_clock::now();
-
-                vpoint_arr[i].reset();
-
-                auto stop = std::chrono::high_resolution_clock::now();
-
-                vpoint_destroy +=
                     std::chrono::duration<double, std::milli>(stop - start)
                         .count();
 
@@ -233,6 +217,23 @@ int main() {
 
             vpoint_update +=
                 std::chrono::duration<double, std::milli>(stop - start).count();
+
+            // Determine if we are done and need to destroy:
+
+            if (i == num - 1) {
+
+                // Destroy buffer:
+
+                auto start = std::chrono::high_resolution_clock::now();
+
+                vpoint_arr[i].reset();
+
+                auto stop = std::chrono::high_resolution_clock::now();
+
+                vpoint_destroy +=
+                    std::chrono::duration<double, std::milli>(stop - start)
+                        .count();
+            }
         }
     }
 
@@ -254,7 +255,7 @@ int main() {
 
         auto start = std::chrono::high_resolution_clock::now();
 
-        std::array<std::vector<long double>, num> vm_arr;
+        std::array<Vect, num> vm_arr;
 
         auto stop = std::chrono::high_resolution_clock::now();
 
@@ -291,25 +292,6 @@ int main() {
                 continue;
             }
 
-            if (i == num - 1) {
-
-                // Destroy the buffer:
-
-                auto start = std::chrono::high_resolution_clock::now();
-
-                // Clear final buffer:
-
-                vm_arr[i].clear();
-
-                auto stop = std::chrono::high_resolution_clock::now();
-
-                vm_destroy +=
-                    std::chrono::duration<double, std::milli>(stop - start)
-                        .count();
-
-                continue;
-            }
-
             // Otherwise, just copy contents:
 
             auto start = std::chrono::high_resolution_clock::now();
@@ -326,6 +308,23 @@ int main() {
 
             vm_update +=
                 std::chrono::duration<double, std::milli>(stop - start).count();
+
+            if (i == num - 1) {
+
+                // Destroy the buffer:
+
+                auto start = std::chrono::high_resolution_clock::now();
+
+                // Clear final buffer:
+
+                vm_arr[i].clear();
+
+                auto stop = std::chrono::high_resolution_clock::now();
+
+                vm_destroy +=
+                    std::chrono::duration<double, std::milli>(stop - start)
+                        .count();
+            }
         }
     }
 
