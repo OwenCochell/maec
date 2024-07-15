@@ -120,8 +120,8 @@ class BaseModulatedOscillator : public ParamModule<1> {
          * @param ph The phase of the oscillator
          *
          */
-        BaseModulatedOscillator(long double freq, double pha)
-            : phase(pha), freq(freq) {}
+        BaseModulatedOscillator(long double freqv, double pha)
+            : ParamModule<1>(&freq), phase(pha), freq(freqv) {}
 
         /**
          * @brief Construct a new Sine Oscillator object, but only define the frequency
@@ -129,8 +129,8 @@ class BaseModulatedOscillator : public ParamModule<1> {
          * @param freq The frequency of the oscillator
          * 
          */
-        BaseModulatedOscillator(long double freq)
-            : freq(freq) {}
+        BaseModulatedOscillator(long double freqv)
+            : ParamModule<1>(&freq), freq(freqv) {}
 
         /**
          * @brief Gets the frequency parameter

@@ -32,7 +32,7 @@ int main() {
 
     std::cout << "Creating saw oscillator ..." << std::endl;
 
-    SineOscillator saw(440.0);
+    ModSineOscillator saw(440.0);
 
     // Bind the modules:
 

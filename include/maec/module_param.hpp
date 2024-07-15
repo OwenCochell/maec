@@ -19,6 +19,7 @@
 
 #include "audio_module.hpp"
 #include "sink_module.hpp"
+#include "source_module.hpp"
 #include "meta_audio.hpp"
 
 /**
@@ -135,6 +136,103 @@ class ModuleParam : public SinkModule {
 };
 
 /**
+ * @brief Base components for ParameterModules
+ * 
+ * This class offers functionality that is shared between any ParamModules.
+ * This class handles the storing and manipulation of these parameters,
+ * which should simply implementation down the line.
+ * 
+ * Users must provide pointers to parameters,
+ * which this class will contain and manage.
+ * This means child classes can define and configure parameters,
+ * allowing this class to manage the state for them.
+ * 
+ * Users probably should not use this class unless
+ * they are creating tools for managing parameters.
+ * You probably want to use ParamModule, SinkModule, or SourceModule.
+ * 
+ * @tparam N Number of parameters to manage
+ */
+template <int num>
+class BaseParamModule {
+private:
+
+    /// Array containing the module parameters
+    std::array<ModuleParam*, num> params;
+
+public:
+    BaseParamModule() = default;
+
+    /**
+     * @brief Accepts an initializer list of param pointers
+     *
+     * Classes can define a list of parameters to be added to the array
+     * that can be managed by this class.
+     *
+     */
+    template <typename... Args>
+    BaseParamModule(Args&&... args) : params{std::forward<Args>(args)...} {}
+
+    /**
+     * @brief Gets the underlying array
+     *
+     * @return std::array<ModuleParam*, num>* Pointer to underlying array
+     */
+    std::array<ModuleParam*, num>* get_array() { return &params; }
+
+    /**
+     * @brief Starts all attached parameters
+     * 
+     * This function iterates over each module
+     * and calls the necessary start functions.
+     */
+    void param_start() {
+
+        // Iterate over each param in array:
+
+        for (ModuleParam* param : this->params) {
+
+            // Start the parameter:
+
+            param->meta_start();
+        }
+    }
+
+    /**
+     * @brief Stops all attached parameters
+     * 
+     * This function iterates over each module
+     * and calls the necessary stop functions.
+     */
+    void param_stop() {
+
+        // Iterate over each param in array:
+
+        for (ModuleParam* param : this->params) {
+
+            // Stop the parameter:
+
+            param->meta_stop();
+        }
+    }
+
+    /**
+     * @brief Preforms a sync operation
+     * 
+     * Preforms info sync on attached modules.
+     */
+    void param_info(AudioModule* mod) {
+
+        // Preform info sync for all parameters:
+
+        for (ModuleParam* param : this->params) {
+
+            param->conf_mod(mod);
+        }
+    }
+};
+
+/**
  * @brief Manages a number of ModuleParam objects
  * 
  * This class collects and maintains a number
@@ -150,36 +248,14 @@ class ModuleParam : public SinkModule {
  * preform all the actions here themselves.
  * 
  * The best way to populate this class is to provide pointers to
- * you ModuleParams via construction.
+ * your ModuleParams via construction.
  * 
  * TODO: Maybe meta-start would be more appropriate?
  */
 template <int num>
-class ParamModule : public AudioModule {
-private:
-
-    /// Array containing the module parameters
-    std::array<ModuleParam*, num> params;
-
+class ParamModule : public AudioModule, public BaseParamModule<num> {
 public:
-    ParamModule() = default;
-
-    /**
-     * @brief Accepts an initializer list of param pointers
-     * 
-     * Classes can define a list of parameters to be added to the array
-     * that can be managed by this class.
-     * 
-     */
-    template<typename... Args>
-    ParamModule(Args&&... args) : params{std::forward<Args>(args)...} {}
-
-    /**
-     * @brief Gets the underlying array
-     * 
-     * @return std::array<ModuleParam*, num>* Pointer to underlying array
-     */
-    std::array<ModuleParam*, num>* get_array() { return &params; }
+    using BaseParamModule<num>::BaseParamModule;
 
     /**
      * @brief Starts this module and all attached parameters
@@ -188,16 +264,15 @@ public:
      * for this module, as well as starting each attached parameter.
      * 
      */
-    void start() override {
+    void meta_start() override {
 
-        // Iterate over each param in array:
+        // Start current module:
 
-        for (ModuleParam* param : this->params) {
+        AudioModule::meta_start();
 
-            // Start the parameter:
+        // Start the parameters:
 
-            param->meta_start();
-        }
+        this->param_start();
     }
 
     /**
@@ -207,16 +282,15 @@ public:
      * for this module, as well as stopping each attached parameter.
      * 
      */
-    void stop() override {
+    void meta_stop() override {
 
-        // Iterate over each param in array:
+        // Stop current module:
 
-        for (ModuleParam* param : this->params) {
+        AudioModule::meta_stop();
 
-            // Stop the parameter:
+        // Stop the parameters:
 
-            param->meta_stop();
-        }
+        this->param_stop();
     }
 
     /**
@@ -230,19 +304,180 @@ public:
      */
     void meta_info_sync() override {
 
-        // First, preform info sync for current module:
+        // Preform info sync for current module:
 
-        this->info_sync();
+        AudioModule::meta_info_sync();
+
+        // Preform param sync:
+
+        this->param_info(this);
+    }
+};
+
+/**
+ * @brief Manages a number of ModuleParam objects for sinks
+ * 
+ * This class collects and maintains a number
+ * of ModuleParam objects.
+ * This allows for ALL state/info operations to be preformed
+ * automatically for any reasserted parameters.
+ * 
+ * As of now, this class does NOT preform any finish or done operations,
+ * we only preform state work with info sync, start, and stop.
+ * 
+ * This class is recommended to be used by any component that utilizes
+ * ModuleParams, but of course if the developers wishes to do so they can
+ * preform all the actions here themselves.
+ * This version is designed for sinks.
+ * 
+ * The best way to populate this class is to provide pointers to
+ * your ModuleParams via construction.
+ * 
+ * TODO: Maybe meta-start would be more appropriate?
+ * Also, a lot of repetition here between this and ParamModule
+ */
+template <int num>
+class ParamSink : public SinkModule, public BaseParamModule<num> {
+public:
+    using BaseParamModule<num>::BaseParamModule;
+
+    /**
+     * @brief Starts this module and all attached parameters
+     *
+     * This method preforms all the necessary start operations
+     * for this module, as well as starting each attached parameter.
+     *
+     */
+    void meta_start() override {
+
+        // Start current module:
+
+        SinkModule::meta_start();
+
+        // Start the parameters:
+
+        this->param_start();
+    }
+
+    /**
+     * @brief Stops this module and all attached parameters
+     *
+     * This method preforms all the necessary stop operations
+     * for this module, as well as stopping each attached parameter.
+     *
+     */
+    void meta_stop() override {
+
+        // Stop current module:
+
+        SinkModule::meta_stop();
+
+        // Stop the modules:
+
+        this->param_stop();
+    }
+
+    /**
+     * @brief Preforms a meta info sync operation
+     *
+     * This method differs from the default meta_info_sync operation,
+     * as we first preform the child sync,
+     * then preform meta syncs for all attached parameters.
+     *
+     * TODO: Yeah this breaks the standard so far, see todo at top
+     */
+    void meta_info_sync() override {
+
+        // Preform normal info sync:
+
+        SinkModule::meta_info_sync();
 
         // Next, preform info sync for all parameters:
 
-        for (ModuleParam* param : this->params) {
+        this->param_info(this);
+    }
+};
 
-            param->conf_mod(this);
-        }
+/**
+ * @brief Manages a number of ModuleParam objects for sinks
+ *
+ * This class collects and maintains a number
+ * of ModuleParam objects.
+ * This allows for ALL state/info operations to be preformed
+ * automatically for any reasserted parameters.
+ *
+ * As of now, this class does NOT preform any finish or done operations,
+ * we only preform state work with info sync, start, and stop.
+ *
+ * This class is recommended to be used by any component that utilizes
+ * ModuleParams, but of course if the developers wishes to do so they can
+ * preform all the actions here themselves.
+ * This version is designed for sources.
+ *
+ * The best way to populate this class is to provide pointers to
+ * your ModuleParams via construction.
+ *
+ * TODO: Maybe meta-start would be more appropriate?
+ * Also, a lot of repetition here between this and ParamModule
+ */
+template <int num>
+class ParamSource : public SourceModule, public BaseParamModule<num> {
+public:
+    using BaseParamModule<num>::BaseParamModule;
 
-        // Finally, continue info sync for backwards modules:
+    /**
+     * @brief Starts this module and all attached parameters
+     *
+     * This method preforms all the necessary start operations
+     * for this module, as well as starting each attached parameter.
+     *
+     */
+    void meta_start() override {
 
-        this->get_backward()->meta_info_sync();
+        // Start current module:
+
+        SourceModule::meta_start();
+
+        // Start the parameters:
+
+        this->param_start();
+    }
+
+    /**
+     * @brief Stops this module and all attached parameters
+     *
+     * This method preforms all the necessary stop operations
+     * for this module, as well as stopping each attached parameter.
+     *
+     */
+    void meta_stop() override {
+
+        // Stop current module:
+
+        SourceModule::meta_stop();
+
+        // Stop the modules:
+
+        this->param_stop();
+    }
+
+    /**
+     * @brief Preforms a meta info sync operation
+     *
+     * This method differs from the default meta_info_sync operation,
+     * as we first preform the child sync,
+     * then preform meta syncs for all attached parameters.
+     *
+     * TODO: Yeah this breaks the standard so far, see todo at top
+     */
+    void meta_info_sync() override {
+
+        // Preform info sync for current module:
+
+        SourceModule::meta_info_sync();
+
+        // Next, preform info sync for all parameters:
+
+        this->param_info(this);
     }
 };

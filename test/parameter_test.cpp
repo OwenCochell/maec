@@ -137,7 +137,7 @@ TEST_CASE("Module Parameter Tests", "[param]") {
     }
 }
 
-TEST_CASE("ParamModule Test", "[param][mod]") {
+TEST_CASE("BaseParamTest", "[param]") {
 
     // Create the parameters:
 
@@ -147,7 +147,7 @@ TEST_CASE("ParamModule Test", "[param][mod]") {
 
     // Create the module:
 
-    ParamModule<3> mod(&par1, &par2, &par3);
+    BaseParamModule<3> mod(&par1, &par2, &par3);
 
     SECTION("GetArray", "Ensures array contents are valid") {
 
@@ -166,7 +166,7 @@ TEST_CASE("ParamModule Test", "[param][mod]") {
 
         // Start the module:
 
-        mod.start();
+        mod.param_start();
 
         // Iterate over params:
 
@@ -184,7 +184,143 @@ TEST_CASE("ParamModule Test", "[param][mod]") {
 
         // Stop the module:
 
-        mod.stop();
+        mod.param_stop();
+
+        // Iterate over params:
+
+        auto* arr = mod.get_array();
+
+        for (ModuleParam* param : *arr) {
+
+            // Ensure this param is stopped:
+
+            REQUIRE(param->get_state() == ModuleParam::State::Stopped);
+        }
+    }
+
+    SECTION("Info Sync", "Ensures parameters are synced correctly") {
+
+        const int channels = 33;
+        const int bsize = 123;
+        const int sampler = 789;
+
+        // Define module to utilize:
+
+        SinkModule tmod;
+
+        // Get the chain info:
+
+        auto* info = tmod.get_chain_info();
+
+        // Set some values:
+
+        info->channels = channels;
+        info->buffer_size = bsize;
+        info->sample_rate = sampler;
+
+        // Preform sync on sink:
+
+        tmod.info_sync();
+
+        // Preform the sync:
+
+        mod.param_info(&tmod);
+
+        auto* arr = mod.get_array();
+
+        // Iterate over each module:
+
+        for (ModuleParam* param : *arr) {
+
+            // Get the info:
+
+            auto* info = param->get_info();
+            auto* mcinfo = param->get_chain_info();
+
+            // Ensure values are accurate:
+
+            REQUIRE(mcinfo->buffer_size == bsize);
+            REQUIRE(mcinfo->channels == channels);
+            REQUIRE(mcinfo->sample_rate == sampler);
+
+            REQUIRE(info->in_buffer == bsize);
+            REQUIRE(info->out_buffer == bsize);
+            REQUIRE(info->channels == channels);
+            REQUIRE(info->sample_rate == sampler);
+
+            // Just for fun, ensure previous module is synced correctly:
+
+            auto* back = param->get_backward();
+
+            info = back->get_info();
+            mcinfo = back->get_chain_info();
+
+            REQUIRE(mcinfo->buffer_size == bsize);
+            REQUIRE(mcinfo->channels == channels);
+            REQUIRE(mcinfo->sample_rate == sampler);
+
+            REQUIRE(info->in_buffer == bsize);
+            REQUIRE(info->out_buffer == bsize);
+            REQUIRE(info->channels == channels);
+            REQUIRE(info->sample_rate == sampler);
+        }
+    }
+}
+
+TEST_CASE("ParamModule Test", "[param][mod]") {
+
+    // Create the parameters:
+
+    ModuleParam par1(0.);
+    ModuleParam par2(1.);
+    ModuleParam par3(2.);
+
+    // Create the module:
+
+    ParamModule<3> mod(&par1, &par2, &par3);
+
+    // Create backward module:
+
+    SourceModule source;
+
+    mod.bind(&source);
+
+    SECTION("GetArray", "Ensures array contents are valid") {
+
+        // Get the array:
+
+        auto* arr = mod.get_array();
+
+        // Ensure array contents are correct:
+
+        REQUIRE(arr->at(0) == &par1);
+        REQUIRE(arr->at(1) == &par2);
+        REQUIRE(arr->at(2) == &par3);
+    }
+
+    SECTION("Start", "Ensures parameters are started correctly") {
+
+        // Start the module:
+
+        mod.meta_start();
+
+        // Iterate over params:
+
+        auto* arr = mod.get_array();
+
+        for (ModuleParam* param : *arr) {
+
+            // Ensure this param is started:
+
+            REQUIRE(param->get_state() == ModuleParam::State::Started);
+        }
+    }
+
+    SECTION("Stop", "Ensures parameters are stopped correctly") {
+
+        // Stop the module:
+
+        mod.meta_stop();
 
         // Iterate over params:
 
@@ -217,6 +353,272 @@ TEST_CASE("ParamModule Test", "[param][mod]") {
         // Bind the sink/source:
 
         sink.bind(&mod)->bind(&source);
+
+        // Set some crazy values:
+
+        auto* cinfo = sink.get_chain_info();
+
+        cinfo->buffer_size = bsize;
+        cinfo->channels = channels;
+        cinfo->sample_rate = sampler;
+
+        // Preform chain info sync:
+
+        sink.meta_info_sync();
+
+        // Ensure sync has occurred:
+
+        auto* arr = mod.get_array();
+
+        for (ModuleParam* param : *arr) {
+
+            // Get the info:
+
+            auto* info = param->get_info();
+            auto* mcinfo = param->get_chain_info();
+
+            // Ensure values are accurate:
+
+            REQUIRE(mcinfo->buffer_size == bsize);
+            REQUIRE(mcinfo->channels == channels);
+            REQUIRE(mcinfo->sample_rate == sampler);
+
+            REQUIRE(info->in_buffer == bsize);
+            REQUIRE(info->out_buffer == bsize);
+            REQUIRE(info->channels == channels);
+            REQUIRE(info->sample_rate == sampler);
+
+            // Just for fun, ensure previous module is synced correctly:
+
+            auto* back = param->get_backward();
+
+            info = back->get_info();
+            mcinfo = back->get_chain_info();
+
+            REQUIRE(mcinfo->buffer_size == bsize);
+            REQUIRE(mcinfo->channels == channels);
+            REQUIRE(mcinfo->sample_rate == sampler);
+
+            REQUIRE(info->in_buffer == bsize);
+            REQUIRE(info->out_buffer == bsize);
+            REQUIRE(info->channels == channels);
+            REQUIRE(info->sample_rate == sampler);
+        }
+    }
+}
+
+TEST_CASE("ParamSink Test", "[param][mod][sink]") {
+
+    // Create the parameters:
+
+    ModuleParam par1(0.);
+    ModuleParam par2(1.);
+    ModuleParam par3(2.);
+
+    // Create the module:
+
+    ParamSink<3> mod(&par1, &par2, &par3);
+
+    // Create backward module:
+
+    SourceModule source;
+
+    mod.bind(&source);
+
+    SECTION("GetArray", "Ensures array contents are valid") {
+
+        // Get the array:
+
+        auto* arr = mod.get_array();
+
+        // Ensure array contents are correct:
+
+        REQUIRE(arr->at(0) == &par1);
+        REQUIRE(arr->at(1) == &par2);
+        REQUIRE(arr->at(2) == &par3);
+    }
+
+    SECTION("Start", "Ensures parameters are started correctly") {
+
+        // Start the module:
+
+        mod.meta_start();
+
+        // Iterate over params:
+
+        auto* arr = mod.get_array();
+
+        for (ModuleParam* param : *arr) {
+
+            // Ensure this param is started:
+
+            REQUIRE(param->get_state() == ModuleParam::State::Started);
+        }
+    }
+
+    SECTION("Stop", "Ensures parameters are stopped correctly") {
+
+        // Stop the module:
+
+        mod.meta_stop();
+
+        // Iterate over params:
+
+        auto* arr = mod.get_array();
+
+        for (ModuleParam* param : *arr) {
+
+            // Ensure this param is stopped:
+
+            REQUIRE(param->get_state() == ModuleParam::State::Stopped);
+        }
+    }
+
+    SECTION("Info Sync", "Ensures parameters are synced correctly") {
+
+        // Define values to test:
+
+        const int bsize = 1234;
+        const int channels = 22;
+        const int sampler = 753;
+
+        // Define a dummy source:
+
+        SourceModule source;
+
+        // Bind the sink/source:
+
+        mod.bind(&source);
+
+        // Set some crazy values:
+
+        auto* cinfo = mod.get_chain_info();
+
+        cinfo->buffer_size = bsize;
+        cinfo->channels = channels;
+        cinfo->sample_rate = sampler;
+
+        // Preform chain info sync:
+
+        mod.meta_info_sync();
+
+        // Ensure sync has occurred:
+
+        auto* arr = mod.get_array();
+
+        for (ModuleParam* param : *arr) {
+
+            // Get the info:
+
+            auto* info = param->get_info();
+            auto* mcinfo = param->get_chain_info();
+
+            // Ensure values are accurate:
+
+            REQUIRE(mcinfo->buffer_size == bsize);
+            REQUIRE(mcinfo->channels == channels);
+            REQUIRE(mcinfo->sample_rate == sampler);
+
+            REQUIRE(info->in_buffer == bsize);
+            REQUIRE(info->out_buffer == bsize);
+            REQUIRE(info->channels == channels);
+            REQUIRE(info->sample_rate == sampler);
+
+            // Just for fun, ensure previous module is synced correctly:
+
+            auto* back = param->get_backward();
+
+            info = back->get_info();
+            mcinfo = back->get_chain_info();
+
+            REQUIRE(mcinfo->buffer_size == bsize);
+            REQUIRE(mcinfo->channels == channels);
+            REQUIRE(mcinfo->sample_rate == sampler);
+
+            REQUIRE(info->in_buffer == bsize);
+            REQUIRE(info->out_buffer == bsize);
+            REQUIRE(info->channels == channels);
+            REQUIRE(info->sample_rate == sampler);
+        }
+    }
+}
+
+TEST_CASE("ParamSource Test", "[param][mod][source]") {
+
+    // Create the parameters:
+
+    ModuleParam par1(0.);
+    ModuleParam par2(1.);
+    ModuleParam par3(2.);
+
+    // Create the module:
+
+    ParamSource<3> mod(&par1, &par2, &par3);
+
+    SECTION("GetArray", "Ensures array contents are valid") {
+
+        // Get the array:
+
+        auto* arr = mod.get_array();
+
+        // Ensure array contents are correct:
+
+        REQUIRE(arr->at(0) == &par1);
+        REQUIRE(arr->at(1) == &par2);
+        REQUIRE(arr->at(2) == &par3);
+    }
+
+    SECTION("Start", "Ensures parameters are started correctly") {
+
+        // Start the module:
+
+        mod.meta_start();
+
+        // Iterate over params:
+
+        auto* arr = mod.get_array();
+
+        for (ModuleParam* param : *arr) {
+
+            // Ensure this param is started:
+
+            REQUIRE(param->get_state() == ModuleParam::State::Started);
+        }
+    }
+
+    SECTION("Stop", "Ensures parameters are stopped correctly") {
+
+        // Stop the module:
+
+        mod.meta_stop();
+
+        // Iterate over params:
+
+        auto* arr = mod.get_array();
+
+        for (ModuleParam* param : *arr) {
+
+            // Ensure this param is stopped:
+
+            REQUIRE(param->get_state() == ModuleParam::State::Stopped);
+        }
+    }
+
+    SECTION("Info Sync", "Ensures parameters are synced correctly") {
+
+        // Define values to test:
+
+        const int bsize = 1234;
+        const int channels = 22;
+        const int sampler = 753;
+
+        // Define a dummy sink:
+
+        SinkModule sink;
+
+        // Bind the sink/source:
+
+        sink.bind(&mod);
 
         // Set some crazy values:
 
