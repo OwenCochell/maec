@@ -46,9 +46,9 @@ class GenericIterator
     explicit GenericIterator(std::vector<long double> nbuf)
         : buff(std::move(nbuf)) {}
 
-    long double& resolve_pointer(int index) {
+    long double* resolve_pointer(int index) {
         // Just set the pointer to the current index:
-        return this->buff[index];
+        return this->buff.data() + index;
     }
 
     std::vector<long double>* get_buffer() { return &(this->buff); }
@@ -72,18 +72,18 @@ class ConstGenericIterator
     explicit ConstGenericIterator(std::vector<long double> nbuf)
         : buff(std::move(nbuf)) {}
 
-    const long double& resolve_pointer(int index) const {
+    const long double* resolve_pointer(int index) const {
 
         // Just set the pointer to current index:
 
-        return *(this->buff.data() + index);
+        return this->buff.data() + index;
     }
 
     const std::vector<long double>* get_buffer() const { return &(this->buff); }
 
    private:
     /// Buffer we are iterating over
-    const std::vector<long double> buff;
+    std::vector<long double> buff;
 };
 
 TEST_CASE("Iterator Test", "[buff][iter]") {

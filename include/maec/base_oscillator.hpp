@@ -100,7 +100,7 @@ public:
     void inc_phase(double inc) { this->phase += inc; }
 };
 
-class BaseModulatedOscillator : public ParamModule<1> {
+class BaseModulatedOscillator : public ParamSource<1> {
 
     private:
 
@@ -111,7 +111,7 @@ class BaseModulatedOscillator : public ParamModule<1> {
         ModuleParam freq;
 
     public:
-        BaseModulatedOscillator() : ParamModule<1>(&freq) {}
+        BaseModulatedOscillator() : ParamSource<1>(&freq) {}
 
         /**
          * @brief Construct a new Sine Oscillator object
@@ -121,7 +121,7 @@ class BaseModulatedOscillator : public ParamModule<1> {
          *
          */
         BaseModulatedOscillator(long double freqv, double pha)
-            : ParamModule<1>(&freq), phase(pha), freq(freqv) {}
+            : ParamSource<1>(&freq), phase(pha), freq(freqv) {}
 
         /**
          * @brief Construct a new Sine Oscillator object, but only define the frequency
@@ -130,7 +130,7 @@ class BaseModulatedOscillator : public ParamModule<1> {
          * 
          */
         BaseModulatedOscillator(long double freqv)
-            : ParamModule<1>(&freq), freq(freqv) {}
+            : ParamSource<1>(&freq), freq(freqv) {}
 
         /**
          * @brief Gets the frequency parameter

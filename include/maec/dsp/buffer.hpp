@@ -102,7 +102,8 @@ public:
      */
     void set_index(int iindex) {
         this->index = iindex;
-        point = &(static_cast<iterator_type*>(this)->resolve_pointer(this->index));
+
+        this->point = static_cast<iterator_type*>(this)->resolve_pointer(this->index);
     }
 
     /**
@@ -418,7 +419,7 @@ public:
      */
     reference operator[](int val) const {
 
-        return static_cast<iterator_type*>(this)->resolve_pointer(val);
+        return *(static_cast<iterator_type*>(this)->resolve_pointer(val));
     }
 
     /**
@@ -432,7 +433,7 @@ public:
      */
     reference operator[](int val) {
 
-        return static_cast<iterator_type*>(this)->resolve_pointer(val);
+        return *(static_cast<iterator_type*>(this)->resolve_pointer(val));
     }
 
     /**
@@ -454,7 +455,7 @@ public:
      *
      * @return pointer
      */
-    pointer base() const { return this->point; }
+    pointer base() const { return &(this->point); }
 
 private:
     /// Current pointer we are on
@@ -463,7 +464,7 @@ private:
     /// The current sample we are on
     int index = 0;
 };
- 
+
 /**
  * @brief Class for holding signal data
  * 
@@ -616,6 +617,8 @@ public:
      * This iterator is useful if we need to apply the same operation to each
      * channel, and the order of each channel is important, or if we need the
      * 'pure' signal data without data from other channels mixed in.
+     * 
+     * You can think of this iterator as iterating over the rows of the audio data matrix.
      */
     template <typename V, bool IsConst = false>
     class SeqIterator : public BaseMAECIterator<Buffer::SeqIterator<V, IsConst>, V, IsConst> {
@@ -623,6 +626,7 @@ public:
        public:
         using BufferType = typename ChooseType<IsConst, const Buffer<T>, Buffer<T>>::type;
         using reference = typename BaseMAECIterator<Buffer::SeqIterator<V, IsConst>, V, IsConst>::reference;
+        using pointer = typename BaseMAECIterator<Buffer::SeqIterator<V, IsConst>, V, IsConst>::pointer;
 
         /**
          * @brief Default constructor for this iterator
@@ -694,8 +698,8 @@ public:
          * and return it many times.
          *
          */
-        reference resolve_pointer(int index) const {
-            return *(this->buff->buff.data() + (this->get_channel(index) + this->buff->channels() * this->get_sample(index)));
+        pointer resolve_pointer(int index) const {
+            return this->buff->buff.data() + (this->get_channel(index) + this->buff->channels() * this->get_sample(index));
         }
 
         /**
@@ -825,6 +829,9 @@ public:
      * very popular format for outputting signal data, as many libraries
      * represent signals in this format.
      * 
+     * You can also think of this iterator as iterating over the *columns*
+     * of the audio data matrix.
+     * 
      * TODO: See if we should add extra methods, like in SeqIterator...
      */
     template <typename V, bool IsConst = false>
@@ -833,6 +840,7 @@ public:
 
         using BufferType = typename ChooseType<IsConst, const Buffer<T>, Buffer<T>>::type;
         using reference = typename BaseMAECIterator<InterIterator<V, IsConst>, V, IsConst>::reference;
+        using pointer = typename BaseMAECIterator<InterIterator<V, IsConst>, V, IsConst>::pointer;
 
         /**
          * @brief Default constructor for this iterator
@@ -879,7 +887,7 @@ public:
          * and return it many times.
          *
          */
-        reference resolve_pointer(int index) const { return *(this->buff->buff.data() + index); }
+        pointer resolve_pointer(int index) const { return this->buff->buff.data() + index; }
 
         /**
          * @brief Gets the current channel we are on
@@ -1189,7 +1197,7 @@ public:
      * @return Total buffer capacity
      */
     std::size_t total_capacity() const { return this->csize * this->nchannels; }
-
+ 
     /**
      * @brief Pre-allocates the buffer to a certain size
      *
@@ -1638,8 +1646,8 @@ class RingBuffer {
          * with. This method is called automatically where necessary.
          *
          */
-        T& resolve_pointer(int index) {
-            return *(this->buff->buff.data() + this->buff->normalize_index(index));
+        T* resolve_pointer(int index) {
+            return this->buff->buff.data() + this->buff->normalize_index(index);
         }
 
        private:
