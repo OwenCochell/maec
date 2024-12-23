@@ -34,6 +34,8 @@
 #include <vector>
 #include <algorithm>
 
+#include "dsp/buffer.hpp"
+
 long double percent_diff(long double first, long double second) {
 
     // Get the diff:
@@ -55,6 +57,10 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     // Number of times to test:
 
     const int iterations = 10000;
+
+    // Number of channels:
+
+    const int chans = 5;
 
     // Create a normal vector:
 
@@ -149,7 +155,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         auto start = std::chrono::high_resolution_clock::now();
 
-        // Add values to the vector:
+        // Get values from the vector:
 
         for (int j = 0; j < num; j++) {
 
@@ -202,7 +208,6 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         auto start = std::chrono::high_resolution_clock::now();
 
-
         // Add values to the vector:
 
         for (int j = 0; j < num; j++) {
@@ -247,7 +252,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            //val = vec6[j];
+            val = vec6[j];
         }
 
         // Stop the clock:
@@ -612,6 +617,177 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
         vect5_read += std::chrono::duration<double, std::milli>(diff).count();
     }
 
+    // Test the read of the array:
+
+    long double maec_readi = 0;
+    long double maec_writei = 0;
+
+    long double maec_reads = 0;
+    long double maec_writes = 0;
+
+    // Create the buffer to utilize
+    // (pre-allocated)
+
+    Buffer<long double> buffer(num / chans, chans);
+
+    std::cout << "+====================================+" << std::endl;
+    std::cout << " --== [ testing maec buffer interleaved write performance... ] ==--"
+              << std::endl;
+
+    for (int i = 0; i < iterations; i++) {
+
+        // Start the clock:
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        // Add values to the vector:
+
+        for (auto iter = buffer.begin(); iter < buffer.end(); ++iter) {
+
+            *iter = 1;
+        }
+
+        // Stop the clock:
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Calculate the time:
+
+        auto diff = end - start;
+
+        // Print the time:
+
+        std::cout << "maec Array interleaved write time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diff).count()
+                  << " ms" << std::endl;
+
+        // Add to the total:
+
+        maec_writei += std::chrono::duration<double, std::milli>(diff).count();
+    }
+
+    std::cout << "+====================================+" << std::endl;
+    std::cout << " --== [ Testing maec buffer interleaved read performance... ] ==--"
+              << std::endl;
+
+    for (int i = 0; i < iterations; i++) {
+
+        long double val = 0;
+
+        // Start the clock:
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        // Add values to the vector:
+
+        for (auto iter = buffer.begin(); iter < buffer.end(); ++iter) {
+
+            val = *iter;
+        }
+
+        // Stop the clock:
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Increment the double, just to use it:
+
+        val++;
+
+        // Calculate the time:
+
+        auto diff = end - start;
+
+        // Print the time:
+
+        std::cout << "maec buffer interleaved read time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diff).count()
+                  << " ms" << std::endl;
+
+        // Add to the total:
+
+        maec_readi += std::chrono::duration<double, std::milli>(diff).count();
+    }
+
+    std::cout << "+====================================+" << std::endl;
+    std::cout
+        << " --== [ testing maec buffer sequential write performance... ] ==--"
+        << std::endl;
+
+    for (int i = 0; i < iterations; i++) {
+
+        // Start the clock:
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        // Add values to the vector:
+
+        for (auto iter = buffer.sbegin(); iter < buffer.send(); ++iter) {
+
+            *iter = 1;
+        }
+
+        // Stop the clock:
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Calculate the time:
+
+        auto diff = end - start;
+
+        // Print the time:
+
+        std::cout << "maec buffer sequential write time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diff).count()
+                  << " ms" << std::endl;
+
+        // Add to the total:
+
+        maec_writes += std::chrono::duration<double, std::milli>(diff).count();
+    }
+
+    std::cout << "+====================================+" << std::endl;
+    std::cout
+        << " --== [ Testing maec buffer sequential read performance... ] ==--"
+        << std::endl;
+
+    for (int i = 0; i < iterations; i++) {
+
+        long double val = 0;
+
+        // Start the clock:
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        // Add values to the vector:
+
+        for (auto iter = buffer.sbegin(); iter < buffer.send(); ++iter) {
+
+            val = *iter;
+        }
+
+        // Stop the clock:
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Increment the double, just to use it:
+
+        val++;
+
+        // Calculate the time:
+
+        auto diff = end - start;
+
+        // Print the time:
+
+        std::cout << "maec buffer interleaved read time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diff).count()
+                  << " ms" << std::endl;
+
+        // Add to the total:
+
+        maec_reads += std::chrono::duration<double, std::milli>(diff).count();
+    }
+
     // Return the results:
 
     std::cout << "+================================================+"
@@ -633,6 +809,11 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     std::cout << "Dynamic array average write time: "
               << vect5_write / iterations << " ms" << std::endl;
 
+    std::cout << "MAEC buffer interleaved write: " << maec_writei / iterations << " ms"
+              << "\n";
+    std::cout << "MAEC buffer sequential write: " << maec_writes / iterations << " ms"
+              << "\n";
+
     std::cout << "  --== [ Vector Read Times: ] ==--" << std::endl;
 
     std::cout << "Vector average read time: " << vect_read / iterations << " ms"
@@ -645,9 +826,13 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
               << std::endl;
     std::cout << "Dynamic array average read time: " << vect5_read / iterations
               << " ms" << std::endl;
+    std::cout << "MAEC buffer interleaved read time: " << maec_readi / iterations << " ms"
+              << "\n";
+    std::cout << "MAEC buffer sequential read time: "
+              << maec_reads / iterations << " ms"
+              << "\n";
 
-    std::cout << "+================================================+"
-              << std::endl;
+    std::cout << "+================================================+" << std::endl;
     std::cout << " --== [ Comparisons ] ==--" << std::endl;
     std::cout << "Array write time is "
               << percent_diff(vect4_write / iterations,
