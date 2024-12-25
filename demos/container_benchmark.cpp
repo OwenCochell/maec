@@ -31,6 +31,7 @@
 #include <chrono>
 #include <cmath>
 #include <iostream>
+#include <ratio>
 #include <vector>
 #include <algorithm>
 
@@ -82,18 +83,17 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
     std::vector<long double> vec6;
 
-    std::cout << "+====================================+" << std::endl;
-    std::cout << " !Benchmarking container performance!" << std::endl;
-    std::cout << "+====================================+" << std::endl;
+    std::cout << "+====================================+" << '\n';
+    std::cout << " !Benchmarking container performance!" << '\n';
+    std::cout << "+====================================+" << '\n';
 
     // Determine if our clock is steady:
 
     if (!std::chrono::high_resolution_clock::is_steady) {
 
-        std::cout << "Warning: high_resolution_clock is not steady!"
-                  << std::endl;
-        std::cout << "This may cause inaccurate results." << std::endl;
-        std::cout << "+====================================+" << std::endl;
+        std::cout << "Warning: high_resolution_clock is not steady!" << '\n';
+        std::cout << "This may cause inaccurate results." << '\n';
+        std::cout << "+====================================+" << '\n';
     }
 
     // Alright, test the vector:
@@ -101,8 +101,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     long double vect_read = 0;
     long double vect_write = 0;
 
-    std::cout << " --== [ Testing vector write performance... ] ==--"
-              << std::endl;
+    std::cout << " --== [ Testing vector write performance... ] ==--" << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
@@ -134,7 +133,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "Vector write time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -143,13 +142,10 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
     // Test the read of the vector:
 
-    std::cout << "+====================================+" << std::endl;
-    std::cout << " --== [ Testing vector read performance... ] ==--"
-              << std::endl;
+    std::cout << "+====================================+" << '\n';
+    std::cout << " --== [ Testing vector read performance... ] ==--" << '\n';
 
     for (int i = 0; i < iterations; i++) {
-
-        long double val = 0;
 
         // Start the clock:
 
@@ -159,16 +155,12 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            val = vec[j];
+            const volatile long double val = vec[j];
         }
 
         // Stop the clock:
 
         auto end = std::chrono::high_resolution_clock::now();
-
-        // Increment the double, just to use it:
-
-        val++;
 
         // Calculate the time:
 
@@ -178,7 +170,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "Vector read time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -191,7 +183,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     long double vectr_write = 0;
 
     std::cout << " --== [ Testing reserved vector write performance... ] ==--"
-              << std::endl;
+              << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
@@ -227,7 +219,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "Reserved vector write time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -236,15 +228,13 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
     // Test the read of the vector:
 
-    std::cout << "+====================================+" << std::endl;
+    std::cout << "+====================================+" << '\n';
     std::cout << " --== [ Testing reserved vector read performance... ] ==--"
-              << std::endl;
+              << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
         // Start the clock:
-
-        long double val = 0;
 
         auto start = std::chrono::high_resolution_clock::now();
 
@@ -252,16 +242,12 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            val = vec6[j];
+            const volatile long double val = vec6[j];
         }
 
         // Stop the clock:
 
         auto end = std::chrono::high_resolution_clock::now();
-
-        // Increment the double, just to use it:
-
-        val++;
 
         // Calculate the time:
 
@@ -271,7 +257,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "Reserved vector read time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -283,10 +269,10 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     long double vect2_read = 0;
     long double vect2_write = 0;
 
-    std::cout << "+====================================+" << std::endl;
+    std::cout << "+====================================+" << '\n';
     std::cout
         << " --== [ Testing pre-allocated vector write performance... ] ==--"
-        << std::endl;
+        << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
@@ -320,7 +306,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "Prealloc-Vector write time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -331,10 +317,10 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
     long double vect2f_write = 0;
 
-    std::cout << "+====================================+" << std::endl;
-    std::cout
-        << " --== [ Testing pre-allocated vector assignment write performance... ] ==--"
-        << std::endl;
+    std::cout << "+====================================+" << '\n';
+    std::cout << " --== [ Testing pre-allocated vector assignment write "
+                 "performance... ] ==--"
+              << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
@@ -358,7 +344,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "Prealloc-Vector fill write time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -369,10 +355,10 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
     long double vect2i_write = 0;
 
-    std::cout << "+====================================+" << std::endl;
+    std::cout << "+====================================+" << '\n';
     std::cout
         << " --== [ Testing pre-allocated vector write performance... ] ==--"
-        << std::endl;
+        << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
@@ -384,7 +370,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (auto iter = vec2.begin(); iter < vec2.end(); ++iter) {  //
 
-            *iter = 0;
+            *iter = 1;
         }
 
         // Stop the clock:
@@ -399,7 +385,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "Prealloc-Vector iterator write time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -408,14 +394,12 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
     // Test the read of the prealloc-vector:
 
-    std::cout << "+====================================+" << std::endl;
+    std::cout << "+====================================+" << '\n';
     std::cout
         << " --== [ Testing pre-allocated vector read performance... ] ==--"
-        << std::endl;
+        << '\n';
 
     for (int i = 0; i < iterations; i++) {
-
-        long double val = 0;
 
         // Start the clock:
 
@@ -425,16 +409,12 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            //val = vec2[j];
+            const volatile long double val = vec2[j];
         }
 
         // Stop the clock:
 
         auto end = std::chrono::high_resolution_clock::now();
-
-        // Increment the double, just to use it:
-
-        val++;
 
         // Calculate the time:
 
@@ -444,7 +424,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "Prealloc-Vector read time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -456,9 +436,8 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     long double vect4_read = 0;
     long double vect4_write = 0;
 
-    std::cout << "+====================================+" << std::endl;
-    std::cout << " --== [ testing array write performance... ] ==--"
-              << std::endl;
+    std::cout << "+====================================+" << '\n';
+    std::cout << " --== [ testing array write performance... ] ==--" << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
@@ -485,20 +464,17 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "Array write time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
         vect4_write += std::chrono::duration<double, std::milli>(diff).count();
     }
 
-    std::cout << "+====================================+" << std::endl;
-    std::cout << " --== [ Testing array read performance... ] ==--"
-              << std::endl;
+    std::cout << "+====================================+" << '\n';
+    std::cout << " --== [ Testing array read performance... ] ==--" << '\n';
 
     for (int i = 0; i < iterations; i++) {
-
-        long double val = 0;
 
         // Start the clock:
 
@@ -508,16 +484,12 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            val = vec4[j];  // NOLINT: Not sure worried about safe memory usage
+            volatile long double val = vec4[j];  // NOLINT: Not sure worried about safe memory usage
         }
 
         // Stop the clock:
 
         auto end = std::chrono::high_resolution_clock::now();
-
-        // increment the double, just to use it:
-
-        val++;
 
         // Calculate the time:
 
@@ -527,7 +499,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "Array read time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -539,9 +511,9 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     long double vect5_read = 0;
     long double vect5_write = 0;
 
-    std::cout << "+====================================+" << std::endl;
+    std::cout << "+====================================+" << '\n';
     std::cout << " --== [ testing dynamic array write performance... ] ==--"
-              << std::endl;
+              << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
@@ -568,20 +540,18 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "Dynamic Array write time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
         vect5_write += std::chrono::duration<double, std::milli>(diff).count();
     }
 
-    std::cout << "+====================================+" << std::endl;
+    std::cout << "+====================================+" << '\n';
     std::cout << " --== [ Testing dynamic array read performance... ] ==--"
-              << std::endl;
+              << '\n';
 
     for (int i = 0; i < iterations; i++) {
-
-        long double val = 0;
 
         // Start the clock:
 
@@ -591,16 +561,12 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            val = vec5[j];  // NOLINT: Pointer arithmetic is necessary here
+            volatile long double val = vec5[j];  // NOLINT: Pointer arithmetic is necessary here
         }
 
         // Stop the clock:
 
         auto end = std::chrono::high_resolution_clock::now();
-
-        // Increment the double, just to use it:
-
-        val++;
 
         // Calculate the time:
 
@@ -610,7 +576,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "Dynamic Array read time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -630,9 +596,10 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
     Buffer<long double> buffer(num / chans, chans);
 
-    std::cout << "+====================================+" << std::endl;
-    std::cout << " --== [ testing maec buffer interleaved write performance... ] ==--"
-              << std::endl;
+    std::cout << "+====================================+" << '\n';
+    std::cout
+        << " --== [ testing maec buffer interleaved write performance... ] ==--"
+        << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
@@ -659,20 +626,19 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "maec Array interleaved write time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
         maec_writei += std::chrono::duration<double, std::milli>(diff).count();
     }
 
-    std::cout << "+====================================+" << std::endl;
-    std::cout << " --== [ Testing maec buffer interleaved read performance... ] ==--"
-              << std::endl;
+    std::cout << "+====================================+" << '\n';
+    std::cout
+        << " --== [ Testing maec buffer interleaved read performance... ] ==--"
+        << '\n';
 
     for (int i = 0; i < iterations; i++) {
-
-        long double val = 0;
 
         // Start the clock:
 
@@ -682,16 +648,12 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (auto iter = buffer.begin(); iter < buffer.end(); ++iter) {
 
-            val = *iter;
+            const volatile long double val = *iter;
         }
 
         // Stop the clock:
 
         auto end = std::chrono::high_resolution_clock::now();
-
-        // Increment the double, just to use it:
-
-        val++;
 
         // Calculate the time:
 
@@ -701,17 +663,17 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "maec buffer interleaved read time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
         maec_readi += std::chrono::duration<double, std::milli>(diff).count();
     }
 
-    std::cout << "+====================================+" << std::endl;
+    std::cout << "+====================================+" << '\n';
     std::cout
         << " --== [ testing maec buffer sequential write performance... ] ==--"
-        << std::endl;
+        << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
@@ -738,21 +700,19 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "maec buffer sequential write time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
         maec_writes += std::chrono::duration<double, std::milli>(diff).count();
     }
 
-    std::cout << "+====================================+" << std::endl;
+    std::cout << "+====================================+" << '\n';
     std::cout
         << " --== [ Testing maec buffer sequential read performance... ] ==--"
-        << std::endl;
+        << '\n';
 
     for (int i = 0; i < iterations; i++) {
-
-        long double val = 0;
 
         // Start the clock:
 
@@ -762,16 +722,12 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (auto iter = buffer.sbegin(); iter < buffer.send(); ++iter) {
 
-            val = *iter;
+            const volatile long double val = *iter;
         }
 
         // Stop the clock:
 
         auto end = std::chrono::high_resolution_clock::now();
-
-        // Increment the double, just to use it:
-
-        val++;
 
         // Calculate the time:
 
@@ -781,7 +737,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         std::cout << "maec buffer interleaved read time [" << i << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -790,75 +746,71 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
     // Return the results:
 
-    std::cout << "+================================================+"
-              << std::endl;
-    std::cout << "         --== [ Vector Write Times ] ==--" << std::endl;
+    std::cout << "+================================================+" << '\n';
+    std::cout << "         --== [ Vector Write Times ] ==--" << '\n';
 
     std::cout << "Vector average write time: " << vect_write / iterations
-              << " ms" << std::endl;
+              << " ms" << '\n';
     std::cout << "Prealloc-Vector average assignment write time: "
-              << vect2_write / iterations << " ms" << std::endl;
+              << vect2_write / iterations << " ms" << '\n';
     std::cout << "Prealloc-Vector average fill write time: "
-              << vect2f_write / iterations << " ms" << std::endl;
+              << vect2f_write / iterations << " ms" << '\n';
     std::cout << "Prealloc-Vector average iterator write time: "
-              << vect2i_write / iterations << " ms" << std::endl;
+              << vect2i_write / iterations << " ms" << '\n';
     std::cout << "Reserved Vector average write time: "
-              << vectr_write / iterations << " ms" << std::endl;
+              << vectr_write / iterations << " ms" << '\n';
     std::cout << "Array average write time: " << vect4_write / iterations
-              << " ms" << std::endl;
+              << " ms" << '\n';
     std::cout << "Dynamic array average write time: "
-              << vect5_write / iterations << " ms" << std::endl;
+              << vect5_write / iterations << " ms" << '\n';
 
     std::cout << "MAEC buffer interleaved write: " << maec_writei / iterations << " ms"
               << "\n";
     std::cout << "MAEC buffer sequential write: " << maec_writes / iterations << " ms"
               << "\n";
 
-    std::cout << "  --== [ Vector Read Times: ] ==--" << std::endl;
+    std::cout << "  --== [ Vector Read Times: ] ==--" << '\n';
 
     std::cout << "Vector average read time: " << vect_read / iterations << " ms"
-              << std::endl;
+              << '\n';
     std::cout << "Prealloc-Vector average read time: "
-              << vect2_read / iterations << " ms" << std::endl;
+              << vect2_read / iterations << " ms" << '\n';
     std::cout << "Reserved Vector average read time: "
-              << vectr_read / iterations << " ms" << std::endl;
+              << vectr_read / iterations << " ms" << '\n';
     std::cout << "Array average read time: " << vect4_read / iterations << " ms"
-              << std::endl;
+              << '\n';
     std::cout << "Dynamic array average read time: " << vect5_read / iterations
-              << " ms" << std::endl;
+              << " ms" << '\n';
     std::cout << "MAEC buffer interleaved read time: " << maec_readi / iterations << " ms"
               << "\n";
     std::cout << "MAEC buffer sequential read time: "
               << maec_reads / iterations << " ms"
               << "\n";
 
-    std::cout << "+================================================+" << std::endl;
-    std::cout << " --== [ Comparisons ] ==--" << std::endl;
+    std::cout << "+================================================+" << '\n';
+    std::cout << " --== [ Comparisons ] ==--" << '\n';
     std::cout << "Array write time is "
               << percent_diff(vect4_write / iterations,
                               vect2_write / iterations)
-              << " percent faster than preallocated vector write time."
-              << std::endl;
+              << " percent faster than preallocated vector write time." << '\n';
     std::cout << "Array read time is "
               << percent_diff(vect4_read / iterations, vect2_read / iterations)
-              << " percent faster than preallocated vector read time."
-              << std::endl;
+              << " percent faster than preallocated vector read time." << '\n';
 
     std::cout << "Prealloc-Vector write time is "
               << percent_diff(vect2_write / iterations, vect_read / iterations)
-              << " percent faster than normal vector write time." << std::endl;
+              << " percent faster than normal vector write time." << '\n';
     std::cout << "Prealloc-Vector read time is "
               << percent_diff(vect2_read / iterations, vect_read / iterations)
-              << " percent faster than normal vector write time." << std::endl;
+              << " percent faster than normal vector write time." << '\n';
 
     std::cout << "Reserved-Vector write time is "
-              << percent_diff(vect2_write,
-                              vectr_write)
-              << " percent faster than prealloc-vector write time."
-              << std::endl;
+              << percent_diff(vect2_write, vectr_write)
+              << " percent faster than prealloc-vector write time." << '\n';
     std::cout << "Reserved-Vector read time is "
               << percent_diff(vect2_read, vectr_read)
-              << " percent faster than prealloc-vector vector read time." << std::endl;
+              << " percent faster than prealloc-vector vector read time."
+              << '\n';
 
     return 0;
 }
