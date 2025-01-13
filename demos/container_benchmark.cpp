@@ -53,7 +53,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
     // Number of values to test:
 
-    const int num = 5000;
+    const int num = 100;
 
     // Number of times to test:
 
@@ -744,6 +744,167 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
         maec_reads += std::chrono::duration<double, std::milli>(diff).count();
     }
 
+    // Test the read of the array:
+
+    long double smaec_readi = 0;
+    long double smaec_writei = 0;
+
+    long double smaec_reads = 0;
+    long double smaec_writes = 0;
+
+    // Create the buffer to utilize
+    // (pre-allocated)
+
+    StaticBuffer<long double, num> sbuffer;
+
+    std::cout << "+====================================+" << '\n';
+    std::cout
+        << " --== [ testing maec static buffer interleaved write performance... ] ==--"
+        << '\n';
+
+    for (int i = 0; i < iterations; i++) {
+
+        // Start the clock:
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        // Add values to the vector:
+
+        for (auto iter = sbuffer.begin(); iter < sbuffer.end(); ++iter) {
+
+            *iter = 1;
+        }
+
+        // Stop the clock:
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Calculate the time:
+
+        auto diff = end - start;
+
+        // Print the time:
+
+        std::cout << "maec static buffer interleaved write time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diff).count()
+                  << " ms" << '\n';
+
+        // Add to the total:
+
+        smaec_writei += std::chrono::duration<double, std::milli>(diff).count();
+    }
+
+    std::cout << "+====================================+" << '\n';
+    std::cout
+        << " --== [ Testing maec static buffer interleaved read performance... ] ==--"
+        << '\n';
+
+    for (int i = 0; i < iterations; i++) {
+
+        // Start the clock:
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        // Add values to the vector:
+
+        for (auto iter = sbuffer.begin(); iter < sbuffer.end(); ++iter) {
+
+            const volatile long double val = *iter;
+        }
+
+        // Stop the clock:
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Calculate the time:
+
+        auto diff = end - start;
+
+        // Print the time:
+
+        std::cout << "maec static buffer interleaved read time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diff).count()
+                  << " ms" << '\n';
+
+        // Add to the total:
+
+        smaec_readi += std::chrono::duration<double, std::milli>(diff).count();
+    }
+
+    std::cout << "+====================================+" << '\n';
+    std::cout
+        << " --== [ testing maec static buffer sequential write performance... ] ==--"
+        << '\n';
+
+    for (int i = 0; i < iterations; i++) {
+
+        // Start the clock:
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        // Add values to the vector:
+
+        for (auto iter = sbuffer.sbegin(); iter < sbuffer.send(); ++iter) {
+
+            *iter = 1;
+        }
+
+        // Stop the clock:
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Calculate the time:
+
+        auto diff = end - start;
+
+        // Print the time:
+
+        std::cout << "maec static buffer sequential write time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diff).count()
+                  << " ms" << '\n';
+
+        // Add to the total:
+
+        smaec_writes += std::chrono::duration<double, std::milli>(diff).count();
+    }
+
+    std::cout << "+====================================+" << '\n';
+    std::cout
+        << " --== [ Testing maec static buffer sequential read performance... ] ==--"
+        << '\n';
+
+    for (int i = 0; i < iterations; i++) {
+
+        // Start the clock:
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        // Add values to the vector:
+
+        for (auto iter = sbuffer.sbegin(); iter < sbuffer.send(); ++iter) {
+
+            const volatile long double val = *iter;
+        }
+
+        // Stop the clock:
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Calculate the time:
+
+        auto diff = end - start;
+
+        // Print the time:
+
+        std::cout << "maec static buffer interleaved read time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diff).count()
+                  << " ms" << '\n';
+
+        // Add to the total:
+
+        smaec_reads += std::chrono::duration<double, std::milli>(diff).count();
+    }
+
     // Return the results:
 
     std::cout << "+================================================+" << '\n';
@@ -768,6 +929,12 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
               << "\n";
     std::cout << "MAEC buffer sequential write: " << maec_writes / iterations << " ms"
               << "\n";
+    std::cout << "MAEC static buffer interleaved write: " << smaec_writei / iterations
+              << " ms"
+              << "\n";
+    std::cout << "MAEC static buffer sequential write: " << smaec_writes / iterations
+              << " ms"
+              << "\n";
 
     std::cout << "  --== [ Vector Read Times: ] ==--" << '\n';
 
@@ -785,6 +952,12 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
               << "\n";
     std::cout << "MAEC buffer sequential read time: "
               << maec_reads / iterations << " ms"
+              << "\n";
+    std::cout << "MAEC static buffer interleaved read time: "
+              << smaec_readi / iterations << " ms"
+              << "\n";
+    std::cout << "MAEC static buffer sequential read time: " << smaec_reads / iterations
+              << " ms"
               << "\n";
 
     std::cout << "+================================================+" << '\n';
@@ -810,6 +983,15 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     std::cout << "Reserved-Vector read time is "
               << percent_diff(vect2_read, vectr_read)
               << " percent faster than prealloc-vector vector read time."
+              << '\n';
+
+    std::cout << "Static MAEC Buffer interleaved read time is "
+              << percent_diff(smaec_readi, maec_readi)
+              << " percent faster than MAEC Buffer interleaved read time."
+              << '\n';
+    std::cout << "Static MAEC Buffer interleaved write time is "
+              << percent_diff(smaec_writei, maec_writei)
+              << " percent faster than MAEC Buffer interleaved write time."
               << '\n';
 
     return 0;

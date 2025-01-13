@@ -22,7 +22,7 @@ std::unique_ptr<AudioBuffer> create_buffer(int size, int channels) {
     return std::make_unique<AudioBuffer>(size, channels);
 }
 
-std::unique_ptr<AudioBuffer> create_buffer(int size, int channels, int sample_rate) {
+std::unique_ptr<AudioBuffer> create_buffer(int size, int channels, double sample_rate) {
 
     // Allocate the new buffer:
 

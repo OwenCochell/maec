@@ -735,6 +735,8 @@ TEST_CASE("Wave Writer", "[io][wav]") {
 
         // Create a buffer with audio data to write:
 
+        auto thing = data_wavs.size();
+
         BufferPointer buff = std::make_unique<AudioBuffer>(data_wavs.size());
 
         // Convert values:
@@ -989,12 +991,11 @@ TEST_CASE("Random Wave", "[io][wav]") {
 
     // Ensure frames are the same:
 
-    REQUIRE(outb->total_capacity() == backup.total_capacity());
     REQUIRE(outb->channels() == backup.channels());
     REQUIRE(outb->channel_capacity() == backup.channel_capacity());
     REQUIRE(outb->size() == backup.size());
 
-    for (int i = 0; i < outb->total_capacity(); ++i) {
+    for (int i = 0; i < outb->size(); ++i) {
 
         // Ensure samples are the same:
 

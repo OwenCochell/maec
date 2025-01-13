@@ -532,7 +532,7 @@ void WaveWriter::write_data(BufferPointer data) {
 
     // Create vector of data to write:
 
-    std::vector<char> odata(data->total_capacity() * this->get_bytes_per_sample());
+    std::vector<char> odata(data->size() * this->get_bytes_per_sample());
 
     // Determine which encoding path to go down:
 

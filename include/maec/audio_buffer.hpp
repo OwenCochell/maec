@@ -51,7 +51,7 @@ std::unique_ptr<AudioBuffer> create_buffer(int size, int channels);
  * @param sample_rate Sample rate of audio data
  * @return std::unique_ptr<AudioBuffer> Newly created buffer
  */
-std::unique_ptr<AudioBuffer> create_buffer(int size, int channels, int sample_rate);
+std::unique_ptr<AudioBuffer> create_buffer(int size, int channels, double sample_rate);
 
 /**
  * @brief Components that squish and split audio buffers.

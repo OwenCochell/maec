@@ -18,6 +18,9 @@
 
 #include <iterator>
 #include <vector>
+#include <array>
+#include <initializer_list>
+#include <concepts>
 
 #include "const.hpp"
 #include "util.hpp"
@@ -31,7 +34,6 @@
  * classes MUST implement and utilize!
  * We implement random access iterators,
  * so all of the operators are implemented and working.
- *
  * Any iterators using this class are STL compatable!
  * You can pass any iterators to STL methods that expect them.
  * One useful application of this is the algorithms library,
@@ -43,7 +45,7 @@
  * We use upside down inheritance to add this functionality without virtual
  * functions!
  *
- * @tparam C The class that derives from this class.
+ * @tparam I The class that derives from this class.
  * @tparam T The typename this iterator will iterate over
  */
 template <class I, typename T, bool IsConst = false>
@@ -466,6 +468,25 @@ private:
 };
 
 /**
+ * @brief A concepts that defines valid container to be used
+ * 
+ * We require the following features for any containers used
+ * in maec buffers.
+ * 
+ * @tparam T Type to check
+ */
+template <typename T>
+concept BufferContainer = requires(T typ) {
+
+    typ[0];  // Values can be accessed through subscripting
+    typ.size();  // Has a size function
+    typ.begin();  // Can start iteration
+    typ.end();  // Can stop iteration
+    typ.data();  // Access underlying data
+};
+
+/**
+ * 
  * @brief Class for holding signal data
  * 
  * This class allows for arbitrary signal data to be stored,
@@ -580,9 +601,23 @@ private:
  * Also implement reverse constant iterators?
  *
  */
-template <typename T>
-class Buffer {
+template <BufferContainer B, typename T = B::value_type>
+class BaseBuffer {
 public:
+
+    ///
+    // Some traits for this container
+    ///
+
+    using value_type = T;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+
+    using container = B;  /// Container this class utilizes
 
     /**
      * @brief An iterator that iterates over signal data sequentially
@@ -620,13 +655,13 @@ public:
      * 
      * You can think of this iterator as iterating over the rows of the audio data matrix.
      */
-    template <typename V, bool IsConst = false>
-    class SeqIterator : public BaseMAECIterator<Buffer::SeqIterator<V, IsConst>, V, IsConst> {
+    template <bool IsConst = false>
+    class SeqIterator : public BaseMAECIterator<BaseBuffer::SeqIterator<IsConst>, T, IsConst> {
 
        public:
-        using BufferType = typename ChooseType<IsConst, const Buffer<T>, Buffer<T>>::type;
-        using reference = typename BaseMAECIterator<Buffer::SeqIterator<V, IsConst>, V, IsConst>::reference;
-        using pointer = typename BaseMAECIterator<Buffer::SeqIterator<V, IsConst>, V, IsConst>::pointer;
+        using BufferType = typename ChooseType<IsConst, const BaseBuffer<B, T>, BaseBuffer<B, T>>::type;
+        using reference = typename BaseMAECIterator<BaseBuffer::SeqIterator<IsConst>, T, IsConst>::reference;
+        using pointer = typename BaseMAECIterator<BaseBuffer::SeqIterator<IsConst>, T, IsConst>::pointer;
 
         /**
          * @brief Default constructor for this iterator
@@ -652,8 +687,7 @@ public:
          * @param buff The Buffer we are iterating over
          * @param pos The index to start at
          */
-        explicit SeqIterator(BufferType* buff, int pos = 0) {
-            this->buff = buff;
+        explicit SeqIterator(BufferType* buff, int pos = 0) : buff(buff) {
             this->set_index(pos);
         }
 
@@ -728,7 +762,7 @@ public:
          * @param sample Index of the position within the given channel
          */
         void set_position(int channel, int sample) {
-            this->set_index(channel * this->buff->channel_capacity() + sample);
+            this->set_index((channel * this->buff->channel_capacity()) + sample);
         }
 
         /**
@@ -782,8 +816,8 @@ public:
             // MSVC release mode and all other compilers don't have an issue
             // with this line
             return static_cast<int>(index /
-                                    this->buff->channel_capacity()) %
-                   this->buff->channels();
+                                    this->buff.channel_capacity()) %
+                   this->buff.channels();
 #else
             return static_cast<int>(index /
                                     this->buff->channel_capacity());
@@ -791,7 +825,7 @@ public:
         }
 
         /// Audio Buffer we are iterating over
-        BufferType* buff = nullptr;
+        BufferType* buff;
     };
 
     /**
@@ -834,13 +868,13 @@ public:
      * 
      * TODO: See if we should add extra methods, like in SeqIterator...
      */
-    template <typename V, bool IsConst = false>
-    class InterIterator : public BaseMAECIterator<InterIterator<V, IsConst>, V, IsConst> {
+    template <bool IsConst = false>
+    class InterIterator : public BaseMAECIterator<InterIterator<IsConst>, T, IsConst> {
     public:
 
-        using BufferType = typename ChooseType<IsConst, const Buffer<T>, Buffer<T>>::type;
-        using reference = typename BaseMAECIterator<InterIterator<V, IsConst>, V, IsConst>::reference;
-        using pointer = typename BaseMAECIterator<InterIterator<V, IsConst>, V, IsConst>::pointer;
+        using BufferType = typename ChooseType<IsConst, const BaseBuffer<B, T>, BaseBuffer<B, T>>::type;
+        using reference = typename BaseMAECIterator<InterIterator<IsConst>, T, IsConst>::reference;
+        using pointer = typename BaseMAECIterator<InterIterator<IsConst>, T, IsConst>::pointer;
 
         /**
          * @brief Default constructor for this iterator
@@ -977,7 +1011,7 @@ public:
          * @param sample Sample to seek to
          */
         void set_position(int channel, int sample) {
-            this->set_index(this->buff->channels() * sample + channel);
+            this->set_index((this->buff->channels() * sample) + channel);
         }
 
     private:
@@ -1005,105 +1039,145 @@ public:
         }
 
         /// Buffer we are iterating over
-        BufferType* buff = nullptr;
+        BufferType* buff;
     };
 
-    Buffer() =default;
-
     /**
-     * @brief Construct a new Audio Buffer object
+     * @brief Default constructor
      * 
-     * Please be aware, this vector will be empty!
-     * You will need to fill it with you own data for things to work correctly.
-     *
-     * @param size The size of each channel, AKA the number of samples per channel
-     * @param channels The number of channels in this buffer, by default 1
-     */
-    explicit Buffer(int size, int channels = 1, double sra = SAMPLE_RATE) : csize(size), nchannels(channels), sample_rate(sra), buff(size*channels) {
-
-        // Reserve the buffer with the given info:
-
-        this->reserve();
-    }
-
-    /**
-     * @brief Construct a new Audio Buffer object
-     *
-     * We will utilize the given channel count and size,
-     * and configure ourselves as necessary.
-     * We will set the vector contents as provided,
-     * so it is recommended to provide your multi-channel
-     * data in interleaved format.
+     * We use the braced initializer to ensure our container 
+     * gets initialzed correctly.
      * 
-     * @param vect Vector of samples
-     * @param channels Number of channels
      */
-    explicit Buffer(const std::vector<T>& vect, int channels = 1) : buff(vect) {
-
-        // First, set the size and channels:
-
-        this->set_channels(channels);
-        this->set_channel_capacity(vect.size() / channels);
-
-        // Next, reserve:
-
-        this->reserve();
-    }
+    constexpr BaseBuffer() : buff{} {};
 
     /**
-     * @brief Construct a new Audio Buffer object
-     *
-     * We create an Buffer via the given vector.
-     * This vector is two dimensional,
-     * meaning that it is a vector of channels
-     * that contain samples.
-     * Each sub-vector MUST be the same size!
-     *
-     * We automatically determine the channels number and size this
-     * Buffer using the given vector.
-     *
-     * @param vect Vector of channels
+     * @brief Constructs with size, channels, and sample rate
+     * 
+     * This constructor will populate channel count, sample rate,
+     * and channel capacity with the given values.
+     * It will also pass the size to the constructor of the underlying container.
+     * 
+     * If the underlying container does not support the passing of an initial size,
+     * then child Buffers should NOT call this function!
+     * 
+     * TODO: Should size be total size of the buffer, or size of each channel?
+     * It seems like with other constructors, we intepret size to be the size of the buffer,
+     * but those also imply copying from a destination, so the sizes need to match.
+     * Something needs to be done here
+     * 
+     * @param size Total size of each channel
+     * @param channels Number of channels to utilize
+     * @param sra Sample rate to utilize
      */
-    explicit Buffer(const std::vector<std::vector<T>>& vect) {
+    constexpr BaseBuffer(int size, int channels = 1, double sra = SAMPLE_RATE)
+        : buff(size * channels),
+          nchannels(channels),
+          sample_rate(sra) {}
 
-        // First, set the number of channels and channel size
+    /**
+     * @brief Constructs with size, channels, and sample rate
+     *
+     * Identical to above constructor, but uses size_t for channel size
+     * (great for standard library compatibility!) 
+     *
+     * @param size Total size of each channel
+     * @param channels Number of channels to utilize
+     * @param sra Sample rate to utilize
+     */
+    constexpr BaseBuffer(std::size_t size, int channels = 1, double sra = SAMPLE_RATE)
+        : buff(size * channels),
+          nchannels(channels),
+          sample_rate(sra) {}
 
-        this->set_channels(vect.size());
-        this->set_channel_capacity(vect[0].size());
+    /**
+     * @brief Constructs using the copy constructor of the underlying container
+     * 
+     * This constructor utilizes the copy constructor of the underlying container,
+     * allowing for any behaviors realted to that to be evaluated.
+     * 
+     * The contents of this vector MUST be in interleaved format,
+     * as it will be directly copied into the underlying container.
+     * Users can provide the number of channels present so we can correctly
+     * intepret the contents of this buffer.
+     * 
+     * @param vect Container to copy into underlying container
+     * @param channels Number of channels present
+     */
+    constexpr explicit BaseBuffer(const B& vect, int channels = 1, double sra = SAMPLE_RATE) : buff(vect), nchannels(channels), sample_rate(sra) {}
 
-        // Reserve the data:
+    /**
+     * @brief Constructs using the iterator constructor of the undelying container
+     * 
+     * This constructor utilizes the iterator constructor of the underlying container,
+     * allowing for data from an arbitrary container to be copied into this buffer.
+     * 
+     * Users must provide a start and end iterator, which will be iterated upon
+     * and copied into the underlying buffer. 
+     * 
+     * @tparam ITER1 Type of start iterator
+     * @tparam ITER2 Type of stop iterator
+     * @param begin Start iterator
+     * @param end Stop iterator
+     * @param channels Number of channels present
+     */
+    template <std::input_iterator ITER1, std::input_iterator ITER2>
+    constexpr explicit BaseBuffer(const ITER1& begin, const ITER2& end, int channels = 1, double sra = SAMPLE_RATE) : buff(begin, end), nchannels(channels), sample_rate(sra) {}
 
-        this->reserve();
+    /**
+     * @brief Constructs using an initializer list
+     *
+     * This constructor utilizes the initializer list constructor of the underlying container,
+     * allowing for the container to be initialized to some value. 
+     * 
+     * @param list Initializer list to utilize 
+     * @param channels Number of channels to utilize
+     * @param sra Sample rate to utilize
+     */
+    constexpr BaseBuffer(const std::initializer_list<T>& list, int channels = 1, double sra = SAMPLE_RATE) : buff(list), nchannels(channels), sample_rate(sra) {}
 
-        // Iterate over the number of samples:
-
-        for (int i = 0; i < this->channel_capacity(); ++i) {
-
-            // Iterate over the number of channels:
-
-            for (int j = 0; j < this->channels(); ++j) {
-
-                // Push the value to the back of the buffer:
-
-                this->buff.push_back(vect[j][i]);
-            }
-        }
-    }
+    /**
+     * @brief Constructs using variadic templates
+     * 
+     * This constructor utilizes the variadic template constructor of the underlying container,
+     * which usually means the container can have values placed into it at compile time.
+     * 
+     * @tparam A Type to be placed into container, MUST be convertible to T  
+     */
+    template <typename... A>
+        requires(std::convertible_to<A, T> && ...)
+    constexpr BaseBuffer(A... vals) : buff{vals...} {}
 
     /// Destructor
-    ~Buffer() = default;
+    constexpr ~BaseBuffer() = default;
 
     /// Copy constructor
-    Buffer(const Buffer&) = default;
+    constexpr BaseBuffer(const BaseBuffer&) = default;
 
     /// Move Constructor
-    Buffer(Buffer&&) noexcept = default;
+    constexpr BaseBuffer(BaseBuffer&&) noexcept = default;
 
     /// Copy assignment
-    Buffer& operator=(const Buffer&) noexcept = default;
+    constexpr BaseBuffer& operator=(const BaseBuffer&) noexcept = default;
 
     /// Move assignment
-    Buffer& operator=(Buffer&&) noexcept = default;
+    constexpr BaseBuffer& operator=(BaseBuffer&&) noexcept = default;
+
+    /// Container copy assignment TODO: TEST
+    constexpr BaseBuffer& operator=(const B& other) {
+
+        this->assign(other);
+        
+        return *this;
+    }
+
+    /// Container move assignment TODO: TEST
+    constexpr BaseBuffer& operator=(B&& other) { 
+        
+        this->assign(std::move(other));
+
+        return *this;
+    }
 
     /**
      * @brief Set the Sample Rate of this buffer
@@ -1121,7 +1195,7 @@ public:
      *
      * @param rate New sample rate to set
      */
-    void set_samplerate(double rate) { this->sample_rate = rate; }
+    constexpr void set_samplerate(double rate) { this->sample_rate = rate; }
 
     /**
      * @brief Get the samplerate of this buffer
@@ -1132,17 +1206,17 @@ public:
      *
      * @return double The current samplerate
      */
-    double get_samplerate() const { return this->sample_rate; }
+    constexpr double get_samplerate() const { return this->sample_rate; }
 
     /**
      * @brief Gets the size of this buffer.
      * 
      * We report the absolute size of this buffer,
      * that being the number of values currently present.
-     * 
-     * @return Size of each channel
+     *  
+     * @return Size of this buffer (including all channels)
      */
-    std::size_t size() const { return this->buff.size(); }
+    constexpr std::size_t size() const { return this->buff.size(); }
 
     /**
      * @brief Gets the capacity of each channel
@@ -1150,21 +1224,12 @@ public:
      * We report the capacity of each individual channel,
      * that being the number of samples present in each channel.
      * 
+     * We calculate this value dynamically by dividing the container size
+     * byt eh channel count (rounding up).
+     * 
      * @return Capacity of each channel
      */
-    std::size_t channel_capacity() const { return this->csize; }
-
-    /**
-     * @brief Sets the capacity of each individual channel
-     * 
-     * We set the capacity of the individual channels.
-     * This value does not determine the channel size
-     * currently present in the buffer,
-     * but instead refers to the expected number of channels present.
-     * 
-     * @param nsize Capacity of each channel
-     */
-    void set_channel_capacity(std::size_t nsize) { this->csize = nsize; }
+    constexpr std::size_t channel_capacity() const { return ceil(this->size() / this->channels()); }
 
     /**
      * @brief Gets the number of channels in this buffer
@@ -1176,7 +1241,7 @@ public:
      * 
      * @return Number of channels
      */
-    std::size_t channels() const { return this->nchannels; }
+    constexpr std::size_t channels() const { return this->nchannels; }
 
     /**
      * @brief Sets the number of channels
@@ -1186,33 +1251,430 @@ public:
      * 
      * @param nchannels Number of channels to set
      */
-    void set_channels(std::size_t nchannels) { this->nchannels = nchannels; }
+    constexpr void set_channels(std::size_t nchannels) {
+        this->nchannels = nchannels;
+    }
 
     /**
-     * @brief Gets the total capacity of the buffer.
+     * @brief Copy assignment operation
      * 
-     * We determine this value by multiplying the number of channels
-     * and the channel capacity.
+     * This function preforms a copy assignment on the underlying container.
      * 
-     * @return Total buffer capacity
+     * TODO: Must test
+     * 
+     * @param other Container to copy from
      */
-    std::size_t total_capacity() const { return this->csize * this->nchannels; }
- 
+    constexpr void assign(const B& other) { this->buff = other; }
+
     /**
-     * @brief Pre-allocates the buffer to a certain size
-     *
-     * This tells the underlying vector to allocate memory
-     * before hand, which leads to faster performance
-     * when writing (and reading, but to a lesser degree...),
-     * so it is recommended to allocate the vector before any operations.
-     *
-     * See: https://cplusplus.com/reference/vector/vector/reserve/
-     * For more info.
+     * @brief Move assignment operation
      * 
-     * We utilize the channel number and channel size for this operation.
-     * Usually, this operation is preformed automatically.
+     * This function preforms a move assignment on the underlying container.
+     * 
+     * TODO: Must test
+     * 
+     * @param other Container to move from
      */
-    void reserve() { buff.reserve(this->total_capacity()); }
+    constexpr void assign(B&& other) { this->buff = std::move(other); }
+
+    /**
+     * @brief Gets the value at the given channel and sample.
+     * 
+     * This method can be used to get values from the array based upon
+     * the row and column.
+     * The row can be thought of as the channel,
+     * while the column can be thought of the sample in the channel.
+     * 
+     * @param channel Channel to get value from
+     * @param sample Sample to get value from
+     * @return Value at the given channel and sample
+     */
+    constexpr reference at(int channel, int sample) {
+        return this->buff[channel + (this->channels() * sample)];
+    }
+
+    /**
+     * @brief Gets the const value at the given channel and sample.
+     * 
+     * This method is identical to the normal at method,
+     * with the exception that we are marked const and will not allow alterations.
+     * 
+     * @param channel Channel to get value from 
+     * @param sample Sample to get value from
+     * @return Value at the given channel and sample
+     */
+    constexpr const_reference at(int channel, int sample) const {
+        return this->buff[channel + (this->channels() * sample)];
+    }
+
+    /**
+     * @brief Gets a value at the given position
+     * 
+     * @param value Index to get value at
+     * @return Value at given position
+     */
+    constexpr reference at(int value) { return this->buff[value]; }
+
+    /**
+     * @brief Gets a const value at the given position
+     * 
+     * @param value Index to get value at
+     * @return const_reference Value at given position
+     */
+    constexpr const_reference at(int value) const { return this->buff[value]; }
+
+    /**
+     * @brief Gets the start sequential iterator for this buffer
+     *
+     * Returns the start iterator for proper sequential sample iteration.
+     * We iterate over each sample in each channel sequentially,
+     * meaning that we iterate over each channel in order until we move onto the
+     * next. See the documentation for the SeqIterator class for more info.
+     *
+     * This iterator is useful for iterating over the raw signal,
+     * without regard to the underlying channels.
+     *
+     * @return Buffer::SeqIterator<long double>
+     */
+    constexpr BaseBuffer::SeqIterator<> sbegin() {
+        return BaseBuffer::SeqIterator(this);
+    }
+
+    /**
+     * @brief Gets the end sequential iterator for this buffer
+     *
+     * Returns the end iterator for sequential iteration.
+     * This is useful for determining when to stop iterating over samples.
+     *
+     * @return Buffer::SeqIterator<long double>
+     */
+    constexpr BaseBuffer::SeqIterator<> send() {
+        return BaseBuffer::SeqIterator(
+            this, this->buff.size());
+    }
+
+    /**
+     * @brief Gets the start reverse iterator for this buffer
+     *
+     * Returns the reverse start iterator for proper sequential sample
+     * iteration. We iterate over samples sequentially, but in reverse order,
+     * meaning that this start iterator will initially point to the last value
+     * in this buffer.
+     *
+     * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
+     */
+    constexpr std::reverse_iterator<BaseBuffer::SeqIterator<>> srbegin() {
+        return std::reverse_iterator<BaseBuffer::SeqIterator<>>(
+            BaseBuffer::SeqIterator(this,
+                this->size()));
+    }
+
+    /**
+     * @brief Gets the end reverse iterator for this buffer
+     *
+     * Returns the reverse sequential end iterator for this buffer.
+     * Useful for determining when to stop iterating over samples in reverse.
+     *
+     * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
+     */
+    constexpr std::reverse_iterator<BaseBuffer::SeqIterator<>> srend() {
+        return std::reverse_iterator<BaseBuffer::SeqIterator<>>(
+            BaseBuffer::SeqIterator(this));
+    }
+
+    /**
+     * @brief Gets the constant start sequential iterator for this buffer
+     *
+     * Returns the constant start iterator for proper sequential sample
+     * iteration. We are identical to the normal sequential iterator, but we are
+     * marked as constant, so the contents of the buffer can't be altered using
+     * this iterator.
+     *
+     * @return Buffer::SeqIterator<const long double>
+     */
+    constexpr BaseBuffer::SeqIterator<true> scbegin() const {
+        return BaseBuffer::SeqIterator<true>(this);
+    }
+
+    /**
+     * @brief Gets the end constant sequential iterator for this buffer
+     *
+     * Returns the constant end iterator for sequential iteration.
+     * Useful for determining when to stop iterating over samples.
+     *
+     * Again, we are constant, so values can't be edited using this iterator.
+     *
+     * @return Buffer::SeqIterator<const T>
+     */
+    constexpr BaseBuffer::SeqIterator<true> scend() const {
+        return BaseBuffer::SeqIterator<true>(
+            this, static_cast<int>(this->size()));
+    }
+
+    /**
+     * @brief Gets the start interleaved iterator for this buffer
+     *
+     * Returns the start iterator for proper interleaved sample iteration.
+     * We iterate over each sample in each channel in an interleaved manner,
+     * meaning tht we iterate over each sample that occurs at the same time in
+     * order of channels before moving onto the next sample.
+     *
+     * This iterator is useful for iterating over the raw signal,
+     * without regard to the underlying channels.
+     *
+     * @return Buffer::InterIterator
+     */
+    constexpr BaseBuffer::InterIterator<> ibegin() {
+        return BaseBuffer::InterIterator<>(this);
+    }
+
+    /**
+     * @brief Gets the end interleaved iterator for this buffer
+     *
+     * Returns the end iterator for interleaved iteration.
+     * This is useful for determining when to stop iterating over samples.
+     *
+     * @return Buffer::InterIterator
+     */
+    constexpr BaseBuffer::InterIterator<> iend() {
+        return BaseBuffer::InterIterator(
+            this, static_cast<int>(this->buff.size()));
+    }
+
+    /**
+     * @brief Gets the start reverse sequential iterator for this buffer
+     *
+     * Returns the reverse start interleaved iterator for this buffer.
+     * We iterate over samples in an interleaved manner, but in reverse order,
+     * meaning that this iterator will initially point to the last value in the
+     * buffer.
+     *
+     * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
+     */
+    constexpr std::reverse_iterator<BaseBuffer::InterIterator<>> irbegin() {
+        return std::reverse_iterator(
+            BaseBuffer::InterIterator<>(this,
+                this->size()));
+    }
+
+    /**
+     * @brief Gets the end interleaved reverse iterator for this buffer
+     *
+     * Returns the end reversed interleaved iterator for this buffer.
+     * Useful for determining when to stop iterating.
+     *
+     * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
+     */
+    constexpr std::reverse_iterator<BaseBuffer::InterIterator<>> irend() {
+        return std::reverse_iterator(BaseBuffer::InterIterator(this));
+    }
+
+    /**
+     * @brief Gets the constant start interleaved iterator for this buffer
+     *
+     * Returns the start iterator for proper interleaved sample iteration.
+     * We are identical to the normal interleaved iterator,
+     * but we are marked as constant, so the contents of the buffer can't be
+     * altered using this iterator.
+     *
+     * @return Buffer::InterIterator<const long double>
+     */
+    constexpr BaseBuffer::InterIterator<true> icbegin() const {
+        return BaseBuffer::InterIterator<true>(this);
+    }
+
+    /**
+     * @brief Gets the end constant iterator for this buffer
+     *
+     * Returns the constant end iterator for interleaved iteration.
+     * Useful for determining when to stop iterating over samples.
+     *
+     * Again, we are constant, so values can't be edited using this iterator.
+     *
+     * @return Buffer::InterIterator<const long double>
+     */
+    constexpr BaseBuffer::InterIterator<true> icend() const {
+        return InterIterator<true>(this, this->size());
+    }
+
+    /**
+     * @brief Default start iterator
+     * 
+     * The default start iterator simply returns an
+     * InterIterator.
+     * 
+     * @return InterIterator
+     */
+    constexpr BaseBuffer::InterIterator<> begin() { return this->ibegin(); }
+
+    /**
+     * @brief Default stop iterator
+     * 
+     * The default stop iterator simply returns
+     * an InterIterator.
+     * 
+     * @return InterIterator 
+     */
+    constexpr BaseBuffer::InterIterator<> end() { return this->iend(); }
+
+protected:
+    /**
+     * @brief Gets the underlying buffer container
+     *
+     * This method is private as end users should NOT
+     * be interacting with the underlying buffer component.
+     *
+     * @return B& Buffer container in use
+     */
+    constexpr B& get_buff() { return this->buff; }
+
+private:
+    /// Underlying container holding data
+    B buff;
+
+    /// Number of channels in this buffer
+    std::size_t nchannels = 1;
+
+    /// Sample rate in Hertz
+    double sample_rate = SAMPLE_RATE;
+
+    /// Various friend defintions
+    friend class BaseBuffer::SeqIterator<>;
+    friend class BaseBuffer::SeqIterator<true>;
+    friend class BaseBuffer::InterIterator<>;
+    friend class BaseBuffer::InterIterator<true>;
+};
+
+template<typename T>
+class Buffer : public BaseBuffer<std::vector<T>> {
+public:
+
+    Buffer() = default;
+
+    /**
+     * @brief Construct a new Audio Buffer object
+     *
+     * Please be aware, this vector will be empty!
+     * You will need to fill it with you own data for things to work correctly.
+     *
+     * @param size The size of each channel, AKA the number of samples per
+     * channel
+     * @param channels The number of channels in this buffer, by default 1
+     * @param sra The sample rate to utilize in this buffer
+     */
+    constexpr explicit Buffer(int size, int channels = 1,
+                             double sra = SAMPLE_RATE)
+        : BaseBuffer<std::vector<T>>(size, channels, sra) {}
+
+    /**
+     * @brief Construct a new Audio Buffer object
+     *
+     * Identical to the above constructor, but uses size_t for channel size
+     * (Great for standard library compatibility!)
+     *
+     * @param size The size of each channel, AKA the number of samples per
+     * channel
+     * @param channels The number of channels in this buffer, by default 1
+     * @param sra The sample rate to utilize in this buffer
+     */
+    constexpr explicit Buffer(std::size_t size, int channels = 1,
+                             double sra = SAMPLE_RATE)
+        : BaseBuffer<std::vector<T>>(size, channels, sra) {}
+
+    /**
+     * @brief Construct a new Audio Buffer object
+     *
+     * We will utilize the given channel count and size,
+     * and configure ourselves as necessary.
+     * We will set the vector contents as provided,
+     * so it is recommended to provide your multi-channel
+     * data in interleaved format.
+     *
+     * @param vect Vector of samples
+     * @param channels Number of channels
+     */
+    constexpr explicit Buffer(const std::vector<T>& vect, int channels = 1,
+                             double sra = SAMPLE_RATE)
+        : BaseBuffer<std::vector<T>>(vect, channels, sra) {}
+
+    /**
+     * @brief Constructs using the iterator constructor of the undelying
+     * container
+     *
+     * This constructor utilizes the iterator constructor of the underlying
+     * container, allowing for data from an arbitrary container to be copied
+     * into this buffer.
+     *
+     * Users must provide a start and end iterator, which will be iterated upon
+     * and copied into the underlying buffer.
+     *
+     * @tparam ITER1 Type of start iterator
+     * @tparam ITER2 Type of stop iterator
+     * @param begin Start iterator
+     * @param end Stop iterator
+     * @param channels Number of channels present
+     */
+    template <class ITER1, class ITER2>
+    constexpr explicit Buffer(const ITER1& begin, const ITER2& end,
+                             int channels = 1, double sra = SAMPLE_RATE)
+        : BaseBuffer<std::vector<T>>(begin, end, channels, sra) {}
+
+    /**
+     * @brief Constructs using an initializer list
+     *
+     * This constructor utilizes the initializer list constructor of the
+     * underlying container, allowing for the container to be initialized to
+     * some value.
+     *
+     * @param list Initializer list to utilize
+     * @param channels Number of channels to utilize
+     * @param sra Sample rate to utilize
+     */
+    constexpr Buffer(const std::initializer_list<T>& list, int channels = 1,
+                    double sra = SAMPLE_RATE)
+        : BaseBuffer<std::vector<T>>(list, channels, sra) {}
+
+    /**
+     * @brief Constructs using variadic templates
+     *
+     * We send the values directly to the underlying vector via the variadic template.
+     *
+     * @tparam A Type to be placed into container, MUST be convertible to T
+     */
+    template <typename... A>
+        requires(std::convertible_to<A, T> && ...)
+    constexpr Buffer(A... vals) : BaseBuffer<std::vector<T>>(vals...) {}
+
+    /// Destructor
+    constexpr ~Buffer() = default;
+
+    /// Copy constructor
+    constexpr Buffer(const Buffer&) = default;
+
+    /// Move Constructor
+    constexpr Buffer(Buffer&&) noexcept = default;
+
+    /// Copy assignment
+    constexpr Buffer& operator=(const Buffer&) noexcept = default;
+
+    /// Move assignment
+    constexpr Buffer& operator=(Buffer&&) noexcept = default;
+
+    /// Container copy assignment TODO: TEST
+    constexpr Buffer& operator=(const BaseBuffer<std::vector<T>>::container& other) {
+
+        this->assign(other);
+
+        return *this;
+    }
+
+    /// Container move assignment TODO: TEST
+    constexpr Buffer& operator=(BaseBuffer<std::vector<T>>::container&& other) {
+
+        this->assign(std::move(other));
+
+        return *this;
+    }
 
     /**
      * @brief Pre-allocates the buffer to a certain size.
@@ -1224,12 +1686,12 @@ public:
      *
      * See: https://cplusplus.com/reference/vector/vector/reserve/
      * For more info.
-     * 
+     *
      * We reserve the size using the value provided to us.
-     * 
+     *
      * @param size Size to reserve buffer
      */
-    void reserve(std::size_t size) { buff.reserve(size); }
+    constexpr void reserve(std::size_t size) { this->get_buff().reserve(size); }
 
     /**
      * @brief Resizes the vector size
@@ -1239,7 +1701,7 @@ public:
      *
      * @param size Size to resize vector to
      */
-    void resize(int size) { buff.resize(size); }
+    constexpr void resize(int size) { this->get_buff().resize(size); }
 
     /**
      * @brief Shrinks the vector to it's current size
@@ -1253,7 +1715,7 @@ public:
      * For more info.
      *
      */
-    void shrink() { this->buff.shrink_to_fit(); }
+    constexpr void shrink() { this->buff.shrink_to_fit(); }
 
     /**
      * @brief Removes all values from vector
@@ -1272,279 +1734,86 @@ public:
      * See: https://cplusplus.com/reference/vector/vector/clear/
      * For more info
      */
-    void clear() { this->buff.clear(); }
-
-    /**
-     * @brief Gets the value at the given channel and sample.
-     * 
-     * This method can be used to get values from the array based upon
-     * the row and column.
-     * The row can be thought of as the channel,
-     * while the column can be thought of the sample in the channel.
-     * 
-     * @param channel Channel to get value from
-     * @param sample Sample to get value from
-     * @return Channel at the given channel and sample
-     */
-    T& at(int channel, int sample) { return this->buff[channel + this->channels() * sample]; }
-
-    /**
-     * @brief Gets a value at the given position
-     * 
-     * @param value Index to get value at
-     * @return Value at given position
-     */
-    T& at(int value) { return this->buff[value]; }
+    constexpr void clear() { this->get_buff().clear(); }
 
     /**
      * @brief Adds a value to the buffer
-     * 
+     *
      * We push a value to the back of the buffer.
      * Please be aware, that we have no understanding of channels
      * or channel sizes!
      * You will need to provide your information in interleaved format
      * if you are working with multiple channels.
-     * 
+     *
      * @param val Value to add to buffer
      */
-    void push_back(const T& val) { this->buff.push_back(val); }
+    constexpr void push_back(const T& val) { this->get_buff().push_back(val); }
+};
+
+template<typename T, std::size_t SIZE>
+class StaticBuffer : public BaseBuffer<std::array<T, SIZE>> {
+public:
+
+    StaticBuffer() = default;
 
     /**
-     * @brief Fills the rest of the buffer with a value
-     * 
-     * This will add zeros to the buffer until we reach the total capacity.
-     * If we are at the current capacity,
-     * then we will simply do nothing.
-     * 
-     * By default, we fill the buffer with zeros,
-     * but you can set this value to be anything you want.
-     * 
-     * @param val Value to fill the buffer with
+     * @brief Construct a new Audio Buffer object
+     *
+     * This will set the number of channels to utilize
+     *
+     * @param channels The number of channels in this buffer, by default 1
+     * @param sra Sample rate of this buffer, by default the global MAEC default sample rate
      */
-    void fill(const T& val = 0) {
+    explicit StaticBuffer(int channels, double sra = SAMPLE_RATE) {
 
-        // Iterate over the total capacity:
+        // Set the channels and sample rate:
 
-        for (size_t i = this->size(); i < this->total_capacity(); ++i) {
-
-            // Add this value to the buffer:
-
-            this->push_back(val);
-        }
+        this->set_channels(channels);
+        this->set_samplerate(sra);
     }
 
     /**
-     * @brief Gets the start sequential iterator for this buffer
+     * @brief Constructs using variadic templates
      *
-     * Returns the start iterator for proper sequential sample iteration.
-     * We iterate over each sample in each channel sequentially,
-     * meaning that we iterate over each channel in order until we move onto the
-     * next. See the documentation for the SeqIterator class for more info.
+     * This constructor passes the provided values directly to the underlying vector.
      *
-     * This iterator is useful for iterating over the raw signal,
-     * without regard to the underlying channels.
-     *
-     * @return Buffer::SeqIterator<long double>
+     * @tparam A Type to be placed into container, MUST be convertible to T
      */
-    Buffer::SeqIterator<T> sbegin() {
-        return Buffer::SeqIterator<T>(this);
+    template<typename... A>
+        requires (std::convertible_to<A, T> && ...)
+    StaticBuffer(A... vals) : BaseBuffer<std::array<T, SIZE>>(vals...) {}
+
+    /// Destructor
+    ~StaticBuffer() = default;
+
+    /// Copy constructor
+    StaticBuffer(const StaticBuffer&) = default;
+
+    /// Move Constructor
+    StaticBuffer(StaticBuffer&&) noexcept = default;
+
+    /// Copy assignment
+    StaticBuffer& operator=(const StaticBuffer&) noexcept = default;
+
+    /// Move assignment
+    StaticBuffer& operator=(StaticBuffer&&) noexcept = default;
+
+    /// Container copy assignment TODO: TEST
+    constexpr StaticBuffer& operator=(const BaseBuffer<std::array<T, SIZE>>::container& other) {
+
+        this->assign(other);
+
+        return *this;
     }
 
-    /**
-     * @brief Gets the end sequential iterator for this buffer
-     *
-     * Returns the end iterator for sequential iteration.
-     * This is useful for determining when to stop iterating over samples.
-     *
-     * @return Buffer::SeqIterator<long double>
-     */
-    Buffer::SeqIterator<T> send() {
-        return Buffer::SeqIterator<T>(
-            this, this->buff.size());
+    /// Container move assignment TODO: TEST
+    constexpr StaticBuffer& operator=(
+        BaseBuffer<std::array<T, SIZE>>::container&& other) {
+
+        this->assign(std::move(other));
+
+        return *this;
     }
-
-    /**
-     * @brief Gets the start reverse iterator for this buffer
-     *
-     * Returns the reverse start iterator for proper sequential sample
-     * iteration. We iterate over samples sequentially, but in reverse order,
-     * meaning that this start iterator will initially point to the last value
-     * in this buffer.
-     *
-     * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
-     */
-    std::reverse_iterator<Buffer::SeqIterator<T>> srbegin() {
-        return std::reverse_iterator<Buffer::SeqIterator<T>>(
-            Buffer::SeqIterator<T>(this,
-                this->size()));
-    }
-
-    /**
-     * @brief Gets the end reverse iterator for this buffer
-     *
-     * Returns the reverse sequential end iterator for this buffer.
-     * Useful for determining when to stop iterating over samples in reverse.
-     *
-     * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
-     */
-    std::reverse_iterator<Buffer::SeqIterator<T>> srend() {
-        return std::reverse_iterator<Buffer::SeqIterator<T>>(
-            Buffer::SeqIterator<T>(this));
-    }
-
-    /**
-     * @brief Gets the constant start sequential iterator for this buffer
-     *
-     * Returns the constant start iterator for proper sequential sample
-     * iteration. We are identical to the normal sequential iterator, but we are
-     * marked as constant, so the contents of the buffer can't be altered using
-     * this iterator.
-     *
-     * @return Buffer::SeqIterator<const long double>
-     */
-    Buffer::SeqIterator<T, true> scbegin() const {
-        return Buffer::SeqIterator<T, true>(this);
-    }
-
-    /**
-     * @brief Gets the end constant sequential iterator for this buffer
-     *
-     * Returns the constant end iterator for sequential iteration.
-     * Useful for determining when to stop iterating over samples.
-     *
-     * Again, we are constant, so values can't be edited using this iterator.
-     *
-     * @return Buffer::SeqIterator<const T>
-     */
-    Buffer::SeqIterator<T, true> scend() const {
-        return Buffer::SeqIterator<T, true>(
-            this, static_cast<int>(this->size()));
-    }
-
-    /**
-     * @brief Gets the start interleaved iterator for this buffer
-     *
-     * Returns the start iterator for proper interleaved sample iteration.
-     * We iterate over each sample in each channel in an interleaved manner,
-     * meaning tht we iterate over each sample that occurs at the same time in
-     * order of channels before moving onto the next sample.
-     *
-     * This iterator is useful for iterating over the raw signal,
-     * without regard to the underlying channels.
-     *
-     * @return Buffer::InterIterator
-     */
-    Buffer::InterIterator<T> ibegin() {
-        return Buffer::InterIterator<T>(this);
-    }
-
-    /**
-     * @brief Gets the end interleaved iterator for this buffer
-     *
-     * Returns the end iterator for interleaved iteration.
-     * This is useful for determining when to stop iterating over samples.
-     *
-     * @return Buffer::InterIterator
-     */
-    Buffer::InterIterator<T> iend() {
-        return Buffer::InterIterator<T>(
-            this, static_cast<int>(this->buff.size()));
-    }
-
-    /**
-     * @brief Gets the start reverse sequential iterator for this buffer
-     *
-     * Returns the reverse start interleaved iterator for this buffer.
-     * We iterate over samples in an interleaved manner, but in reverse order,
-     * meaning that this iterator will initially point to the last value in the
-     * buffer.
-     *
-     * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
-     */
-    std::reverse_iterator<Buffer::InterIterator<T>> irbegin() {
-        return std::reverse_iterator(
-            Buffer::InterIterator<T>(this,
-                this->size()));
-    }
-
-    /**
-     * @brief Gets the end interleaved reverse iterator for this buffer
-     *
-     * Returns the end reversed interleaved iterator for this buffer.
-     * Useful for determining when to stop iterating.
-     *
-     * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
-     */
-    std::reverse_iterator<Buffer::InterIterator<T>> irend() { return std::reverse_iterator( Buffer<T>::InterIterator<T>(this)); }
-
-    /**
-     * @brief Gets the constant start interleaved iterator for this buffer
-     *
-     * Returns the start iterator for proper interleaved sample iteration.
-     * We are identical to the normal interleaved iterator,
-     * but we are marked as constant, so the contents of the buffer can't be
-     * altered using this iterator.
-     *
-     * @return Buffer::InterIterator<const long double>
-     */
-    Buffer::InterIterator<T, true> icbegin() const {
-        return Buffer::InterIterator<T, true>(this); }
-
-    /**
-     * @brief Gets the end constant iterator for this buffer
-     *
-     * Returns the constant end iterator for interleaved iteration.
-     * Useful for determining when to stop iterating over samples.
-     *
-     * Again, we are constant, so values can't be edited using this iterator.
-     *
-     * @return Buffer::InterIterator<const long double>
-     */
-    InterIterator<T, true> icend() const {
-        return InterIterator<T, true>(this, this->size()); }
-
-    /**
-     * @brief Default start iterator
-     * 
-     * The default start iterator simply returns an
-     * InterIterator.
-     * 
-     * @return InterIterator
-     */
-    Buffer::InterIterator<T> begin() {
-        return this->ibegin();
-    }
-
-    /**
-     * @brief Default stop iterator
-     * 
-     * The default stop iterator simply returns
-     * an InterIterator.
-     * 
-     * @return InterIterator 
-     */
-    Buffer::InterIterator<T> end() {
-        return this->iend();
-    }
-
-private:
-    /// Size of each channel
-    int csize = 0;
-
-    /// Number of channels in this buffer
-    int nchannels = 0;
-
-    /// Sample rate in Hertz
-    double sample_rate = SAMPLE_RATE;
-
-    /// The underlying vector of audio data
-    std::vector<T> buff;
-
-    /// Various friend defintions
-    friend class Buffer::SeqIterator<T>;
-    friend class Buffer::SeqIterator<const T, true>;
-    friend class Buffer::InterIterator<T>;
-    friend class Buffer::InterIterator<const T, true>;
 };
 
 /**
@@ -1680,9 +1949,7 @@ class RingBuffer {
      *
      * @param other Data to use for this buffer
      */
-    explicit RingBuffer(const std::vector<T>& other) : buff(other) {
-        this->bsize = other.size();
-    }
+    explicit RingBuffer(const std::vector<T>& other) : buff(other), bsize(other.size()) {}
 
     /**
      * @brief Retrieves the size of this buffer
