@@ -4,9 +4,9 @@
  * @brief Buffers and buffer operations
  * @version 0.1
  * @date 2023-09-07
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  * This header contains buffer classes and operations
  * for representing data to be processed.
  * We include support for multi-dimensional signals,
@@ -16,11 +16,11 @@
 
 #pragma once
 
+#include <array>
+#include <concepts>
+#include <initializer_list>
 #include <iterator>
 #include <vector>
-#include <array>
-#include <initializer_list>
-#include <concepts>
 
 #include "const.hpp"
 #include "util.hpp"
@@ -105,7 +105,8 @@ public:
     void set_index(int iindex) {
         this->index = iindex;
 
-        this->point = static_cast<iterator_type*>(this)->resolve_pointer(this->index);
+        this->point =
+            static_cast<iterator_type*>(this)->resolve_pointer(this->index);
     }
 
     /**
@@ -187,13 +188,14 @@ public:
 
     /**
      * @brief Adds the given number to this iterator
-     * 
+     *
      * Set plus operation for unsigned int
-     * 
+     *
      * @param num Number to add to current index
      * @return iterator_type& This iterator
      */
-    iterator_type& operator+=(const long unsigned int& num) {  // NOLINT(google-runtime-int)
+    iterator_type& operator+=(
+        const long unsigned int& num) {  // NOLINT(google-runtime-int)
         this->set_index(this->get_index() + num);
         return static_cast<iterator_type&>(*this);
     }
@@ -270,13 +272,14 @@ public:
 
     /**
      * @brief Creates a new iterator by adding the given number to our index
-     * 
+     *
      * Plus operator for long unsigned int
-     * 
+     *
      * @param num Number to add to the current index
      * @return A new iterator with the new index
      */
-    iterator_type operator+(const long unsigned int& num) const {  // NOLINT(google-runtime-int)
+    iterator_type operator+(
+        const long unsigned int& num) const {  // NOLINT(google-runtime-int)
         iterator_type tmp = static_cast<const iterator_type&>(*this);
         tmp += num;
         return tmp;
@@ -338,7 +341,8 @@ public:
      *
      * @return int The current index
      */
-    operator int() const {  // NOLINT - Casting to other types for iteration impossible if explicit
+    operator int() const {  // NOLINT - Casting to other types for iteration
+                            // impossible if explicit
         return this->get_index();
     }
 
@@ -469,70 +473,69 @@ private:
 
 /**
  * @brief A concepts that defines valid container to be used
- * 
+ *
  * We require the following features for any containers used
  * in maec buffers.
- * 
+ *
  * @tparam T Type to check
  */
 template <typename T>
 concept BufferContainer = requires(T typ) {
-
-    typ[0];  // Values can be accessed through subscripting
-    typ.size();  // Has a size function
+    typ[0];       // Values can be accessed through subscripting
+    typ.size();   // Has a size function
     typ.begin();  // Can start iteration
-    typ.end();  // Can stop iteration
-    typ.data();  // Access underlying data
+    typ.end();    // Can stop iteration
+    typ.data();   // Access underlying data
 };
 
 /**
- * 
+ *
  * @brief Class for holding signal data
- * 
+ *
  * This class allows for arbitrary signal data to be stored,
  * worked with, and recalled for later use.
- * 
+ *
  * We will support some common buffer operations,
  * and will provide a standardized method for accessing
  * and working with signal data.
- * 
+ *
  * This class has the ability to represent multi-channel signal data!
  * This can also be interpreted as a collection or rows and columns,
  * with each channel being a row and sample in each channel being a column.
  * Under the hood, this is implemented as a single array.
  * You can access this array if you like,
- * but we also provide methods and iterators to offer easy access into this data.
- * You could also implement this buffer as a type of matrix pretty easily.
- * 
+ * but we also provide methods and iterators to offer easy access into this
+ * data. You could also implement this buffer as a type of matrix pretty easily.
+ *
  * This buffer offers methods to determine the capacity of the vector
  * if every channel and sample was filled in.
  * It is recommended to NEVER iterate over a buffer that is only
  * partially full, or if one channel has more samples than another.
  * This will lead to a lot of problems! Please avoid this scenario.
- * 
+ *
  * Multi channel signals can be represented in a number of ways.
  * Conventionally, it can be represented as a vector of vectors,
  * with each sub-vector representing a channel.
  * We will call this the 'split' format, as each channel is split into its own
  * vector.
- * 
+ *
  * Suppose we have the following multi-channel signal:
- * 
+ *
  * [1] - 1,2,3
  * [2] - 4,5,6
  * [3] - 7,8,9
- * 
+ *
  * Where [n] is the nth channel, and the numbers are the samples.
  * Each channel is concurrent, meaning that each sample is encountered
  * in each channel at the same time.
  * To represent this data using in a split format, we would have:
- * 
+ *
  * [
  *  [1,2,3],
  *  [4,5,6],
  *  [7,8,9]
  * ]
- * 
+ *
  * Where each [] represents a vector. Again, numbers are samples.
  * To access the 2nd sample of the 3rd channel, we would index the vector as
  * follows:
@@ -575,24 +578,24 @@ concept BufferContainer = requires(T typ) {
  * without any regard to channels.
  * This class offers some methods for accessing the raw signal data
  * without having to worry about the complexity of channels.
- * 
+ *
  * Some of these iterators are:
- * 
+ *
  * sequential_iterator - Iterates over each channel sequentially (see below)
- * interlaced_iterator - Iterates over each channel in an interleaved manner (again, see below) 
- * group_iterator - Iterates over each channel and provdes a
+ * interlaced_iterator - Iterates over each channel in an interleaved manner
+ * (again, see below) group_iterator - Iterates over each channel and provdes a
  * group of samples from each channel (please, see below)
- * 
+ *
  * Each iterator can be useful for different reasons and purposes.
  * Please understand the differences between each iterator and how
  * each operation could be useful!
- * 
+ *
  * Finally, this class contains some info about the signal data itself,
  * specifically the channel count and sample rate.
  * If these are not utilized, these can be ignored or not set.
- *  
+ *
  * TODO:
- * 
+ *
  * Function names for iterators are kinda weird?
  * Like why get_position instead of get_sample()?
  *
@@ -604,7 +607,6 @@ concept BufferContainer = requires(T typ) {
 template <BufferContainer B, typename T = B::value_type>
 class BaseBuffer {
 public:
-
     ///
     // Some traits for this container
     ///
@@ -621,47 +623,55 @@ public:
 
     /**
      * @brief An iterator that iterates over signal data sequentially
-     * 
+     *
      * This iterator iterates over the signal data sequentially,
      * meaning that it gets iterates over all signal data in a channel
      * before moving on to the next channel, in order of channels.
-     * 
+     *
      * For example, if we have the following signal data:
-     * 
+     *
      * [0] - 1, 2, 3,
      * [1] - 4, 5, 6,
      * [2] - 7, 8, 9,
-     * 
+     *
      * Where [n] represents the nth channel, and the numbers
      * are the samples in each channel.
-     * 
+     *
      * This iterator will return the following values:
-     * 
+     *
      * 1, 2, 3, 4, 5, 6, 7, 8, 9
-     * 
+     *
      * We talk about the index of this iterator in the documentation.
      * This iterator uses that value to determine which sample to return.
      * You can think of this as the index of the sample in the final squished
      * vector. Fro example, if I wanted to get sample '8' in channel 2 index 1,
      * then I would use index 7 (see squished vector above).
-     * 
+     *
      * This iterator contains some useful helper methods
      * for determining the index of the iterator,
      * so you don't have to do the calculations yourself.
-     * 
+     *
      * This iterator is useful if we need to apply the same operation to each
      * channel, and the order of each channel is important, or if we need the
      * 'pure' signal data without data from other channels mixed in.
-     * 
-     * You can think of this iterator as iterating over the rows of the audio data matrix.
+     *
+     * You can think of this iterator as iterating over the rows of the audio
+     * data matrix.
      */
     template <bool IsConst = false>
-    class SeqIterator : public BaseMAECIterator<BaseBuffer::SeqIterator<IsConst>, T, IsConst> {
+    class SeqIterator
+        : public BaseMAECIterator<BaseBuffer::SeqIterator<IsConst>, T,
+                                  IsConst> {
 
-       public:
-        using BufferType = typename ChooseType<IsConst, const BaseBuffer<B, T>, BaseBuffer<B, T>>::type;
-        using reference = typename BaseMAECIterator<BaseBuffer::SeqIterator<IsConst>, T, IsConst>::reference;
-        using pointer = typename BaseMAECIterator<BaseBuffer::SeqIterator<IsConst>, T, IsConst>::pointer;
+    public:
+        using BufferType = typename ChooseType<IsConst, const BaseBuffer<B, T>,
+                                               BaseBuffer<B, T>>::type;
+        using reference =
+            typename BaseMAECIterator<BaseBuffer::SeqIterator<IsConst>, T,
+                                      IsConst>::reference;
+        using pointer =
+            typename BaseMAECIterator<BaseBuffer::SeqIterator<IsConst>, T,
+                                      IsConst>::pointer;
 
         /**
          * @brief Default constructor for this iterator
@@ -733,7 +743,9 @@ public:
          *
          */
         pointer resolve_pointer(int index) const {
-            return this->buff->buff.data() + (this->get_channel(index) + this->buff->channels() * this->get_sample(index));
+            return this->buff->buff.data() +
+                   (this->get_channel(index) +
+                    this->buff->channels() * this->get_sample(index));
         }
 
         /**
@@ -762,30 +774,30 @@ public:
          * @param sample Index of the position within the given channel
          */
         void set_position(int channel, int sample) {
-            this->set_index((channel * this->buff->channel_capacity()) + sample);
+            this->set_index((channel * this->buff->channel_capacity()) +
+                            sample);
         }
 
         /**
          * @brief Gets the sample of this iterator
-         * 
+         *
          * As stated above, this value is the location of the sample
          * in relation to the channels and samples within them.
-         * 
+         *
          * This method will return the sample of the iterator
          * in the current channel.
          * Using the above example, if your index is 7,
          * then this method will return 1, as that is the index
          * of the sample in the channel we are working with.
-         * 
+         *
          * To get the channel we are working with, use get_channel().
          * This is needed if you want a full understanding of the sample!
-         * 
+         *
          * @return int The sample of the iterator in the current channel
          */
         int get_sample() const { return this->get_sample(this->get_index()); }
 
     private:
-
         /**
          * @brief Gets the sample of this iterator
          *
@@ -804,8 +816,7 @@ public:
          * @return int The sample of the iterator in the current channel
          */
         int get_sample(int index) const {
-            return static_cast<int>(index %
-                                    this->buff->channel_capacity());
+            return static_cast<int>(index % this->buff->channel_capacity());
         }
 
         int get_channel(int index) const {
@@ -815,12 +826,10 @@ public:
             // causing broken functionality.
             // MSVC release mode and all other compilers don't have an issue
             // with this line
-            return static_cast<int>(index /
-                                    this->buff.channel_capacity()) %
+            return static_cast<int>(index / this->buff.channel_capacity()) %
                    this->buff.channels();
 #else
-            return static_cast<int>(index /
-                                    this->buff->channel_capacity());
+            return static_cast<int>(index / this->buff->channel_capacity());
 #endif
         }
 
@@ -829,52 +838,56 @@ public:
     };
 
     /**
-     * @brief An iterator that iterates over signal data in an interleaved manner
-     * 
+     * @brief An iterator that iterates over signal data in an interleaved
+     * manner
+     *
      * This iterator iterates over signal data in an interleaved manner,
      * meaning that it iterates over each sample in each channel that occurs at
      * the same time before moving on to the next sample.
-     * 
+     *
      * For example, if we have the following signal:
-     * 
+     *
      * [1] - 1, 2, 3,
      * [2] - 4, 5, 6,
      * [3] - 7, 8, 9,
-     * 
+     *
      * Where [n] represents the nth channel, and the numbers
      * are the samples in each channel.
-     * 
+     *
      * This iterator will return the following values:
-     * 
+     *
      * 1, 4, 7, 2, 5, 8, 3, 6, 9
-     * 
+     *
      * We talk about the index of this iterator in the documentation.
      * This iterator uses that value to determine which sample to return.
      * You can think of this as the index of the sample in the final squished
      * vector. Fro example, if I wanted to get sample '8' in channel 2 index 1,
      * then I would use index 5 (see squished vector above).
-     * 
+     *
      * This iterator contains some useful helper methods
      * for determining the index of the iterator,
      * so you don't have to do the calculations yourself.
-     * 
+     *
      * This iterator is useful if we need to apply the same operation to each
      * channel, and the order of each channel is not important. This format is a
      * very popular format for outputting signal data, as many libraries
      * represent signals in this format.
-     * 
+     *
      * You can also think of this iterator as iterating over the *columns*
      * of the audio data matrix.
-     * 
+     *
      * TODO: See if we should add extra methods, like in SeqIterator...
      */
     template <bool IsConst = false>
-    class InterIterator : public BaseMAECIterator<InterIterator<IsConst>, T, IsConst> {
+    class InterIterator
+        : public BaseMAECIterator<InterIterator<IsConst>, T, IsConst> {
     public:
-
-        using BufferType = typename ChooseType<IsConst, const BaseBuffer<B, T>, BaseBuffer<B, T>>::type;
-        using reference = typename BaseMAECIterator<InterIterator<IsConst>, T, IsConst>::reference;
-        using pointer = typename BaseMAECIterator<InterIterator<IsConst>, T, IsConst>::pointer;
+        using BufferType = typename ChooseType<IsConst, const BaseBuffer<B, T>,
+                                               BaseBuffer<B, T>>::type;
+        using reference = typename BaseMAECIterator<InterIterator<IsConst>, T,
+                                                    IsConst>::reference;
+        using pointer = typename BaseMAECIterator<InterIterator<IsConst>, T,
+                                                  IsConst>::pointer;
 
         /**
          * @brief Default constructor for this iterator
@@ -889,7 +902,7 @@ public:
          * want to create a dummy iterator TO BE OVERRIDEN LATER!
          *
          */
-        InterIterator() =default;
+        InterIterator() = default;
 
         /**
          * @brief Construct a new Inter Iterator object
@@ -921,7 +934,9 @@ public:
          * and return it many times.
          *
          */
-        pointer resolve_pointer(int index) const { return this->buff->buff.data() + index; }
+        pointer resolve_pointer(int index) const {
+            return this->buff->buff.data() + index;
+        }
 
         /**
          * @brief Gets the current channel we are on
@@ -930,9 +945,7 @@ public:
          *
          * @return int The current channel
          */
-        int get_channel() const {
-            return this->get_channel(this->get_index());
-        }
+        int get_channel() const { return this->get_channel(this->get_index()); }
 
         /**
          * @brief Get the current sample we are on
@@ -941,44 +954,41 @@ public:
          *
          * @return int Current sample
          */
-        int get_sample() const {
-
-            return this->get_sample(this->get_index());
-        }
+        int get_sample() const { return this->get_sample(this->get_index()); }
 
         /**
          * @brief Sets the sample we are on
-         * 
+         *
          * This will alter the index to the start of the current sample.
-         * 
+         *
          * It is probably easier to show rather than tell.
          * Consider this signal:
-         * 
+         *
          * [1]: 1, 2, 3
          * [2]: 4, 5, 6
          * [3]: 7, 8, 9
-         * 
+         *
          * And here is that data in interleaved format:
-         * 
+         *
          * 1, 4, 7, 2, 5, 8, 3, 6, 9
          *
          * If you wish to seek to sample 2,
          * then we will set the index to 3.
          * If you wish to seek to sample 3,
          * then we will set the index to 6.
-         * 
+         *
          * As you can see, each 'section' is the Nth sample
          * of each channel in order.
          * So the 2nd section of the interleaved format will be these values:
-         * 
+         *
          * 2, 5, 8
-         * 
+         *
          * Here is the formula for determining this index:
-         * 
+         *
          * index = sample * channels
-         * 
+         *
          * Where channels is the number of channels.
-         * 
+         *
          * @param sample Sample to set this iterator to
          */
         void set_sample(int sample) {
@@ -1015,7 +1025,6 @@ public:
         }
 
     private:
-
         /**
          * @brief Gets the current channel we are on
          *
@@ -1044,77 +1053,79 @@ public:
 
     /**
      * @brief Default constructor
-     * 
-     * We use the braced initializer to ensure our container 
+     *
+     * We use the braced initializer to ensure our container
      * gets initialzed correctly.
-     * 
+     *
      */
     constexpr BaseBuffer() : buff{} {};
 
     /**
      * @brief Constructs with size, channels, and sample rate
-     * 
+     *
      * This constructor will populate channel count, sample rate,
      * and channel capacity with the given values.
-     * It will also pass the size to the constructor of the underlying container.
-     * 
-     * If the underlying container does not support the passing of an initial size,
-     * then child Buffers should NOT call this function!
-     * 
+     * It will also pass the size to the constructor of the underlying
+     * container.
+     *
+     * If the underlying container does not support the passing of an initial
+     * size, then child Buffers should NOT call this function!
+     *
      * TODO: Should size be total size of the buffer, or size of each channel?
-     * It seems like with other constructors, we intepret size to be the size of the buffer,
-     * but those also imply copying from a destination, so the sizes need to match.
-     * Something needs to be done here
-     * 
+     * It seems like with other constructors, we intepret size to be the size of
+     * the buffer, but those also imply copying from a destination, so the sizes
+     * need to match. Something needs to be done here
+     *
      * @param size Total size of each channel
      * @param channels Number of channels to utilize
      * @param sra Sample rate to utilize
      */
     constexpr BaseBuffer(int size, int channels = 1, double sra = SAMPLE_RATE)
-        : buff(size * channels),
-          nchannels(channels),
-          sample_rate(sra) {}
+        : buff(size * channels), nchannels(channels), sample_rate(sra) {}
 
     /**
      * @brief Constructs with size, channels, and sample rate
      *
      * Identical to above constructor, but uses size_t for channel size
-     * (great for standard library compatibility!) 
+     * (great for standard library compatibility!)
      *
      * @param size Total size of each channel
      * @param channels Number of channels to utilize
      * @param sra Sample rate to utilize
      */
-    constexpr BaseBuffer(std::size_t size, int channels = 1, double sra = SAMPLE_RATE)
-        : buff(size * channels),
-          nchannels(channels),
-          sample_rate(sra) {}
+    constexpr BaseBuffer(std::size_t size, int channels = 1,
+                         double sra = SAMPLE_RATE)
+        : buff(size * channels), nchannels(channels), sample_rate(sra) {}
 
     /**
      * @brief Constructs using the copy constructor of the underlying container
-     * 
-     * This constructor utilizes the copy constructor of the underlying container,
-     * allowing for any behaviors realted to that to be evaluated.
-     * 
+     *
+     * This constructor utilizes the copy constructor of the underlying
+     * container, allowing for any behaviors realted to that to be evaluated.
+     *
      * The contents of this vector MUST be in interleaved format,
      * as it will be directly copied into the underlying container.
      * Users can provide the number of channels present so we can correctly
      * intepret the contents of this buffer.
-     * 
+     *
      * @param vect Container to copy into underlying container
      * @param channels Number of channels present
      */
-    constexpr explicit BaseBuffer(const B& vect, int channels = 1, double sra = SAMPLE_RATE) : buff(vect), nchannels(channels), sample_rate(sra) {}
+    constexpr explicit BaseBuffer(const B& vect, int channels = 1,
+                                  double sra = SAMPLE_RATE)
+        : buff(vect), nchannels(channels), sample_rate(sra) {}
 
     /**
-     * @brief Constructs using the iterator constructor of the undelying container
-     * 
-     * This constructor utilizes the iterator constructor of the underlying container,
-     * allowing for data from an arbitrary container to be copied into this buffer.
-     * 
+     * @brief Constructs using the iterator constructor of the undelying
+     * container
+     *
+     * This constructor utilizes the iterator constructor of the underlying
+     * container, allowing for data from an arbitrary container to be copied
+     * into this buffer.
+     *
      * Users must provide a start and end iterator, which will be iterated upon
-     * and copied into the underlying buffer. 
-     * 
+     * and copied into the underlying buffer.
+     *
      * @tparam ITER1 Type of start iterator
      * @tparam ITER2 Type of stop iterator
      * @param begin Start iterator
@@ -1122,27 +1133,33 @@ public:
      * @param channels Number of channels present
      */
     template <std::input_iterator ITER1, std::input_iterator ITER2>
-    constexpr explicit BaseBuffer(const ITER1& begin, const ITER2& end, int channels = 1, double sra = SAMPLE_RATE) : buff(begin, end), nchannels(channels), sample_rate(sra) {}
+    constexpr explicit BaseBuffer(const ITER1& begin, const ITER2& end,
+                                  int channels = 1, double sra = SAMPLE_RATE)
+        : buff(begin, end), nchannels(channels), sample_rate(sra) {}
 
     /**
      * @brief Constructs using an initializer list
      *
-     * This constructor utilizes the initializer list constructor of the underlying container,
-     * allowing for the container to be initialized to some value. 
-     * 
-     * @param list Initializer list to utilize 
+     * This constructor utilizes the initializer list constructor of the
+     * underlying container, allowing for the container to be initialized to
+     * some value.
+     *
+     * @param list Initializer list to utilize
      * @param channels Number of channels to utilize
      * @param sra Sample rate to utilize
      */
-    constexpr BaseBuffer(const std::initializer_list<T>& list, int channels = 1, double sra = SAMPLE_RATE) : buff(list), nchannels(channels), sample_rate(sra) {}
+    constexpr BaseBuffer(const std::initializer_list<T>& list, int channels = 1,
+                         double sra = SAMPLE_RATE)
+        : buff(list), nchannels(channels), sample_rate(sra) {}
 
     /**
      * @brief Constructs using variadic templates
-     * 
-     * This constructor utilizes the variadic template constructor of the underlying container,
-     * which usually means the container can have values placed into it at compile time.
-     * 
-     * @tparam A Type to be placed into container, MUST be convertible to T  
+     *
+     * This constructor utilizes the variadic template constructor of the
+     * underlying container, which usually means the container can have values
+     * placed into it at compile time.
+     *
+     * @tparam A Type to be placed into container, MUST be convertible to T
      */
     template <typename... A>
         requires(std::convertible_to<A, T> && ...)
@@ -1167,13 +1184,13 @@ public:
     constexpr BaseBuffer& operator=(const B& other) {
 
         this->assign(other);
-        
+
         return *this;
     }
 
     /// Container move assignment TODO: TEST
-    constexpr BaseBuffer& operator=(B&& other) { 
-        
+    constexpr BaseBuffer& operator=(B&& other) {
+
         this->assign(std::move(other));
 
         return *this;
@@ -1210,35 +1227,37 @@ public:
 
     /**
      * @brief Gets the size of this buffer.
-     * 
+     *
      * We report the absolute size of this buffer,
      * that being the number of values currently present.
-     *  
+     *
      * @return Size of this buffer (including all channels)
      */
     constexpr std::size_t size() const { return this->buff.size(); }
 
     /**
      * @brief Gets the capacity of each channel
-     * 
+     *
      * We report the capacity of each individual channel,
      * that being the number of samples present in each channel.
-     * 
+     *
      * We calculate this value dynamically by dividing the container size
      * byt eh channel count (rounding up).
-     * 
+     *
      * @return Capacity of each channel
      */
-    constexpr std::size_t channel_capacity() const { return ceil(this->size() / this->channels()); }
+    constexpr std::size_t channel_capacity() const {
+        return ceil(this->size() / this->channels());
+    }
 
     /**
      * @brief Gets the number of channels in this buffer
-     * 
+     *
      * We report the number of channels,
      * not the channel size or total size.
      * This does not report the actual number of channels present,
      * but instead reports the expected number of channels.
-     * 
+     *
      * @return Number of channels
      */
     constexpr std::size_t channels() const { return this->nchannels; }
@@ -1248,7 +1267,7 @@ public:
      *
      * Again, this only sets our understanding of the number of channels,
      * and does not set any content in the buffer.
-     * 
+     *
      * @param nchannels Number of channels to set
      */
     constexpr void set_channels(std::size_t nchannels) {
@@ -1257,34 +1276,34 @@ public:
 
     /**
      * @brief Copy assignment operation
-     * 
+     *
      * This function preforms a copy assignment on the underlying container.
-     * 
+     *
      * TODO: Must test
-     * 
+     *
      * @param other Container to copy from
      */
     constexpr void assign(const B& other) { this->buff = other; }
 
     /**
      * @brief Move assignment operation
-     * 
+     *
      * This function preforms a move assignment on the underlying container.
-     * 
+     *
      * TODO: Must test
-     * 
+     *
      * @param other Container to move from
      */
     constexpr void assign(B&& other) { this->buff = std::move(other); }
 
     /**
      * @brief Gets the value at the given channel and sample.
-     * 
+     *
      * This method can be used to get values from the array based upon
      * the row and column.
      * The row can be thought of as the channel,
      * while the column can be thought of the sample in the channel.
-     * 
+     *
      * @param channel Channel to get value from
      * @param sample Sample to get value from
      * @return Value at the given channel and sample
@@ -1295,11 +1314,12 @@ public:
 
     /**
      * @brief Gets the const value at the given channel and sample.
-     * 
+     *
      * This method is identical to the normal at method,
-     * with the exception that we are marked const and will not allow alterations.
-     * 
-     * @param channel Channel to get value from 
+     * with the exception that we are marked const and will not allow
+     * alterations.
+     *
+     * @param channel Channel to get value from
      * @param sample Sample to get value from
      * @return Value at the given channel and sample
      */
@@ -1309,7 +1329,7 @@ public:
 
     /**
      * @brief Gets a value at the given position
-     * 
+     *
      * @param value Index to get value at
      * @return Value at given position
      */
@@ -1317,7 +1337,7 @@ public:
 
     /**
      * @brief Gets a const value at the given position
-     * 
+     *
      * @param value Index to get value at
      * @return const_reference Value at given position
      */
@@ -1337,7 +1357,7 @@ public:
      * @return Buffer::SeqIterator<long double>
      */
     constexpr BaseBuffer::SeqIterator<> sbegin() {
-        return BaseBuffer::SeqIterator(this);
+        return BaseBuffer::SeqIterator<>(this);
     }
 
     /**
@@ -1349,8 +1369,7 @@ public:
      * @return Buffer::SeqIterator<long double>
      */
     constexpr BaseBuffer::SeqIterator<> send() {
-        return BaseBuffer::SeqIterator(
-            this, this->buff.size());
+        return BaseBuffer::SeqIterator<>(this, this->buff.size());
     }
 
     /**
@@ -1365,8 +1384,7 @@ public:
      */
     constexpr std::reverse_iterator<BaseBuffer::SeqIterator<>> srbegin() {
         return std::reverse_iterator<BaseBuffer::SeqIterator<>>(
-            BaseBuffer::SeqIterator(this,
-                this->size()));
+            BaseBuffer::SeqIterator<>(this, this->size()));
     }
 
     /**
@@ -1379,7 +1397,7 @@ public:
      */
     constexpr std::reverse_iterator<BaseBuffer::SeqIterator<>> srend() {
         return std::reverse_iterator<BaseBuffer::SeqIterator<>>(
-            BaseBuffer::SeqIterator(this));
+            BaseBuffer::SeqIterator<>(this));
     }
 
     /**
@@ -1407,8 +1425,8 @@ public:
      * @return Buffer::SeqIterator<const T>
      */
     constexpr BaseBuffer::SeqIterator<true> scend() const {
-        return BaseBuffer::SeqIterator<true>(
-            this, static_cast<int>(this->size()));
+        return BaseBuffer::SeqIterator<true>(this,
+                                             static_cast<int>(this->size()));
     }
 
     /**
@@ -1437,8 +1455,8 @@ public:
      * @return Buffer::InterIterator
      */
     constexpr BaseBuffer::InterIterator<> iend() {
-        return BaseBuffer::InterIterator(
-            this, static_cast<int>(this->buff.size()));
+        return BaseBuffer::InterIterator<>(this,
+                                           static_cast<int>(this->buff.size()));
     }
 
     /**
@@ -1453,8 +1471,7 @@ public:
      */
     constexpr std::reverse_iterator<BaseBuffer::InterIterator<>> irbegin() {
         return std::reverse_iterator(
-            BaseBuffer::InterIterator<>(this,
-                this->size()));
+            BaseBuffer::InterIterator<>(this, this->size()));
     }
 
     /**
@@ -1466,7 +1483,7 @@ public:
      * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
      */
     constexpr std::reverse_iterator<BaseBuffer::InterIterator<>> irend() {
-        return std::reverse_iterator(BaseBuffer::InterIterator(this));
+        return std::reverse_iterator(BaseBuffer::InterIterator<>(this));
     }
 
     /**
@@ -1499,21 +1516,21 @@ public:
 
     /**
      * @brief Default start iterator
-     * 
+     *
      * The default start iterator simply returns an
      * InterIterator.
-     * 
+     *
      * @return InterIterator
      */
     constexpr BaseBuffer::InterIterator<> begin() { return this->ibegin(); }
 
     /**
      * @brief Default stop iterator
-     * 
+     *
      * The default stop iterator simply returns
      * an InterIterator.
-     * 
-     * @return InterIterator 
+     *
+     * @return InterIterator
      */
     constexpr BaseBuffer::InterIterator<> end() { return this->iend(); }
 
@@ -1545,10 +1562,9 @@ private:
     friend class BaseBuffer::InterIterator<true>;
 };
 
-template<typename T>
+template <typename T>
 class Buffer : public BaseBuffer<std::vector<T>> {
 public:
-
     Buffer() = default;
 
     /**
@@ -1563,7 +1579,7 @@ public:
      * @param sra The sample rate to utilize in this buffer
      */
     constexpr explicit Buffer(int size, int channels = 1,
-                             double sra = SAMPLE_RATE)
+                              double sra = SAMPLE_RATE)
         : BaseBuffer<std::vector<T>>(size, channels, sra) {}
 
     /**
@@ -1578,7 +1594,7 @@ public:
      * @param sra The sample rate to utilize in this buffer
      */
     constexpr explicit Buffer(std::size_t size, int channels = 1,
-                             double sra = SAMPLE_RATE)
+                              double sra = SAMPLE_RATE)
         : BaseBuffer<std::vector<T>>(size, channels, sra) {}
 
     /**
@@ -1594,7 +1610,7 @@ public:
      * @param channels Number of channels
      */
     constexpr explicit Buffer(const std::vector<T>& vect, int channels = 1,
-                             double sra = SAMPLE_RATE)
+                              double sra = SAMPLE_RATE)
         : BaseBuffer<std::vector<T>>(vect, channels, sra) {}
 
     /**
@@ -1616,7 +1632,7 @@ public:
      */
     template <class ITER1, class ITER2>
     constexpr explicit Buffer(const ITER1& begin, const ITER2& end,
-                             int channels = 1, double sra = SAMPLE_RATE)
+                              int channels = 1, double sra = SAMPLE_RATE)
         : BaseBuffer<std::vector<T>>(begin, end, channels, sra) {}
 
     /**
@@ -1631,13 +1647,14 @@ public:
      * @param sra Sample rate to utilize
      */
     constexpr Buffer(const std::initializer_list<T>& list, int channels = 1,
-                    double sra = SAMPLE_RATE)
+                     double sra = SAMPLE_RATE)
         : BaseBuffer<std::vector<T>>(list, channels, sra) {}
 
     /**
      * @brief Constructs using variadic templates
      *
-     * We send the values directly to the underlying vector via the variadic template.
+     * We send the values directly to the underlying vector via the variadic
+     * template.
      *
      * @tparam A Type to be placed into container, MUST be convertible to T
      */
@@ -1661,7 +1678,8 @@ public:
     constexpr Buffer& operator=(Buffer&&) noexcept = default;
 
     /// Container copy assignment TODO: TEST
-    constexpr Buffer& operator=(const BaseBuffer<std::vector<T>>::container& other) {
+    constexpr Buffer& operator=(
+        const BaseBuffer<std::vector<T>>::container& other) {
 
         this->assign(other);
 
@@ -1750,10 +1768,9 @@ public:
     constexpr void push_back(const T& val) { this->get_buff().push_back(val); }
 };
 
-template<typename T, std::size_t SIZE>
+template <typename T, std::size_t SIZE>
 class StaticBuffer : public BaseBuffer<std::array<T, SIZE>> {
 public:
-
     StaticBuffer() = default;
 
     /**
@@ -1762,7 +1779,8 @@ public:
      * This will set the number of channels to utilize
      *
      * @param channels The number of channels in this buffer, by default 1
-     * @param sra Sample rate of this buffer, by default the global MAEC default sample rate
+     * @param sra Sample rate of this buffer, by default the global MAEC default
+     * sample rate
      */
     explicit StaticBuffer(int channels, double sra = SAMPLE_RATE) {
 
@@ -1775,12 +1793,13 @@ public:
     /**
      * @brief Constructs using variadic templates
      *
-     * This constructor passes the provided values directly to the underlying vector.
+     * This constructor passes the provided values directly to the underlying
+     * vector.
      *
      * @tparam A Type to be placed into container, MUST be convertible to T
      */
-    template<typename... A>
-        requires (std::convertible_to<A, T> && ...)
+    template <typename... A>
+        requires(std::convertible_to<A, T> && ...)
     StaticBuffer(A... vals) : BaseBuffer<std::array<T, SIZE>>(vals...) {}
 
     /// Destructor
@@ -1799,7 +1818,8 @@ public:
     StaticBuffer& operator=(StaticBuffer&&) noexcept = default;
 
     /// Container copy assignment TODO: TEST
-    constexpr StaticBuffer& operator=(const BaseBuffer<std::array<T, SIZE>>::container& other) {
+    constexpr StaticBuffer& operator=(
+        const BaseBuffer<std::array<T, SIZE>>::container& other) {
 
         this->assign(other);
 
@@ -1851,7 +1871,7 @@ public:
 template <typename T>
 class RingBuffer {
 
-   protected:
+protected:
     /**
      * @brief Normalizes the given index to be within the bounds of the buffer
      *
@@ -1864,7 +1884,7 @@ class RingBuffer {
      */
     int normalize_index(int nindex) const { return nindex % this->size(); }
 
-   public:
+public:
     /**
      * @brief An iterator that iterators over the ring buffer.
      *
@@ -1877,9 +1897,10 @@ class RingBuffer {
      */
     template <typename V, bool IsConst = false>
     class RingIterator
-        : public BaseMAECIterator<RingBuffer::RingIterator<V, IsConst>, V, IsConst> {
+        : public BaseMAECIterator<RingBuffer::RingIterator<V, IsConst>, V,
+                                  IsConst> {
 
-       public:
+    public:
         /**
          * @brief Default constructor for this iterator
          *
@@ -1894,7 +1915,7 @@ class RingBuffer {
          *
          */
         RingIterator() = default;
- 
+
         /**
          * @brief Construct a new RingIterator object
          *
@@ -1919,7 +1940,7 @@ class RingBuffer {
             return this->buff->buff.data() + this->buff->normalize_index(index);
         }
 
-       private:
+    private:
         /// The buffer we are iterating over
         RingBuffer<T>* buff = nullptr;
     };
@@ -1949,7 +1970,8 @@ class RingBuffer {
      *
      * @param other Data to use for this buffer
      */
-    explicit RingBuffer(const std::vector<T>& other) : buff(other), bsize(other.size()) {}
+    explicit RingBuffer(const std::vector<T>& other)
+        : buff(other), bsize(other.size()) {}
 
     /**
      * @brief Retrieves the size of this buffer
@@ -2005,7 +2027,7 @@ class RingBuffer {
         return this->buff[this->normalize_index(nindex)];
     }
 
-   private:
+private:
     /// Size of this ring buffer
     int bsize = 0;
 
