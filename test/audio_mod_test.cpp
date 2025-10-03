@@ -93,13 +93,13 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
         // Set the forward module:
 
-        mod.set_forward(&mod2);
+        mod.forward(&mod2);
 
         SECTION("Get Forward", "Ensures we can properly get the forward module") {
 
             // Ensures the forward module is correct:
 
-            REQUIRE(mod.get_forward() == &mod2);
+            REQUIRE(mod.forward() == &mod2);
         }
     }
 
@@ -113,7 +113,7 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
             // Ensures the forward module is correct:
 
-            REQUIRE(mod.get_backward() == &mod2);
+            REQUIRE(mod.backward() == &mod2);
         }
     }
 

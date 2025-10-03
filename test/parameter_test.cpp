@@ -250,7 +250,7 @@ TEST_CASE("BaseParamTest", "[param]") {
 
             // Just for fun, ensure previous module is synced correctly:
 
-            auto* back = param->get_backward();
+            auto* back = param->backward();
 
             info = back->get_info();
             mcinfo = back->get_chain_info();
@@ -526,7 +526,7 @@ TEST_CASE("ParamSink Test", "[param][mod][sink]") {
 
             // Just for fun, ensure previous module is synced correctly:
 
-            auto* back = param->get_backward();
+            auto* back = param->backward();
 
             info = back->get_info();
             mcinfo = back->get_chain_info();
@@ -656,7 +656,7 @@ TEST_CASE("ParamSource Test", "[param][mod][source]") {
 
             // Just for fun, ensure previous module is synced correctly:
 
-            auto* back = param->get_backward();
+            auto* back = param->backward();
 
             info = back->get_info();
             mcinfo = back->get_chain_info();

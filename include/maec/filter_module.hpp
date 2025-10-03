@@ -40,7 +40,7 @@
  * and the start/stop frequency values to be 0.
  * 
  */
-class BaseFilter: public AudioModule {
+class BaseFilter: public AudioModule<> {
 
     private:
 

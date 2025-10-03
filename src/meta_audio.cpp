@@ -50,7 +50,7 @@ void LatencyModule::meta_process() {
 
     // Call the module behind us:
 
-    this->get_backward()->meta_process();
+    this->backward().meta_process();
 
     // Get stop time:
 
@@ -58,7 +58,7 @@ void LatencyModule::meta_process() {
 
     // Grab the buffer from the module behind us:
 
-    this->set_buffer(this->get_backward()->get_buffer());
+    this->set_buffer(this->backward().get_buffer());
 
     // Update the counter statistics:
 
@@ -123,11 +123,11 @@ void UniformBuffer::process() {
 
             // Meta process back module:
 
-            this->get_backward()->meta_process();
+            this->backward().meta_process();
 
             // Save the buffer:
 
-            this->ibuff = this->get_backward()->get_buffer();
+            this->ibuff = this->backward().get_buffer();
 
             // Update the in index:
 

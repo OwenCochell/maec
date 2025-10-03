@@ -30,7 +30,7 @@
  * We don't recommend using it in production...
  * 
  */
-class Counter : public AudioModule {
+class Counter : public AudioModule<> {
 
     private:
 
@@ -331,7 +331,7 @@ class BufferModule : public SourceModule {
  * Ensure that any syncronization issues will not arise if this module is used.
  * 
  */
-class UniformBuffer : public AudioModule {
+class UniformBuffer : public AudioModule<> {
 
     private:
 

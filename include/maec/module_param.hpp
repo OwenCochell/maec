@@ -13,11 +13,11 @@
 
 #pragma once
 
-#include <functional>
 #include <utility>
 #include <array>
 
 #include "audio_module.hpp"
+#include "base_module.hpp"
 #include "sink_module.hpp"
 #include "source_module.hpp"
 #include "meta_audio.hpp"
@@ -132,7 +132,7 @@ class ModuleParam : public SinkModule {
          * 
          * @param mod Module to use for configuration
          */
-        void conf_mod(AudioModule* mod);
+        void conf_mod(BaseModule* mod);
 };
 
 /**
@@ -221,7 +221,7 @@ public:
      * 
      * Preforms info sync on attached modules.
      */
-    void param_info(AudioModule* mod) {
+    void param_info(BaseModule* mod) {
 
         // Preform info sync for all parameters:
 
@@ -253,7 +253,7 @@ public:
  * TODO: Maybe meta-start would be more appropriate?
  */
 template <int num>
-class ParamModule : public AudioModule, public BaseParamModule<num> {
+class ParamModule : public AudioModule<>, public BaseParamModule<num> {
 public:
     using BaseParamModule<num>::BaseParamModule;
 
