@@ -145,14 +145,26 @@ struct ModuleInfo {
  */
 class BaseModule {
 private:
-
     /// Information for this specific module
     ModuleInfo info;
 
     /// Information for the chain this module is apart of
     ChainInfo* chain = nullptr;
 
+    /// Pointer to forward module
+    BaseModule* forwardv = nullptr;
+
+protected:
+    /// Pointer to the audio buffer we are working with
+    std::unique_ptr<AudioBuffer> buff = nullptr;
+
 public:
+    /// Backward type, by default BaseModule pointer
+    using BT = BaseModule*;
+
+    /// Forward type, by default BaseModule pointer
+    using FT = BaseModule*;
+
     /// The types of states we can be:
     enum class State { Created, Started, Finishing, Finished, Stopped };
 
@@ -182,7 +194,7 @@ public:
      * Most users will not need to alter the code in this module,
      * but some advanced modules will need to, such as the audio mixers.
      */
-    virtual void meta_process() =0;
+    virtual void meta_process() = 0;
 
     /**
      * @brief Meta start method
@@ -210,7 +222,7 @@ public:
      * TODO: We should really hash out how chains are started in sinks.
      * I am happy to say that users should call 'meta_start()' in the sink.
      */
-    virtual void meta_start() =0;
+    virtual void meta_start() = 0;
 
     /**
      * @brief Meta stop method
@@ -231,7 +243,7 @@ public:
      * unless you are working with an advanced module.
      *
      */
-    virtual void meta_stop() =0;
+    virtual void meta_stop() = 0;
 
     /**
      * @brief Meta finish method
@@ -250,7 +262,7 @@ public:
      * unless you are working with an advanced module.
      *
      */
-    virtual void meta_finish() =0;
+    virtual void meta_finish() = 0;
 
     /**
      * @brief Determines the current AudioModule data
@@ -329,6 +341,37 @@ public:
     virtual std::unique_ptr<AudioBuffer> get_buffer();
 
     /**
+     * @brief Creates an AudioBuffer
+     *
+     * Creates a buffer object and
+     * returns the result.
+     * The resulting pointer should be unique,
+     * and have ownership of the buffer.
+     *
+     * We will automatically create a buffer with using
+     * the size from the AudioInfo struct.
+     * You can also specify the default number of channels,
+     * but by default this will be 1.
+     *
+     * @return The newly created buffer
+     */
+    std::unique_ptr<AudioBuffer> create_buffer(int channels = 1);
+
+    /**
+     * @brief Creates an AudioBuffer
+     *
+     * Creates a buffer object and
+     * returns the result.
+     * The resulting pointer should be unique,
+     * and have ownership of the buffer.
+     *
+     * @param size Size of buffer to create
+     * @param channels Channels in AudioBuffer
+     * @return std::unique_ptr<AudioBuffer> Newly created buffer
+     */
+    static std::unique_ptr<AudioBuffer> create_buffer(int size, int channels);
+
+    /**
      * @brief Binds another module to us
      *
      * This method binds a module to us,
@@ -359,37 +402,6 @@ public:
      * @return AudioModule* The AudioModule we just bound
      */
     virtual BaseModule* bind(BaseModule* mod);
-
-    /**
-     * @brief Creates an AudioBuffer
-     *
-     * Creates a buffer object and
-     * returns the result.
-     * The resulting pointer should be unique,
-     * and have ownership of the buffer.
-     *
-     * We will automatically create a buffer with using
-     * the size from the AudioInfo struct.
-     * You can also specify the default number of channels,
-     * but by default this will be 1.
-     *
-     * @return The newly created buffer
-     */
-    std::unique_ptr<AudioBuffer> create_buffer(int channels = 1);
-
-    /**
-     * @brief Creates an AudioBuffer
-     *
-     * Creates a buffer object and
-     * returns the result.
-     * The resulting pointer should be unique,
-     * and have ownership of the buffer.
-     *
-     * @param size Size of buffer to create
-     * @param channels Channels in AudioBuffer
-     * @return std::unique_ptr<AudioBuffer> Newly created buffer
-     */
-    static std::unique_ptr<AudioBuffer> create_buffer(int size, int channels);
 
     /**
      * @brief Get the module info object
@@ -491,6 +503,19 @@ public:
      * @return State An integer representing the state
      */
     State get_state() { return this->state_type; }
+
+    /**
+     * @brief Set the forward module
+     *
+     * This sets the pointer to the forward audio module.
+     * This method is usually called by the module we
+     * are binding to.
+     *
+     * @param mod The module to set as forward
+     */
+    virtual void forward(BaseModule* mod) { forwardv = mod; }
+
+    virtual BaseModule* forward() { return forwardv; }
 
 private:
     /// The state type of this module:

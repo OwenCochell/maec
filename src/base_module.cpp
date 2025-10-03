@@ -4,9 +4,9 @@
  * @brief Implementations for base modules
  * @version 0.1
  * @date 2022-09-04
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include "base_module.hpp"
@@ -15,7 +15,8 @@ std::unique_ptr<AudioBuffer> BaseModule::create_buffer(int channels) {
 
     // Allocate the new buffer:
 
-    return std::make_unique<AudioBuffer>(this->info.out_buffer, channels, this->info.sample_rate);
+    return std::make_unique<AudioBuffer>(this->info.out_buffer, channels,
+                                         this->info.sample_rate);
 }
 
 std::unique_ptr<AudioBuffer> BaseModule::create_buffer(int size, int channels) {
@@ -25,6 +26,19 @@ std::unique_ptr<AudioBuffer> BaseModule::create_buffer(int size, int channels) {
     return std::make_unique<AudioBuffer>(size, channels);
 }
 
+std::unique_ptr<AudioBuffer> BaseModule::get_buffer() {
+
+    // Return our buffer:
+
+    return std::move(this->buff);
+}
+
+void BaseModule::set_buffer(std::unique_ptr<AudioBuffer> inbuff) {
+
+    // Set our buffer:
+
+    this->buff = std::move(inbuff);
+}
 
 void BaseModule::start() {
     // Set the state to started:
