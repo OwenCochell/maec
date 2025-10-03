@@ -31,7 +31,7 @@
  * The biggest difference between source modules
  * and conventional modules is that we will NEVER process back modules.
  */
-class SourceModule : public AudioModule {
+class SourceModule : public AudioModule<> {
     public:
 
         /**

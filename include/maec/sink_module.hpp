@@ -48,7 +48,7 @@
  * We should also figure out how to handle the issue of specifying
  * differing sample rates, channel numbers, ect.
  */
-class SinkModule : public AudioModule {
+class SinkModule : public AudioModule<> {
 
     private:
 

@@ -11,6 +11,21 @@
 
 #include "base_module.hpp"
 
+std::unique_ptr<AudioBuffer> BaseModule::create_buffer(int channels) {
+
+    // Allocate the new buffer:
+
+    return std::make_unique<AudioBuffer>(this->info.out_buffer, channels, this->info.sample_rate);
+}
+
+std::unique_ptr<AudioBuffer> BaseModule::create_buffer(int size, int channels) {
+
+    // Allocate the new buffer:
+
+    return std::make_unique<AudioBuffer>(size, channels);
+}
+
+
 void BaseModule::start() {
     // Set the state to started:
     this->state_type = State::Started;
@@ -29,4 +44,8 @@ void BaseModule::finish() {
 void BaseModule::done() {
     // Set the state to done:
     this->state_type = State::Finished;
+
+    // Report to the chain that we are done:
+
+    ++(this->chain->module_finish);
 }

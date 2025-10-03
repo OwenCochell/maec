@@ -12,93 +12,12 @@
 #pragma once
 
 #include <memory>
+#include <type_traits>
+#include <utility>
 
 #include "audio_buffer.hpp"
 #include "base_module.hpp"
-#include "const.hpp"
-
-/**
- * @brief Structure for holding information about an AudioChain
- *
- * This struct contains many attributes that module chains can utilize.
- * AudioModules and AudioChains are not required to consider this information!
- * However, good chains/modules WILL take this info into consideration.
- *
- * This values in this struct describes how audio data LEAVES the chain!
- * For example, the buffer_size will be the size of the buffer as it reaches the
- * sink. Modules (such as sinks) can use this info to self-configure themselves.
- * Other modules can alter this data to affect how sinks configure themselves.
- *
- * This data will be shared between ALL modules in the same chain.
- * The struct will be synced when modules are linked,
- * and will likely be used at start time by modules in the chain to configure
- * themselves.
- */
-struct ChainInfo {
-
-    /// Sample rate of audio data, if applicable
-    double sample_rate = SAMPLE_RATE;
-
-    /// Size of buffer entering the sink
-    int buffer_size = BUFF_SIZE;
-
-    /// Number of audio channels
-    int channels = 1;
-
-    /// Number of modules in chain
-    int module_num = 1;
-
-    // Number of modules ready to stop:
-    int module_finish = 0;
-};
-
-/**
- * @brief Structure for holding information about an AudioModule
- *
- * This struct contains many attributes that modules can utilize.
- * AudioModules are under no obligation to consider this information.
- * However, good modules WILL take this info into consideration,
- * and modules attached to this one will use this info.
- *
- * The info contained here represents the state of a single module.
- * Other modules can use this information to understand how to interact
- * with modules, and may allow other modules to alter the parameters described
- * here.
- */
-struct ModuleInfo {
-
-    /// The sample rate of the audio data, if applicable
-    double sample_rate = SAMPLE_RATE;
-
-    /// Size of the incoming audio buffer
-    int in_buffer = BUFF_SIZE;
-
-    /// Size of the outgoing audio buffer
-    int out_buffer = BUFF_SIZE;
-
-    /// Channels of audio data
-    int channels = 1;
-
-    ModuleInfo() = default;
-
-    ModuleInfo(ChainInfo cinfo) : sample_rate(cinfo.sample_rate), in_buffer(cinfo.buffer_size), out_buffer(cinfo.buffer_size), channels(cinfo.channels) {}
-
-    /**
-     * @brief Configures the ModuleInfo from ChainInfo
-     * 
-     * We simply grab the values from ChainInfo
-     * and sets them in this instance.
-     * 
-     * @param cinfo ChainInfo to get data from
-     */
-    void from_chain(ChainInfo& cinfo) {
-
-        sample_rate = cinfo.sample_rate;
-        in_buffer = cinfo.buffer_size;
-        out_buffer = cinfo.buffer_size;
-        channels = cinfo.channels;
-    }
-};
+#include "meta.hpp"
 
 /**
  * @brief Module for working with audio data
@@ -115,26 +34,33 @@ struct ModuleInfo {
  * 
  * TODO: Really fix this documentation
  */
+template<typename B = BaseModule*, typename F = BaseModule*>
 class AudioModule : public BaseModule {
-
 private:
-    /// Information for this specific module
-    ModuleInfo info;
 
-    /// Information for the chain this module is apart of
-    ChainInfo* chain = nullptr;
+    /// Gets qualifier free type of backwards module
+    using BV = remove_qualifiers<B>;
 
-    /// Pointer to the audio module we are attached to
-    AudioModule* forward = nullptr;
+    /// Gets qualifer free type of forwards module
+    using FV = remove_qualifiers<F>;
 
-    /// Pointer to the audio module that is attached to us
-    AudioModule* backward = nullptr;
+    /// Module instance behind us
+    B forwardv;
+
+    /// Module instance infront of us
+    F backwardv;
 
 protected:
     /// Pointer to the audio buffer we are working with
     std::unique_ptr<AudioBuffer> buff = nullptr;
 
 public:
+
+    /// Backward type
+    using BT = B;
+
+    /// Forward type
+    using FT = F;
 
     /// Default Constructor
     AudioModule() = default;
@@ -154,17 +80,43 @@ public:
     /// Move assignment operator
     AudioModule& operator=(AudioModule&&) = default;
 
-    /**
-     * @brief Function called when processing is necessary.
-     *
-     * This is where the magic happens!
-     * Any time audio processing is required,
-     * this method will be called.
-     *
-     * This can do anything from generating audio data,
-     * to taking audio data from previous modules and working with it.
-     */
-    virtual void process() {}
+    FV& forward() requires (std::is_pointer_v<F>) {
+
+        // In this case, simply dereference and return
+
+        return (*forwardv);
+    }
+
+    FV& forward() requires (std::is_class_v<F> || std::is_reference_v<F>) {
+
+        // In this case, we already have a reference
+        // or a base type, just return it
+
+        return forwardv;
+    }
+
+    void set_forward() {
+
+        // TODO: Implement this!
+        // Set the forward module:
+
+        // this->forward = mod;
+    }
+
+    BV& backward() requires (std::is_pointer_v<B>) {
+
+        // In this case, simply dereference and return
+
+        return (*backwardv);
+    }
+
+    BV& backward() requires (std::is_class_v<B> || std::is_reference_v<F>) {
+
+        // In this case, we already have a reference
+        // or a base type, just return it
+
+        return backwardv;
+    }
 
     /**
      * @brief Meta process method
@@ -176,7 +128,19 @@ public:
      * Most users will not need to alter the code in this module,
      * but some advanced modules will need to, such as the audio mixers.
      */
-    virtual void meta_process();
+    void meta_process() override { // NOLINT(misc-no-recursion): No recursion cycles present, valid chains will eventually end
+        // Call the module behind us:
+
+        this->backward().meta_process();
+
+        // Grab the buffer from the module behind us:
+
+        this->set_buffer(this->backward().get_buffer());
+
+        // Call the processing module of our own:
+
+        this->process();
+    }
 
     /**
      * @brief Meta start method
@@ -204,7 +168,20 @@ public:
      * TODO: We should really hash out how chains are started in sinks.
      * I am happy to say that users should call 'meta_start()' in the sink.
      */
-    virtual void meta_start();
+    void meta_start() override {
+
+        // Ask the previous module to start:
+
+        this->backward().meta_start();
+
+        // Set our state:
+
+        BaseModule::start();
+
+        // Start this current module:
+
+        this->start();
+    }
 
     /**
      * @brief Meta stop method
@@ -225,7 +202,20 @@ public:
      * unless you are working with an advanced module.
      *
      */
-    virtual void meta_stop();
+    void meta_stop() override {
+
+        // Yeah, just ask for previous module to stop:
+
+        this->backward().meta_stop();
+
+        // Set our state:
+
+        BaseModule::stop();
+
+        // Stop this current module:
+
+        this->stop();
+    }
 
     /**
      * @brief Meta finish method
@@ -244,7 +234,20 @@ public:
      * unless you are working with an advanced module.
      *
      */
-    virtual void meta_finish();
+    void meta_finish() override {
+
+        // Ask backward module to stop:
+
+        this->backward().meta_finish();
+
+        // Set our state:
+
+        BaseModule::finish();
+
+        // Stop this current module:
+
+        this->finish();
+    }
 
     /**
      * @brief Determines the current AudioModule data
@@ -276,7 +279,13 @@ public:
      * they should do so AFTER the module is linked to the chain,
      * otherwise their changes may be destroyed by the info sync.
      */
-    virtual void info_sync();
+    void info_sync() override {
+
+        // By default, copy AudioInfo from front:
+        // This is ugly? Maybe we should return a reference instead...
+
+        *(this->get_info()) = *(this->forward().get_info());
+    }
 
     /**
      * @brief Meta info sync
@@ -290,7 +299,17 @@ public:
      * then you can call this method to sync all backwards modules.
      * 
      */
-    virtual void meta_info_sync();
+    void meta_info_sync() override {
+
+        // Preform the current info sync:
+
+        this->info_sync();
+
+        // Preform backwards meta sync:
+
+        this->backward().meta_info_sync();
+
+    }
 
     /**
      * @brief Custom AudioModule done method
@@ -300,7 +319,12 @@ public:
      * as the chain will continue forever without proper module done reporting.
      *
      */
-    void done() override;
+    void done() override {
+
+        // Call the parent done method
+
+        BaseModule::done();
+    }
 
     /**
      * @brief Custom AudioModule finish method
@@ -310,7 +334,14 @@ public:
      * and place custom finish logic here.
      *
      */
-    void finish() override;
+    void finish() override {
+
+        // Call done immediately:
+
+        this->done();
+    }
+
+    // TODO: Maybe move buffer functions to base class?
 
     /**
      * @brief Set the buffer object
@@ -320,7 +351,12 @@ public:
      *
      * @param inbuff Pointer to an audio buffer
      */
-    void set_buffer(std::unique_ptr<AudioBuffer> inbuff);
+    void set_buffer(std::unique_ptr<AudioBuffer> inbuff) { 
+
+        // Set our buffer:
+
+        this->buff = std::move(inbuff);
+    }
 
     /**
      * @brief Get the buffer object
@@ -340,7 +376,12 @@ public:
      *
      * @return std::unique_ptr<AudioBuffer>
      */
-    virtual std::unique_ptr<AudioBuffer> get_buffer();
+    std::unique_ptr<AudioBuffer> get_buffer() override {
+
+        // Return our buffer:
+
+        return std::move(this->buff);
+    }
 
     /**
      * @brief Binds another module to us
@@ -372,7 +413,52 @@ public:
      * @param mod The module to bind to us
      * @return AudioModule* The AudioModule we just bound
      */
-    virtual AudioModule* bind(AudioModule* mod);
+    virtual AudioModule* bind(AudioModule* mod) {
+
+        // Simply attach the pointer to ourselves:
+        // TODO: This is no good now...
+
+        this->backwardv = mod;
+
+        // Set the forward module:
+
+        mod->set_forward(this);
+
+        // Set the chain info in the back to ours:
+        // TODO: Really need to find a more robust way of doing this!
+        // If a chain is added to another, previous ChainInfo pointers will not be updated!
+
+        mod->set_chain_info(this->get_chain_info());
+
+        return mod;
+    }
+
+    virtual AudioModule* link(B mod) {
+
+        // Set our backwards module to this value
+
+        this->backwardv = mod;
+
+        // Get the NEW standardized backwards module
+
+        auto& nmod = this->backward();
+
+        // Determine if they expect a pointer or an instance
+
+        if constexpr (std::is_pointer_v<typename B::FT>) {
+
+            // They want a pointer, give them our address
+
+            nmod.set_forward(this);
+        }
+
+        else {
+            
+            // Give them a class instance
+
+            nmod.set_forward(*this);
+        }
+    }
 
     /**
      * @brief Set the forward module
@@ -383,82 +469,13 @@ public:
      *
      * @param mod The module to set as forward
      */
-    virtual void set_forward(AudioModule* mod);
+    virtual void set_forward(F mod) {
 
-    /**
-     * @brief Get the forward object
-     *
-     * We simply return the pointer to the forward module.
-     *
-     * @return AudioModule* Pointer to the forward module
-     */
-    AudioModule* get_forward() { return this->forward; }
+        forwardv = mod;
+    }
 
-    /**
-     * @brief Creates an AudioBuffer
-     *
-     * Creates a buffer object and
-     * returns the result.
-     * The resulting pointer should be unique,
-     * and have ownership of the buffer.
-     *
-     * We will automatically create a buffer with using
-     * the size from the AudioInfo struct.
-     * You can also specify the default number of channels,
-     * but by default this will be 1.
-     *
-     * @return The newly created buffer
-     */
-    std::unique_ptr<AudioBuffer> create_buffer(int channels = 1);
+    virtual void set_forward(F&& mod) {
 
-    /**
-     * @brief Creates an AudioBuffer
-     *
-     * Creates a buffer object and
-     * returns the result.
-     * The resulting pointer should be unique,
-     * and have ownership of the buffer.
-     *
-     * @param size Size of buffer to create
-     * @param channels Channels in AudioBuffer
-     * @return std::unique_ptr<AudioBuffer> Newly created buffer
-     */
-    static std::unique_ptr<AudioBuffer> create_buffer(int size, int channels);
-
-    /**
-     * @brief Get the backward object
-     *
-     * We simply return the pointer to the backward module.
-     *
-     * @return AudioModule* Pointer to the backward module
-     */
-    AudioModule* get_backward() { return this->backward; }
-
-    /**
-     * @brief Get the module info object
-     *
-     * @return ModuleInfo* ModuleInfo struct in use by this class
-     */
-    ModuleInfo* get_info() { return &this->info; }
-
-    /**
-     * @brief Set the module info object
-     *
-     * @param in Audio info struct
-     */
-    void set_info(ModuleInfo& inf) { this->info = inf; }
-
-    /**
-     * @brief Get the chain info object
-     *
-     * @return ChainInfo struct in use by this class
-     */
-    ChainInfo* get_chain_info() const { return this->chain; }
-
-    /**
-     * @brief Set the chain info object
-     *
-     * @param inf Chain info struct
-     */
-    void set_chain_info(ChainInfo* inf) { this->chain = inf; }
+        forwardv = std::move(mod);
+    }
 };

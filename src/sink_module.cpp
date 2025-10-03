@@ -26,11 +26,11 @@ void PeriodSink::meta_process() {
 
         // Call the module behind us:
 
-        this->get_backward()->meta_process();
+        this->backward().meta_process();
 
         // Claim it's buffer
 
-        buff = this->get_backward()->get_buffer();
+        buff = this->backward().get_buffer();
 
         // Process ? :
 
