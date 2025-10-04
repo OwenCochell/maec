@@ -170,7 +170,7 @@ public:
 
     BaseModule() = default;
 
-    virtual ~BaseModule() = default;
+    virtual ~BaseModule() {}
 
     /**
      * @brief Function called when processing is necessary.
@@ -294,7 +294,7 @@ public:
      * they should do so AFTER the module is linked to the chain,
      * otherwise their changes may be destroyed by the info sync.
      */
-    virtual void info_sync();
+    virtual void info_sync() = 0;
 
     /**
      * @brief Meta info sync
@@ -308,7 +308,7 @@ public:
      * then you can call this method to sync all backwards modules.
      *
      */
-    virtual void meta_info_sync();
+    virtual void meta_info_sync() = 0;
 
     /**
      * @brief Set the buffer object
@@ -401,7 +401,7 @@ public:
      * @param mod The module to bind to us
      * @return AudioModule* The AudioModule we just bound
      */
-    virtual BaseModule* bind(BaseModule* mod);
+    // virtual BaseModule* bind(BaseModule* mod);
 
     /**
      * @brief Get the module info object
@@ -516,6 +516,8 @@ public:
     virtual void forward(BaseModule* mod) { forwardv = mod; }
 
     virtual BaseModule* forward() { return forwardv; }
+
+    virtual BaseModule* link(BaseModule* mod) = 0;
 
 private:
     /// The state type of this module:

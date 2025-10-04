@@ -4,9 +4,9 @@
  * @brief Tests for amplitude modules
  * @version 0.1
  * @date 2023-02-02
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
 #include "amp_module.hpp"
@@ -65,7 +65,7 @@ TEST_CASE("AmplitudeScale Test", "[amp]") {
 
         // Bind the module together:
 
-        amp.bind(&osc);
+        amp.link(&osc);
 
         // Process the data:
 
@@ -100,7 +100,7 @@ TEST_CASE("AmplitudeAdd Test", "[amp]") {
 
         // Bind the module together:
 
-        amp.bind(&osc);
+        amp.link(&osc);
 
         // Process the data:
 

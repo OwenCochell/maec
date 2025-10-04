@@ -4,9 +4,9 @@
  * @brief Basic tests for audio modules
  * @version 0.1
  * @date 2022-09-13
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include <catch2/catch_test_macros.hpp>
@@ -31,7 +31,7 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
         // Ensure initial state is valid:
 
-        REQUIRE(mod.get_state() == AudioModule::State::Created);
+        REQUIRE(mod.get_state() == BaseModule::State::Created);
 
         // Start the module:
 
@@ -39,7 +39,7 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
         // Ensure our state is correct:
 
-        REQUIRE(mod.get_state() == AudioModule::State::Started);
+        REQUIRE(mod.get_state() == BaseModule::State::Started);
 
         // Finish the module:
 
@@ -48,7 +48,7 @@ TEST_CASE("AudioModule Test", "[mod]") {
         // Ensure our state is correct:
         // (Automatically skips finishing state)
 
-        REQUIRE(mod.get_state() == AudioModule::State::Finished);
+        REQUIRE(mod.get_state() == BaseModule::State::Finished);
 
         // Finally, stop the module:
 
@@ -56,7 +56,7 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
         // Ensure the state is correct:
 
-        REQUIRE(mod.get_state() == AudioModule::State::Stopped);
+        REQUIRE(mod.get_state() == BaseModule::State::Stopped);
     }
 
     SECTION("CreateBuffer", "Ensures we can create a buffer") {
@@ -95,7 +95,8 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
         mod.forward(&mod2);
 
-        SECTION("Get Forward", "Ensures we can properly get the forward module") {
+        SECTION("Get Forward",
+                "Ensures we can properly get the forward module") {
 
             // Ensures the forward module is correct:
 
@@ -103,18 +104,53 @@ TEST_CASE("AudioModule Test", "[mod]") {
         }
     }
 
-    SECTION("Bind", "Ensures modules can be bound correctly") {
+    SECTION("Link", "Ensures modules can be linked correctly") {
 
-        // Bind the modules:
+        // Link the modules:
 
-        mod.bind(&mod2);
+        mod.link(&mod2);
 
-        SECTION("Get backward", "Ensures we can properly get the backward module") {
+        // Ensure the forward value is correct
 
-            // Ensures the forward module is correct:
+        REQUIRE(mod2.forward() == &mod);
 
-            REQUIRE(mod.backward() == &mod2);
+        // Ensure the chain number is correct
+
+        // REQUIRE(mod.get_chain_info()->module_num == 2);
+
+        SECTION("Get backward",
+                "Ensures we can properly get the backward module") {
+
+            // Ensures the forward module is correct
+            // We do this by making sure the address of backwards is the same
+
+            REQUIRE(&mod.backward() == &mod2);
         }
+    }
+
+    SECTION("Multi-link", "Ensures we can properly preform multi-links") {
+
+        // Link multiple modules together
+
+        mod.link(&mod2)->link(&smod);
+
+        // Ensure the chain size is correct
+
+        // REQUIRE(mod.get_chain_info()->module_num == 3);
+
+        // Ensure source forward value is correct
+
+        REQUIRE(smod.forward() == &mod2);
+
+        // Ensure middle module values are correct
+
+        REQUIRE(mod2.forward() == &mod);
+        REQUIRE(&mod2.backward() == &smod);
+
+        // Ensure the forward most module is correct
+
+        REQUIRE(mod.forward() == nullptr);
+        REQUIRE(&mod.backward() == &mod2);
     }
 
     SECTION("GetInfo", "Ensures we can properly get the info") {
@@ -194,7 +230,7 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
         // Link the modules together:
 
-        mod.bind(&mod2);
+        mod.link(&mod2);
 
         // Preform the info sync:
 
@@ -212,7 +248,7 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
             // Bind the source:
 
-            mod2.bind(&smod);
+            mod2.link(&smod);
 
             // Preform a meta sink operation:
 
@@ -230,9 +266,9 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
     SECTION("Meta Process", "Ensures we can meta process a chain") {
 
-        // Bind the modules:
+        // Link the modules:
 
-        mod.bind(&smod);
+        mod.link(&smod);
 
         // Call the meta process:
 
@@ -243,7 +279,7 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
         // Link the two modules:
 
-        mod.bind(&smod);
+        mod.link(&smod);
 
         // Meta start the first:
 
@@ -251,15 +287,15 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
         // Ensure both have been started:
 
-        REQUIRE(mod.get_state() == AudioModule::State::Started);
-        REQUIRE(smod.get_state() == AudioModule::State::Started);
+        REQUIRE(mod.get_state() == BaseModule::State::Started);
+        REQUIRE(smod.get_state() == BaseModule::State::Started);
     }
 
     SECTION("Meta Stop", "Ensures we can meta stop") {
 
         // Link the two modules:
 
-        mod.bind(&smod);
+        mod.link(&smod);
 
         // Meta stop the first:
 
@@ -267,7 +303,77 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
         // Ensure both have been started:
 
-        REQUIRE(mod.get_state() == AudioModule::State::Stopped);
-        REQUIRE(smod.get_state() == AudioModule::State::Stopped);
+        REQUIRE(mod.get_state() == BaseModule::State::Stopped);
+        REQUIRE(smod.get_state() == BaseModule::State::Stopped);
+    }
+
+    SECTION("Meta Finish", "Ensures we can meta finish") {
+
+        // Link the two modules:
+
+        mod.link(&smod);
+
+        // Meta finish the first
+
+        mod.meta_finish();
+
+        // Ensure both modules are finished, and the chain
+        // info has been updated
+
+        REQUIRE(mod.get_state() == BaseModule::State::Finished);
+        REQUIRE(smod.get_state() == BaseModule::State::Finished);
+        REQUIRE(mod.get_chain_info()->module_finish == 2);
+    }
+
+    SECTION("Finish", "Ensures we finished modules will immediately be done") {
+
+        // Finish the module
+
+        mod.finish();
+
+        // Afterwards, this module should immediately be finished
+
+        REQUIRE(mod.get_state() == BaseModule::State::Finished);
+
+        // Ensure the finished count is present
+
+        REQUIRE(mod.get_chain_info()->module_finish == 1);
+    }
+
+    SECTION("State Methods", "Ensures all state methods work correctly") {
+
+        // Ensures default state is created
+
+        REQUIRE(mod.get_state() == BaseModule::State::Created);
+
+        SECTION("Start", "Ensures start method works correctly") {
+
+            mod.start();
+
+            REQUIRE(mod.get_state() == BaseModule::State::Started);
+        }
+
+        SECTION("Stop", "Ensures stop method works correctly") {
+
+            mod.stop();
+
+            REQUIRE(mod.get_state() == BaseModule::State::Stopped);
+        }
+
+        SECTION("Finish", "Ensures we can finish correctly") {
+
+            mod.finish();
+
+            // We immediately enter the done state by default
+
+            REQUIRE(mod.get_state() == BaseModule::State::Finished);
+        }
+
+        SECTION("Done", "Ensures we can done correctly") {
+
+            mod.done();
+
+            REQUIRE(mod.get_state() == BaseModule::State::Finished);
+        }
     }
 }

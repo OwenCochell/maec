@@ -4,16 +4,17 @@
  * @brief Tests for the ALSABase class
  * @version 0.1
  * @date 2022-12-23
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #ifdef ALSA_F
 
+#include "io/alsa_module.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 
-#include "io/alsa_module.hpp"
 #include "meta_audio.hpp"
 
 TEST_CASE("ALSABase Test", "[alsa]") {
@@ -22,7 +23,8 @@ TEST_CASE("ALSABase Test", "[alsa]") {
 
     ALSABase alsa;
 
-    SECTION("Device Selection", "Ensures we can iterate over the devices and query them") {
+    SECTION("Device Selection",
+            "Ensures we can iterate over the devices and query them") {
 
         // Get the number of devices:
 
@@ -105,7 +107,7 @@ TEST_CASE("ALSASink Test", "[alsa][sink]") {
 
         // Bind the modules together:
 
-        sink.bind(&oconst);
+        sink.link(&oconst);
 
         // Start the sink:
 

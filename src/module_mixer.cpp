@@ -4,20 +4,23 @@
  * @brief Implementation for module mixers
  * @version 0.1
  * @date 2022-09-08
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
-#include <algorithm>
 #include "module_mixer.hpp"
 
+#include <algorithm>
+
+#include "audio_module.hpp"
+#include "base_module.hpp"
 
 void ModuleMixDown::meta_process() {
 
     // Iterate over each module in our list:
 
-    for (auto &mod : this->in) {
+    for (auto& mod : this->in) {
 
         // Call the processing module of each:
 
@@ -26,16 +29,14 @@ void ModuleMixDown::meta_process() {
         // Add the buffer to our own:
 
         this->buffs.push_back(std::move(mod->get_buffer()));
-
     }
 
     // Finally, call our processing method:
 
     this->process();
-
 }
 
-AudioModule* ModuleMixDown::bind(AudioModule* mod) {
+AudioModule<>::BV* ModuleMixDown::link(AudioModule<>::BT mod) {
 
     // Add the incoming module to our collection:
 
@@ -52,23 +53,23 @@ void ModuleMixDown::process() {
 
     // Iterate over each buffer:
 
-    for (auto &b : this->buffs) {
+    for (auto& b : this->buffs) {
 
         // Iterate over each value in the buffer:
 
-        for(auto iter = b->sbegin(); (unsigned int)iter.get_index() < b->size(); ++iter) {
+        for (auto iter = b->sbegin();
+             (unsigned int)iter.get_index() < b->size(); ++iter) {
 
-            *(fbuff->sbegin()+iter) += *iter;
+            *(fbuff->sbegin() + iter) += *iter;
         }
     }
 
     // Set our buffer to the new buffer:
 
     this->set_buffer(std::move(fbuff));
-
 }
 
-void ModuleMixUp::set_forward(AudioModule* mod) {
+void ModuleMixUp::forward(BaseModule* mod) {
 
     // Add the forward module to our vector:
 

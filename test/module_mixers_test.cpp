@@ -4,16 +4,16 @@
  * @brief Basic tests for module mixers
  * @version 0.1
  * @date 2022-09-18
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include "module_mixer.hpp"
 #include "meta_audio.hpp"
+#include "module_mixer.hpp"
 
 TEST_CASE("ModuleMixUp Tests", "[mixer]") {
 
@@ -30,8 +30,8 @@ TEST_CASE("ModuleMixUp Tests", "[mixer]") {
 
         // Bind the mixer to each module:
 
-        mod.bind(&mix);
-        mod1.bind(&mix);
+        mod.link(&mix);
+        mod1.link(&mix);
 
         // Ensure the number of modules attached to valid:
 
@@ -46,7 +46,7 @@ TEST_CASE("ModuleMixUp Tests", "[mixer]") {
 
         // Attach the modules:
 
-        mix.bind(&osc1);
+        mix.link(&osc1);
 
         // Process the values:
 
@@ -96,8 +96,8 @@ TEST_CASE("ModuleMixDown Tests", "[mixer]") {
 
         // Bind the modules to the mixer:
 
-        mix.bind(&mod);
-        mix.bind(&mod1);
+        mix.link(&mod);
+        mix.link(&mod1);
 
         // Ensure the number of inputs are valid:
 
@@ -113,8 +113,8 @@ TEST_CASE("ModuleMixDown Tests", "[mixer]") {
 
         // Attach the modules:
 
-        mix.bind(&osc1);
-        mix.bind(&osc2);
+        mix.link(&osc1);
+        mix.link(&osc2);
 
         // Process the values:
 
@@ -153,13 +153,13 @@ TEST_CASE("MultiMix Tests", "[mixer]") {
 
         // Bind the modules to the mixer:
 
-        mix.bind(&bmod);
-        mix.bind(&bmod1);
+        mix.link(&bmod);
+        mix.link(&bmod1);
 
         // Bind the mixer to the modules:
 
-        fmod.bind(&mix);
-        fmod1.bind(&mix);
+        fmod.link(&mix);
+        fmod1.link(&mix);
 
         // Ensure the number oif inputs and outputs are valid:
 
@@ -176,8 +176,8 @@ TEST_CASE("MultiMix Tests", "[mixer]") {
 
         // Attach the modules:
 
-        mix.bind(&osc1);
-        mix.bind(&osc2);
+        mix.link(&osc1);
+        mix.link(&osc2);
 
         // Process the values:
 

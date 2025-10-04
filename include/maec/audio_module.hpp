@@ -34,13 +34,13 @@
 template <typename B = BaseModule*>
 class AudioModule : public BaseModule {
 private:
-    /// Gets qualifier free type of backwards module
-    using BV = remove_qualifiers<B>;
-
     /// Module instance behind us
     B backwardv;
 
 public:
+    /// Gets qualifier free type of backwards module
+    using BV = remove_qualifiers<B>;
+
     /// Backward type
     using BT = B;
 
@@ -305,8 +305,6 @@ public:
         this->done();
     }
 
-    // TODO: Maybe move buffer functions to base class?
-
     /**
      * @brief Binds another module to us
      *
@@ -359,7 +357,7 @@ public:
     //     return mod;
     // }
 
-    virtual AudioModule* link(B mod) {
+    BV* link(B mod) override {
 
         // Set our backwards module to this value
 
@@ -373,8 +371,25 @@ public:
 
         nmod.forward(this);
 
-        // Return ourselves
+        // Set the chain info back to ours:
+        // TODO: Really need to find a more robust way of doing this!
+        // If a chain is added to another, previous ChainInfo pointers will not
+        // be updated!
 
-        return this;
+        nmod.set_chain_info(this->get_chain_info());
+
+        // Update the number of modules in the chain
+        // TODO: We need to find a better way to do this!
+        // If a large subchain is removed, then this value will NOT be updated!
+        // We essentially would like to find methods for removing subchains
+        // Hmmm, if a source is not present any linking WILL fail!
+        // maybe we can give each module chain info by default?
+        // We REALLY need to hash out how chain info gets worked with
+
+        // this->get_chain_info()->module_num++;
+
+        // Return pointer to backwards value
+
+        return &this->backward();
     }
 };

@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "audio_module.hpp"
+#include "base_module.hpp"
 
 /**
  * @brief An audio module that mixes down (n:1 relationship)
@@ -56,7 +57,7 @@ class ModuleMixDown : virtual public AudioModule<> {
 
 private:
     /// Vector of pointers to all input modules
-    std::vector<AudioModule*> in;
+    std::vector<BaseModule*> in;
 
     /// Vector of all input buffers
     std::vector<std::shared_ptr<AudioBuffer>> buffs;
@@ -84,7 +85,7 @@ public:
      * Instead of setting one pointer for one input,
      * we contain a vector of pointers for each module bound to us.
      */
-    AudioModule* bind(AudioModule* mod) override;
+    AudioModule<>::BV* link(AudioModule<>::BT mod) override;
 
     /**
      * @brief Meta process method
@@ -144,7 +145,7 @@ class ModuleMixUp : virtual public AudioModule<> {
 
 private:
     /// Vector of out modules
-    std::vector<AudioModule*> out;
+    std::vector<BaseModule*> out;
 
 public:
     /**
@@ -162,7 +163,7 @@ public:
      *
      * @param mod Module to add to our list of output modules
      */
-    void set_forward(AudioModule* mod) override;
+    void forward(BaseModule* mod) override;
 
     /**
      * @brief Get the buffer object

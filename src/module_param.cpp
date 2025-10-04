@@ -4,9 +4,9 @@
  * @brief Implementations for module parameters
  * @version 0.1
  * @date 2023-02-03
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
 #include "module_param.hpp"
@@ -14,7 +14,6 @@
 #include <memory>
 
 #include "audio_buffer.hpp"
-#include "audio_module.hpp"
 #include "base_module.hpp"
 #include "meta_audio.hpp"
 
@@ -39,7 +38,7 @@ void ModuleParam::set_constant(long double val) {
 
     this->const_mod = std::make_unique<ConstModule>(val);
 
-    this->bind(this->const_mod.get());
+    this->link(this->const_mod.get());
 }
 
 void ModuleParam::conf_mod(BaseModule* mod) {
