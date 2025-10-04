@@ -96,6 +96,12 @@ public:
      */
     void meta_process() override;
 
+    void meta_start() override;
+
+    void meta_stop() override;
+
+    void meta_finish() override;
+
     /**
      * @brief Returns the number of input modules attached to this mixer
      *

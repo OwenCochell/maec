@@ -5,7 +5,6 @@ project(maec VERSION 1.0.0 DESCRIPTION "Modular Audio Engine in C++" HOMEPAGE_UR
 
 add_library(${PROJECT_NAME}
     src/base_module.cpp
-    src/audio_module.cpp
     src/module_mixer.cpp
     src/meta_audio.cpp
     src/base_oscillator.cpp

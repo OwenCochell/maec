@@ -36,11 +36,56 @@ void ModuleMixDown::meta_process() {
     this->process();
 }
 
+void ModuleMixDown::meta_start() {
+
+    // Iterate over each module in the collection
+
+    for (auto* mod : this->in) {
+
+        // Call the meta start of each
+
+        mod->meta_start();
+    }
+}
+
+void ModuleMixDown::meta_stop() {
+
+    // Iterate over each module in the collection
+
+    for (auto* mod : this->in) {
+
+        // Call the meta stop of each
+
+        mod->meta_stop();
+    }
+}
+
+void ModuleMixDown::meta_finish() {
+
+    // Iterate over each module in the collection
+
+    for (auto* mod : this->in) {
+
+        // Call the meta finish of each
+
+        mod->meta_finish();
+    }
+}
+
 AudioModule<>::BV* ModuleMixDown::link(AudioModule<>::BT mod) {
 
     // Add the incoming module to our collection:
 
     this->in.push_back(mod);
+
+    // Set the forward module
+
+    mod->forward(this);
+
+    // Sync the chain info
+    // TODO: See AudioModule for notes on chain info syncing
+
+    mod->set_chain_info(this->get_chain_info());
 
     return mod;
 }
