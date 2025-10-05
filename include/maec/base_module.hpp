@@ -166,11 +166,21 @@ public:
     using FT = BaseModule*;
 
     /// The types of states we can be:
-    enum class State { Created, Started, Finishing, Finished, Stopped };
+    enum class State : uint8_t {
+        Created,
+        Started,
+        Finishing,
+        Finished,
+        Stopped
+    };
 
     BaseModule() = default;
 
-    virtual ~BaseModule() {}
+    virtual ~BaseModule() = default;
+
+    BaseModule(BaseModule&&) = default;
+
+    BaseModule& operator=(BaseModule&&) = default;
 
     /**
      * @brief Function called when processing is necessary.
