@@ -102,6 +102,8 @@ public:
 
     void meta_finish() override;
 
+    void meta_info_sync() override;
+
     /**
      * @brief Returns the number of input modules attached to this mixer
      *

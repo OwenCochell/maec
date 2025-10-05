@@ -46,6 +46,14 @@ void ModuleMixDown::meta_start() {
 
         mod->meta_start();
     }
+
+    // Call the parent start method
+
+    AudioModule<>::start();
+
+    // Call user defined start method
+
+    this->start();
 }
 
 void ModuleMixDown::meta_stop() {
@@ -58,6 +66,14 @@ void ModuleMixDown::meta_stop() {
 
         mod->meta_stop();
     }
+
+    // Call the parent start method
+
+    AudioModule<>::stop();
+
+    // Call the user defined stop method
+
+    this->stop();
 }
 
 void ModuleMixDown::meta_finish() {
@@ -69,6 +85,26 @@ void ModuleMixDown::meta_finish() {
         // Call the meta finish of each
 
         mod->meta_finish();
+    }
+
+    // Call the user defined finish method
+
+    this->finish();
+}
+
+void ModuleMixDown::meta_info_sync() {
+
+    // Preform the current info sync
+
+    this->info_sync();
+
+    // Iterate over each module in the collection
+
+    for (auto* mod : this->in) {
+
+        // Call the info sync of each
+
+        mod->meta_info_sync();
     }
 }
 
