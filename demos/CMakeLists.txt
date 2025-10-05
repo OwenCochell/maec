@@ -12,6 +12,7 @@ set(MISC_FILES
     char_conversion.cpp
     call_benchmark.cpp
     vector_pass.cpp
+    chain_bench.cpp
 )
 
 # Finally, build and link all misc. demo files:

@@ -4,12 +4,12 @@
  * @brief Testing multiple function calls vs one vectorized call
  * @version 0.1
  * @date 2024-05-05
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  * This benchmark measures the speed of certain approaches to calling.
  * We test the following:
- * 
+ *
  * - Normal function multiple calls with one value returned
  * - Normal function call with vector returned
  * - Function pointer multiple calls with one value returned
@@ -19,10 +19,10 @@
 
 #include <algorithm>
 #include <chrono>
-#include <iostream>
-#include <vector>
-#include <memory>
 #include <functional>
+#include <iostream>
+#include <memory>
+#include <vector>
 
 #include "meta_audio.hpp"
 #include "sink_module.hpp"
@@ -115,7 +115,8 @@ int main() {
 
         auto time_ms = std::chrono::duration<double, std::milli>(diff).count();
 
-        std::cout << "Normal Single Time [" << i << "]: " << time_ms << " ms" << "\n"; 
+        std::cout << "Normal Single Time [" << i << "]: " << time_ms << " ms"
+                  << "\n";
 
         single_norm += time_ms;
     }
@@ -150,7 +151,8 @@ int main() {
 
         auto time_ms = std::chrono::duration<double, std::milli>(diff).count();
 
-        std::cout << "Normal Vector Time [" << i << "]: " << time_ms << " ms" << "\n";
+        std::cout << "Normal Vector Time [" << i << "]: " << time_ms << " ms"
+                  << "\n";
 
         vector_norm += time_ms;
     }
@@ -253,7 +255,7 @@ int main() {
 
     // Link them:
 
-    sink.bind(&osc);
+    sink.link(&osc);
 
     for (int i = 0; i < iter; ++i) {
 
