@@ -74,13 +74,21 @@ int main() {
 
         sink.get_info()->out_buffer = buff;
 
+        // Just for fun, add a LatencyModule
+
+        LatencyModule lat;
+
+        // Add the latency module to the chain
+
+        sink.link(&lat);
+
         // Create a constant source
 
         ConstModule source;
 
         // Module to add to collection
 
-        BaseModule* lmod = &sink;
+        BaseModule* lmod = &lat;
 
         // Iterate over the number of modules to add
 
@@ -143,6 +151,12 @@ int main() {
         std::cout << "Process Time: [" << ptime << "] ms\n";
 
         process += ptime;
+
+        // Get the latency of the chain
+
+        auto latv = lat.latency();
+
+        std::cout << "Module Latency: [" << latv << "] ns\n";
 
         // Preform the meta stop
         // TODO: Should we keep track of meta operations?
