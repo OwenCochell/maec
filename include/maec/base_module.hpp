@@ -178,8 +178,16 @@ public:
 
     virtual ~BaseModule() = default;
 
+    /// We DON'T allow copies thanks to unique pointer
+    BaseModule(const BaseModule&) = delete;
+
+    /// Move constructor for moving support
     BaseModule(BaseModule&&) = default;
 
+    /// We DON'T allow copies thanks to unique pointer
+    BaseModule& operator=(const BaseModule&) = delete;
+
+    /// Move assignment for moving support
     BaseModule& operator=(BaseModule&&) = default;
 
     /**
