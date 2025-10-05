@@ -17,6 +17,22 @@
 #include "meta.hpp"
 
 /**
+ * @brief Concept that enforces maec module types
+ *
+ * This concept ensures a type is a valid maec module.
+ * Mainly, this ensures that a type is a base class of
+ * BaseModule, which is a HARD maec module requirement.
+ *
+ * We also allow pointer and reference types,
+ * which will be reduced to a qualifier free type
+ * for checking.
+ *
+ * @tparam T Type to check
+ */
+template <typename T>
+concept maecm = std::is_base_of_v<remove_qualifiers<T>, BaseModule>;
+
+/**
  * @brief Module for working with audio data
  *
  * These modules are designed to work with audio data.
@@ -31,7 +47,7 @@
  *
  * TODO: Really fix this documentation
  */
-template <typename B = BaseModule*>
+template <maecm B = BaseModule*>
 class AudioModule : public BaseModule {
 private:
     /// Module instance behind us
