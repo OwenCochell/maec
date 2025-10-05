@@ -65,7 +65,7 @@
  * to be modulated.
  *
  */
-class ModuleParam : public SinkModule {
+class ModuleParam : public SinkModule<> {
 
 private:
     /// A constant value to be returned
@@ -337,7 +337,7 @@ public:
  * Also, a lot of repetition here between this and ParamModule
  */
 template <int num>
-class ParamSink : public SinkModule, public BaseParamModule<num> {
+class ParamSink : public SinkModule<>, public BaseParamModule<num> {
 public:
     using BaseParamModule<num>::BaseParamModule;
 

@@ -4,19 +4,12 @@
  * @brief Implementations for sink modules
  * @version 0.1
  * @date 2022-12-23
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include "sink_module.hpp"
-
-void SinkModule::info_sync() {
-
-    // Configure the AudioInfo:
-
-    this->get_info()->from_chain(this->chain_instance);
-}
 
 void PeriodSink::meta_process() {
 

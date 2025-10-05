@@ -19,6 +19,7 @@
 #pragma once
 
 #include "audio_module.hpp"
+#include "base_module.hpp"
 
 /**
  * @brief Sink module, base class for outputting audio data
@@ -49,8 +50,8 @@
  * We should also figure out how to handle the issue of specifying
  * differing sample rates, channel numbers, ect.
  */
-class SinkModule : public AudioModule<> {
-
+template <maecm B = BaseModule*>
+class SinkModule : public AudioModule<B> {
 private:
     /// ChainInfo instance, to be shared with backward modules
     ChainInfo chain_instance;
@@ -75,7 +76,11 @@ public:
      * We configure the AudioInfo to match the settings in ChainInfo.
      *
      */
-    void info_sync() override;
+    void info_sync() override {
+        // Configure the AudioInfo:
+
+        this->get_info()->from_chain(this->chain_instance);
+    }
 };
 
 /**
@@ -93,7 +98,7 @@ public:
  *
  * This sink could be used in contexts where periods are utilized.
  */
-class PeriodSink : public SinkModule {
+class PeriodSink : public SinkModule<> {
 private:
     /// Number of periods per process
     int periods = 1;

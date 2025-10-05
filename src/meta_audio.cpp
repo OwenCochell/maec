@@ -4,12 +4,10 @@
  * @brief Implementations of meta audio modules
  * @version 0.1
  * @date 2022-09-16
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
-
-#include <cmath>
 
 #include "meta_audio.hpp"
 
@@ -21,7 +19,8 @@ void Counter::process() {
 
     // Increment the number of samples encountered:
 
-    this->m_samples += static_cast<int>(this->buff->size()) * this->buff->channels();
+    this->m_samples +=
+        static_cast<int>(this->buff->size()) * this->buff->channels();
 }
 
 void LatencyModule::reset() {
@@ -66,7 +65,8 @@ void LatencyModule::meta_process() {
 
     // Get size of buffer:
 
-    const int samples = static_cast<int>(this->buff->size() * this->buff->channels());
+    const int samples =
+        static_cast<int>(this->buff->size() * this->buff->channels());
 
     // Update chain timer:
 
@@ -84,7 +84,8 @@ void LatencyModule::meta_process() {
 
     // Determine the latency:
 
-    this->operation_latency = this->operation_time - this->timer.get_time(samples);
+    this->operation_latency =
+        this->operation_time - this->timer.get_time(samples);
 
     // Add to total latency:
 
@@ -104,7 +105,6 @@ void BufferModule::process() {
     // Next, fill it using the contents of our old buffer:
 
     std::copy(this->gbuff->ibegin(), this->gbuff->iend(), this->buff->ibegin());
-
 }
 
 void UniformBuffer::process() {
@@ -117,7 +117,8 @@ void UniformBuffer::process() {
 
         // Determine if in buffer is out of values:
 
-        if (this->ibuff == nullptr || this->iindex >= static_cast<int>(this->ibuff->size())) {
+        if (this->ibuff == nullptr ||
+            this->iindex >= static_cast<int>(this->ibuff->size())) {
 
             // The current in buffer is done, grab a new one:
 
@@ -136,11 +137,14 @@ void UniformBuffer::process() {
 
         // Determine the number of samples yet to fill:
 
-        int remaining = std::min(this->get_info()->out_buffer - this->index, static_cast<int>(this->ibuff->size()) - this->iindex);
+        int remaining =
+            std::min(this->get_info()->out_buffer - this->index,
+                     static_cast<int>(this->ibuff->size()) - this->iindex);
 
         // Fill the current buffer with this value:
 
-        std::copy_n(this->ibuff->ibegin() + this->iindex, remaining, this->buff->ibegin() + this->index);
+        std::copy_n(this->ibuff->ibegin() + this->iindex, remaining,
+                    this->buff->ibegin() + this->index);
 
         // Update values and move on:
 
