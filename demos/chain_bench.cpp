@@ -30,7 +30,7 @@ using TestModule = AmplitudeScale;
 int main() {
 
     // Number of iterations to preform
-    const std::size_t iter = 100;
+    const std::size_t iter = 500000;
 
     // Buffer size
     const std::size_t buff = 100;
