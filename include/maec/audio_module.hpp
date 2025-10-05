@@ -81,14 +81,18 @@ struct ModuleInfo {
 
     ModuleInfo() = default;
 
-    ModuleInfo(ChainInfo cinfo) : sample_rate(cinfo.sample_rate), in_buffer(cinfo.buffer_size), out_buffer(cinfo.buffer_size), channels(cinfo.channels) {}
+    ModuleInfo(ChainInfo cinfo)
+        : sample_rate(cinfo.sample_rate),
+          in_buffer(cinfo.buffer_size),
+          out_buffer(cinfo.buffer_size),
+          channels(cinfo.channels) {}
 
     /**
      * @brief Configures the ModuleInfo from ChainInfo
-     * 
+     *
      * We simply grab the values from ChainInfo
      * and sets them in this instance.
-     * 
+     *
      * @param cinfo ChainInfo to get data from
      */
     void from_chain(ChainInfo& cinfo) {
@@ -112,7 +116,7 @@ struct ModuleInfo {
  * which will be used to share information between modules.
  *
  * All audio modules must inherit this class!
- * 
+ *
  * TODO: Really fix this documentation
  */
 class AudioModule : public BaseModule {
@@ -135,7 +139,6 @@ protected:
     std::unique_ptr<AudioBuffer> buff = nullptr;
 
 public:
-
     /// Default Constructor
     AudioModule() = default;
 
@@ -248,28 +251,28 @@ public:
 
     /**
      * @brief Determines the current AudioModule data
-     * 
+     *
      * Preforms an info sync for this module.
      * Many modules configure themselves based upon
      * the info from forward modules.
      * For example, a source may determine it's output buffer size
      * based upon the in buffer size of forward module it is connected to.
-     * 
+     *
      * This method should contain functionality that considers forward modules
      * and self-configures the current module.
      * This can be anything ranging from a static configuration,
      * to a dynamic configuration that does a lot of thinking.
-     * 
+     *
      * One rule of best practice is that modules should really only consider
      * any forward modules directly in front of them.
      * Modules can traverse the chain and consider ChainInfo,
      * but this can lead to bugprone behavior.
-     * 
+     *
      * This function is called automatically when modules are linked,
      * but it can be called anytime to preform a new info sync,
      * although it is recommended to do so BEFORE modules are started
      * to ensure the info is properly utilized.
-     * 
+     *
      * By default, we directly mirror the AudioInfo from the forward module.
      * Again, modules can overload this method and preform any action here.
      * As a note for users, if one wants to alter the AudioInfo,
@@ -280,7 +283,7 @@ public:
 
     /**
      * @brief Meta info sync
-     * 
+     *
      * This method preforms a chain-wide info sync
      * on all backwards modules.
      * This method is usually called for you automatically,
@@ -288,7 +291,7 @@ public:
      * A good application for this method is
      * if you manually change the current module's info,
      * then you can call this method to sync all backwards modules.
-     * 
+     *
      */
     virtual void meta_info_sync();
 
@@ -373,6 +376,17 @@ public:
      * @return AudioModule* The AudioModule we just bound
      */
     virtual AudioModule* bind(AudioModule* mod);
+
+    /**
+     * @brief Alias for bind method
+     *
+     * As of now, we are experimenting with a new design,
+     * which changes module relationships as links.
+     *
+     * @param mod Module to link
+     * @return AudioModule Linked module
+     */
+    virtual AudioModule* link(AudioModule* mod) { return bind(mod); }
 
     /**
      * @brief Set the forward module
