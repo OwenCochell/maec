@@ -11,29 +11,56 @@
 
 #include "base_module.hpp"
 
-std::unique_ptr<AudioBuffer> BaseModule::create_buffer(int channels) {
+#include "audio_buffer.hpp"
 
-    // Allocate the new buffer:
+// std::unique_ptr<AudioBuffer> BaseModule::create_buffer(int channels) {
 
-    return std::make_unique<AudioBuffer>(this->info.out_buffer, channels,
-                                         this->info.sample_rate);
+//     // Allocate the new buffer:
+
+//     return std::make_unique<AudioBuffer>(this->info.out_buffer, channels,
+//                                          this->info.sample_rate);
+// }
+
+void BaseModule::reserve() {
+
+    // Set the buffer parameters
+    // TODO: Grab channels from module info?
+
+    buff.set_channels(info.channels);
+    buff.set_samplerate(info.sample_rate);
+
+    // Resize the buffer we are working with
+
+    buff.resize(this->info.out_buffer * info.channels);
 }
 
-std::unique_ptr<AudioBuffer> BaseModule::create_buffer(int size, int channels) {
+// std::unique_ptr<AudioBuffer> BaseModule::create_buffer(int size, int
+// channels) {
 
-    // Allocate the new buffer:
+//     // Allocate the new buffer:
 
-    return std::make_unique<AudioBuffer>(size, channels);
+//     return std::make_unique<AudioBuffer>(size, channels);
+// }
+
+void BaseModule::reserve(int size, int channels) {
+
+    // Set the buffer parameters
+
+    buff.set_channels(channels);
+
+    // Resize the buffer we are working with
+
+    buff.resize(size * channels);
 }
 
-std::unique_ptr<AudioBuffer> BaseModule::get_buffer() {
+AudioBuffer&& BaseModule::get_buffer() {
 
     // Return our buffer:
 
-    return std::move(this->buff);
+    return std::move(buff);
 }
 
-void BaseModule::set_buffer(std::unique_ptr<AudioBuffer> inbuff) {
+void BaseModule::set_buffer(AudioBuffer&& inbuff) {
 
     // Set our buffer:
 

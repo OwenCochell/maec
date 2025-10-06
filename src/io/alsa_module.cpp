@@ -4,9 +4,9 @@
  * @brief Implementations for ALSA Output
  * @version 0.1
  * @date 2022-10-10
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #ifdef ALSA_F
@@ -32,8 +32,8 @@ void DeviceInfo::create_device(void** hint, int id) {
     // Extract the necessary info:
 
     char* n = snd_device_name_get_hint(*hint, "NAME");
-	char* descr = snd_device_name_get_hint(*hint, "DESC");
-	char* io = snd_device_name_get_hint(*hint, "IOID");
+    char* descr = snd_device_name_get_hint(*hint, "DESC");
+    char* io = snd_device_name_get_hint(*hint, "IOID");
 
     // Set name and description:
 
@@ -77,7 +77,8 @@ void DeviceInfo::create_device(void** hint, int id) {
 
     snd_pcm_t* pcm = nullptr;
 
-    int err = snd_pcm_open(&pcm, this->name.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
+    int err =
+        snd_pcm_open(&pcm, this->name.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
 
     if (err != 0) {
 
@@ -225,7 +226,7 @@ DeviceInfo ALSABase::get_device_by_id(int index) {
     // Ensure the given index is within our count:
     // Note: Using get_device_count() ensures we aren't repeating ourselves.
     // but is it the most efficient? Probably not...
- 
+
     if (index >= this->get_device_count()) {
         // TODO: DO SOMETHING!
         // NOT DOING SOMETHING WILL RESULT IN A SEG FAULT!!!!
@@ -278,7 +279,8 @@ DeviceInfo ALSABase::get_device_by_name(const std::string& name) {
 
             // Found it, break
             // TODO: Implement some kind of error correction
-            // For now we assume all provided names are valid which is DANGEROUS!
+            // For now we assume all provided names are valid which is
+            // DANGEROUS!
 
             info = DeviceInfo(n, id);
 
@@ -305,7 +307,8 @@ void ALSABase::alsa_start() {
 
     // Create the PCM device:
 
-    int err = snd_pcm_open(&(this->pcm), this->device.name.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
+    int err = snd_pcm_open(&(this->pcm), this->device.name.c_str(),
+                           SND_PCM_STREAM_PLAYBACK, 0);
 
     // Allocate the hardware parameters:
 
@@ -328,11 +331,15 @@ void ALSABase::alsa_start() {
 
     // Set some non-negotiable values:
 
-    int a = snd_pcm_hw_params_set_access(pcm, params, SND_PCM_ACCESS_RW_INTERLEAVED);
-	int b = snd_pcm_hw_params_set_format(pcm, params, SND_PCM_FORMAT_S16); // THIS FAILS, ONLY WITH FLOAT_64
-	int c = snd_pcm_hw_params_set_channels(pcm, params,  this->device.channels);
-	int d = snd_pcm_hw_params_set_rate(pcm, params, this->device.sample_rate, 0);
-    int eee = snd_pcm_hw_params_set_period_size(pcm, params, this->device.period_size, 0);
+    int a = snd_pcm_hw_params_set_access(pcm, params,
+                                         SND_PCM_ACCESS_RW_INTERLEAVED);
+    int b = snd_pcm_hw_params_set_format(
+        pcm, params, SND_PCM_FORMAT_S16);  // THIS FAILS, ONLY WITH FLOAT_64
+    int c = snd_pcm_hw_params_set_channels(pcm, params, this->device.channels);
+    int d =
+        snd_pcm_hw_params_set_rate(pcm, params, this->device.sample_rate, 0);
+    int eee = snd_pcm_hw_params_set_period_size(pcm, params,
+                                                this->device.period_size, 0);
     snd_pcm_hw_params_set_periods(pcm, params, this->device.period, 0);
 
     // Commit the parameters:
@@ -343,13 +350,15 @@ void ALSABase::alsa_start() {
 
     int junk = 0;
 
-    int rret = snd_pcm_hw_params_get_period_size(params, &(this->device.period_size), &junk);
+    int rret = snd_pcm_hw_params_get_period_size(
+        params, &(this->device.period_size), &junk);
 
     long unsigned int buffer_sizeb;
 
     snd_pcm_hw_params_get_buffer_size(params, &(this->device.buffer_size));
 
-    snd_pcm_hw_params_get_period_time(params, &(this->device.period_time), &junk);
+    snd_pcm_hw_params_get_period_time(params, &(this->device.period_time),
+                                      &junk);
 
     unsigned int rate = 0;
 
@@ -379,11 +388,11 @@ void ALSASink::process() {
 
     // First, define our temporary vector:
 
-    std::vector<int16_t> temp(buff->size() * buff->channels());
+    std::vector<int16_t> temp(buff.size() * buff.channels());
 
     // Next, squish it:
 
-    squish_inter(this->buff.get(), temp.begin(), &mf_int16);
+    squish_inter(&this->buff, temp.begin(), &mf_int16);
 
     // Determine if we need to prepare the device again:
 
@@ -392,7 +401,7 @@ void ALSASink::process() {
         // Underrun occurred, prepare the device again:
         std::cout << "ALSA Underrun (Before)" << std::endl;
 
-        snd_pcm_prepare(this->pcm); 
+        snd_pcm_prepare(this->pcm);
     }
 
     // Finally, send the data along:
@@ -413,7 +422,7 @@ void ALSASink::start() {
 
     // First, determine if the device supports output:
 
-    if(!this->get_device().output) {
+    if (!this->get_device().output) {
 
         // Device does not support output, do something!
         // TODO: Figure this out!

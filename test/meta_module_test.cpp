@@ -12,6 +12,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include "audio_buffer.hpp"
 #include "fund_oscillator.hpp"
 #include "meta_audio.hpp"
 
@@ -205,7 +206,7 @@ TEST_CASE("MetaBuffer Test", "[meta]") {
 
         // Next, ensure data is accurate:
 
-        std::shared_ptr<AudioBuffer> tdata = nullptr;
+        AudioBuffer tdata;
 
         for (int i = 0; i < 10 * 4; ++i) {
 
@@ -218,7 +219,7 @@ TEST_CASE("MetaBuffer Test", "[meta]") {
             }
 
             REQUIRE_THAT(data.at(i % 10),
-                         Catch::Matchers::WithinAbs(tdata->at(i % 10), 0.0001));
+                         Catch::Matchers::WithinAbs(tdata.at(i % 10), 0.0001));
         }
     }
 }
@@ -275,7 +276,7 @@ TEST_CASE("UniformBuffer Test", "[meta]") {
 
             // Ensure buffer is valid:
 
-            iter = buff->ibegin();
+            iter = buff.ibegin();
 
             for (int j = 0; j < size; ++j) {
 
@@ -327,7 +328,7 @@ TEST_CASE("UniformBuffer Test", "[meta]") {
 
         // Ensure buffer is accurate:
 
-        for (auto iter = obuff->ibegin(); iter != obuff->iend(); ++iter) {
+        for (auto iter = obuff.ibegin(); iter != obuff.iend(); ++iter) {
 
             REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(
                                     iter.get_index() % isize, 0.0001));
@@ -379,7 +380,7 @@ TEST_CASE("UniformBuffer Test", "[meta]") {
 
             // Ensure buffer is accurate:
 
-            for (auto tier = obuff->ibegin(); tier != obuff->iend(); ++tier) {
+            for (auto tier = obuff.ibegin(); tier != obuff.iend(); ++tier) {
 
                 // Check value:
 
@@ -431,17 +432,13 @@ TEST_CASE("ConstModule Test", "[meta]") {
 
     auto buff = osc.get_buffer();
 
-    // Ensure the buffer is not null:
-
-    REQUIRE(buff != nullptr);
-
     // Ensure the buffer is the correct size:
 
-    REQUIRE(buff->size() == 440);
+    REQUIRE(buff.size() == 440);
 
     // Ensure the buffer is filled with the correct value:
 
-    for (auto& val : *buff) {
+    for (auto& val : buff) {
 
         REQUIRE(val == 1.0);
     }

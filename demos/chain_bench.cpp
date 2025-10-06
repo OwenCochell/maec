@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include "amp_module.hpp"
+#include "audio_module.hpp"
 #include "base_module.hpp"
 #include "meta_audio.hpp"
 #include "sink_module.hpp"
@@ -88,7 +89,7 @@ int main() {
 
         // Module to add to collection
 
-        BaseModule* lmod = &lat;
+        AudioModule<>* lmod = &lat;
 
         // Iterate over the number of modules to add
 

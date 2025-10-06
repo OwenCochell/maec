@@ -4,14 +4,15 @@
  * @brief Implementations for wave file components
  * @version 0.1
  * @date 2023-10-30
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
+
+#include "io/wav.hpp"
 
 #include <vector>
 
-#include "io/wav.hpp"
 #include "audio_buffer.hpp"
 
 void ChunkHeader::decode(BaseMIStream& stream) {
@@ -98,7 +99,8 @@ void WavHeader::encode(BaseMOStream& stream) {
 
     // Next, encode format data:
 
-    std::copy_n(format.data(), WavHeader::size() - ChunkHeader::size(), data.begin() + ChunkHeader::size());
+    std::copy_n(format.data(), WavHeader::size() - ChunkHeader::size(),
+                data.begin() + ChunkHeader::size());
 
     // Write data to the stream:
 
@@ -116,7 +118,7 @@ void WavFormat::decode(BaseMIStream& stream) {
     stream.read(data.begin(), data.size());
 
     // Load format data:
- 
+
     this->format = char_int16(data.begin());
     this->channels = char_int16(data.begin() + 2);
     this->sample_rate = char_uint32(data.begin() + 4);
@@ -263,7 +265,7 @@ void WaveReader::read_wave_header(WavHeader& chunk) {
 
     chunk.decode(*stream);
 
-    this->total_read += 4+8;
+    this->total_read += 4 + 8;
 }
 
 void WaveReader::read_format_chunk(WavFormat& chunk) {
@@ -277,9 +279,8 @@ BufferPointer WaveReader::get_data() {
 
     // Define the BufferPointer to return:
 
-    BufferPointer bpoint = std::make_unique<AudioBuffer>(
-        this->buffer_size,
-        this->get_channels());
+    BufferPointer bpoint =
+        std::make_unique<AudioBuffer>(this->buffer_size, this->get_channels());
 
     // Also set the sample rate:
 
@@ -345,9 +346,11 @@ BufferPointer WaveReader::get_data() {
         // or the number of bytes left in this chunk, whichever is smallest
 
         const int buffer_bytes =
-            (this->buffer_size * this->get_channels() - read) * this->get_bytes_per_sample();
+            (this->buffer_size * this->get_channels() - read) *
+            this->get_bytes_per_sample();
 
-        const int chunk_bytes = static_cast<int>(head.chunk_size - this->chunk_read);
+        const int chunk_bytes =
+            static_cast<int>(head.chunk_size - this->chunk_read);
 
         int to_read = 0;
 
@@ -390,8 +393,8 @@ BufferPointer WaveReader::get_data() {
 
                 // Read this int16:
 
-                auto val = char_int16(tdata.begin() +
-                                      static_cast<int64_t>(i) * 2);
+                auto val =
+                    char_int16(tdata.begin() + static_cast<int64_t>(i) * 2);
 
                 // Convert to mf:
 
@@ -474,7 +477,7 @@ void WaveWriter::start() {
     ChunkHeader chead;
 
     chead.chunk_id = "data";
-    chead.chunk_size = 0; // Need to rewrite later
+    chead.chunk_size = 0;  // Need to rewrite later
 
     chead.encode(*stream);
 
@@ -516,7 +519,9 @@ void WaveWriter::stop() {
 
         // Encode data chunk size:
 
-        uint32_char(this->get_size() - WavHeader::size() - WavFormat::size() - ChunkHeader::size(), sout.begin());
+        uint32_char(this->get_size() - WavHeader::size() - WavFormat::size() -
+                        ChunkHeader::size(),
+                    sout.begin());
 
         // Write to file:
 
@@ -543,7 +548,9 @@ void WaveWriter::write_data(BufferPointer data) {
 
         for (auto iter = data->ibegin(); iter < data->iend(); ++iter) {
 
-            int16_char(mf_int16(*iter), odata.begin() + iter.get_index() * this->get_bytes_per_sample());
+            int16_char(mf_int16(*iter),
+                       odata.begin() +
+                           iter.get_index() * this->get_bytes_per_sample());
         }
     }
 
@@ -601,5 +608,5 @@ void WaveSource::process() {
 
     // Set our buffer:
 
-    this->set_buffer(std::move(buff));
+    this->set_buffer(std::move(*buff));
 }

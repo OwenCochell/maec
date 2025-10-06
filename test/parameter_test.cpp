@@ -68,7 +68,7 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
         auto buff = const_param.get();
 
-        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+        for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
             REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(5., 0.0001));
         }
@@ -83,7 +83,7 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
             buff = const_param.get();
 
-            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                 REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(3., 0.0001));
             }
@@ -109,7 +109,7 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
         auto buffp = mod_param.get();
 
-        for (auto iter = buffp->ibegin(); iter < buffp->iend(); ++iter) {
+        for (auto iter = buffp.ibegin(); iter < buffp.iend(); ++iter) {
 
             REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(3.0, 0.0001));
         }
@@ -134,7 +134,7 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
         for (int i = 0; i < data.size(); ++i) {
 
-            REQUIRE_THAT(buffp->at(i),
+            REQUIRE_THAT(buffp.at(i),
                          Catch::Matchers::WithinAbs(data.at(i), 0.0001));
         }
     }

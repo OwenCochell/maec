@@ -156,11 +156,11 @@ private:
 
 protected:
     /// Pointer to the audio buffer we are working with
-    std::unique_ptr<AudioBuffer> buff = nullptr;
+    AudioBuffer buff;
 
 public:
     /// Backward type, by default BaseModule pointer
-    using BT = BaseModule*;
+    // using BT = BaseModule*;
 
     /// Forward type, by default BaseModule pointer
     using FT = BaseModule*;
@@ -179,13 +179,13 @@ public:
     virtual ~BaseModule() = default;
 
     /// We DON'T allow copies thanks to unique pointer
-    BaseModule(const BaseModule&) = delete;
+    BaseModule(const BaseModule&) = default;
 
     /// Move constructor for moving support
     BaseModule(BaseModule&&) = default;
 
     /// We DON'T allow copies thanks to unique pointer
-    BaseModule& operator=(const BaseModule&) = delete;
+    BaseModule& operator=(const BaseModule&) = default;
 
     /// Move assignment for moving support
     BaseModule& operator=(BaseModule&&) = default;
@@ -336,7 +336,7 @@ public:
      *
      * @param inbuff Pointer to an audio buffer
      */
-    void set_buffer(std::unique_ptr<AudioBuffer> inbuff);
+    void set_buffer(AudioBuffer&& inbuff);
 
     /**
      * @brief Get the buffer object
@@ -356,7 +356,7 @@ public:
      *
      * @return std::unique_ptr<AudioBuffer>
      */
-    virtual std::unique_ptr<AudioBuffer> get_buffer();
+    virtual AudioBuffer&& get_buffer();
 
     /**
      * @brief Creates an AudioBuffer
@@ -367,13 +367,14 @@ public:
      * and have ownership of the buffer.
      *
      * We will automatically create a buffer with using
-     * the size from the AudioInfo struct.
-     * You can also specify the default number of channels,
-     * but by default this will be 1.
+     * the size from the AudioInfo struct,
+     * along with the sample rate and channel count.
      *
      * @return The newly created buffer
      */
-    std::unique_ptr<AudioBuffer> create_buffer(int channels = 1);
+    // std::unique_ptr<AudioBuffer> create_buffer(int channels = 1);
+
+    void reserve();
 
     /**
      * @brief Creates an AudioBuffer
@@ -387,7 +388,10 @@ public:
      * @param channels Channels in AudioBuffer
      * @return std::unique_ptr<AudioBuffer> Newly created buffer
      */
-    static std::unique_ptr<AudioBuffer> create_buffer(int size, int channels);
+    // static std::unique_ptr<AudioBuffer> create_buffer(int size, int
+    // channels);
+
+    void reserve(int size, int channels);
 
     /**
      * @brief Binds another module to us
@@ -535,7 +539,7 @@ public:
 
     virtual BaseModule* forward() { return forwardv; }
 
-    virtual BaseModule* link(BaseModule* mod) = 0;
+    virtual BaseModule* link(BaseModule* mod) { return mod; };
 
 private:
     /// The state type of this module:

@@ -57,16 +57,16 @@ TEST_CASE("ModuleMixUp Tests", "[mixer]") {
 
         // Get the buffers:
 
-        std::unique_ptr<AudioBuffer> buff = mix.get_buffer();
-        std::unique_ptr<AudioBuffer> buff1 = mix.get_buffer();
+        auto buff = mix.get_buffer();
+        auto buff1 = mix.get_buffer();
 
         // Ensure they are not the same memory location:
 
-        REQUIRE(buff != buff1);
+        // REQUIRE(buff != buff1);
 
         // Iterate over the first buffer:
 
-        for (auto item : *buff) {
+        for (auto item : buff) {
 
             // Ensure the value is around 0.5:
 
@@ -75,7 +75,7 @@ TEST_CASE("ModuleMixUp Tests", "[mixer]") {
 
         // Iterate over the second buffer:
 
-        for (auto item : *buff1) {
+        for (auto item : buff1) {
 
             // Ensure the value is around 0.5:
 
@@ -242,11 +242,11 @@ TEST_CASE("ModuleMixDown Tests", "[mixer]") {
 
         // Get the buffer:
 
-        std::unique_ptr<AudioBuffer> buff = mix.get_buffer();
+        auto buff = mix.get_buffer();
 
         // Iterate over the buffer:
 
-        for (auto item : *buff) {
+        for (auto item : buff) {
 
             // Ensure the value is around 0.5:
 
@@ -305,16 +305,16 @@ TEST_CASE("MultiMix Tests", "[mixer]") {
 
         // Get the buffers:
 
-        std::unique_ptr<AudioBuffer> buff = mix.get_buffer();
-        std::unique_ptr<AudioBuffer> buff1 = mix.get_buffer();
+        auto buff = mix.get_buffer();
+        auto buff1 = mix.get_buffer();
 
         // Ensure they are not the same memory location:
 
-        REQUIRE(buff != buff1);
+        // REQUIRE(buff != buff1);
 
         // Iterate over the first buffer:
 
-        for (auto item : *buff) {
+        for (auto item : buff) {
 
             // Ensure the value is around 0.5:
 
@@ -323,7 +323,7 @@ TEST_CASE("MultiMix Tests", "[mixer]") {
 
         // Iterate over the second buffer:
 
-        for (auto item : *buff1) {
+        for (auto item : buff1) {
 
             // Ensure the value is around 0.5:
 

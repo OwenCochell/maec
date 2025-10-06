@@ -13,6 +13,7 @@
 
 #include <algorithm>
 
+#include "audio_buffer.hpp"
 #include "audio_module.hpp"
 #include "base_module.hpp"
 
@@ -130,7 +131,9 @@ void ModuleMixDown::process() {
 
     // Create a new buffer:
 
-    std::unique_ptr<AudioBuffer> fbuff = create_buffer();
+    auto fbuff =
+        AudioBuffer(this->get_info()->out_buffer, this->get_info()->channels,
+                    this->get_info()->sample_rate);
 
     // Iterate over each buffer:
 
@@ -138,10 +141,10 @@ void ModuleMixDown::process() {
 
         // Iterate over each value in the buffer:
 
-        for (auto iter = b->sbegin();
-             (unsigned int)iter.get_index() < b->size(); ++iter) {
+        for (auto iter = b.sbegin();
+             static_cast<unsigned int>(iter.get_index()) < b.size(); ++iter) {
 
-            *(fbuff->sbegin() + iter) += *iter;
+            *(fbuff.sbegin() + iter) += *iter;
         }
     }
 
@@ -157,15 +160,18 @@ void ModuleMixUp::forward(BaseModule* mod) {
     this->out.push_back(mod);
 }
 
-std::unique_ptr<AudioBuffer> ModuleMixUp::get_buffer() {
+AudioBuffer&& ModuleMixUp::get_buffer() {
 
-    // Get a buffer to work with:
+    // Configure the temporary buffer
 
-    std::unique_ptr<AudioBuffer> tbuff = this->create_buffer();
+    tbuff.set_channels(this->get_info()->channels);
+    tbuff.set_samplerate(this->get_info()->sample_rate);
 
-    std::copy(this->buff->sbegin(), this->buff->send(), tbuff->sbegin());
+    tbuff.resize(this->get_info()->out_buffer);
+
+    std::copy(this->buff.sbegin(), this->buff.send(), tbuff.sbegin());
 
     // Finally, return the buffer:
 
-    return tbuff;
+    return std::move(tbuff);
 }

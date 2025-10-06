@@ -4,15 +4,16 @@
  * @brief Implementations for filter modules
  * @version 0.1
  * @date 2023-08-02
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
 #include "filter_module.hpp"
 
-#include "dsp/kernel.hpp"
+#include "audio_buffer.hpp"
 #include "dsp/conv.hpp"
+#include "dsp/kernel.hpp"
 
 FilterType BaseFilter::get_type() const {
 
@@ -107,11 +108,13 @@ void BaseConvFilter::process() {
 
     // Allocate buffer for holding output:
 
-    auto nbuff = this->create_buffer(length_conv(ibuff->size(), this->kernel->size()), 1);
+    auto nbuff =
+        AudioBuffer(length_conv(ibuff.size(), this->kernel->size()), 1);
 
     // Run though convolution function:
 
-    input_conv(ibuff->ibegin(), ibuff->size(), this->kernel->ibegin(), this->kernel->size(), nbuff->ibegin());
+    input_conv(ibuff.ibegin(), ibuff.size(), this->kernel->ibegin(),
+               this->kernel->size(), nbuff.ibegin());
 
     // Finally, set the buffer:
 
@@ -125,13 +128,14 @@ void SincFilter::generate_kernel() {
     const auto type = this->get_type();
     const int final_size = this->get_size();
 
-    const auto start_ratio = static_cast<double>(this->get_start_freq() / this->get_info()->sample_rate);
-    const auto stop_ratio = static_cast<double>(this->get_stop_freq() / this->get_info()->sample_rate);
+    const auto start_ratio = static_cast<double>(this->get_start_freq() /
+                                                 this->get_info()->sample_rate);
+    const auto stop_ratio = static_cast<double>(this->get_stop_freq() /
+                                                this->get_info()->sample_rate);
 
     // First, create a buffer for use:
 
-    BufferPointer kern =
-        std::make_unique<AudioBuffer>(this->get_size(), 1);
+    BufferPointer kern = std::make_unique<AudioBuffer>(this->get_size(), 1);
 
     // First off, just create the sinc kernel:
 
@@ -166,7 +170,8 @@ void SincFilter::generate_kernel() {
 
             // Add values together:
 
-            *(kern->ibegin() + i) = *(kern->ibegin() + i) + *(hkern.ibegin() + i);
+            *(kern->ibegin() + i) =
+                *(kern->ibegin() + i) + *(hkern.ibegin() + i);
         }
 
         // Determine if we should invert:

@@ -16,6 +16,7 @@
 #include <array>
 #include <utility>
 
+#include "audio_buffer.hpp"
 #include "audio_module.hpp"
 #include "base_module.hpp"
 #include "meta_audio.hpp"
@@ -106,7 +107,7 @@ public:
      *
      * @return AudioBuffer Buffer of values to work with
      */
-    BufferPointer get();
+    AudioBuffer&& get();
 
     /**
      * @brief Configures this parameter for constant values.

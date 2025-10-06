@@ -20,7 +20,7 @@ void Counter::process() {
     // Increment the number of samples encountered:
 
     this->m_samples +=
-        static_cast<int>(this->buff->size()) * this->buff->channels();
+        static_cast<int>(this->buff.size()) * this->buff.channels();
 }
 
 void LatencyModule::reset() {
@@ -66,12 +66,12 @@ void LatencyModule::meta_process() {
     // Get size of buffer:
 
     const int samples =
-        static_cast<int>(this->buff->size() * this->buff->channels());
+        static_cast<int>(this->buff.size() * this->buff.channels());
 
     // Update chain timer:
 
-    this->timer.set_samplerate(static_cast<int>(this->buff->get_samplerate()));
-    this->timer.set_channels(this->buff->channels());
+    this->timer.set_samplerate(static_cast<int>(this->buff.get_samplerate()));
+    this->timer.set_channels(this->buff.channels());
     this->timer.add_sample(samples);
 
     // Save the time:
@@ -100,25 +100,25 @@ void BufferModule::process() {
 
     // First, create a buffer to use:
 
-    this->set_buffer(this->create_buffer());
+    this->reserve();
 
     // Next, fill it using the contents of our old buffer:
 
-    std::copy(this->gbuff->ibegin(), this->gbuff->iend(), this->buff->ibegin());
+    std::copy(this->gbuff->ibegin(), this->gbuff->iend(), this->buff.ibegin());
 }
 
 void UniformBuffer::process() {
 
     // Create new empty buffer:
 
-    this->set_buffer(this->create_buffer());
+    this->reserve();
 
     while (this->index < this->get_info()->out_buffer) {
 
         // Determine if in buffer is out of values:
 
-        if (this->ibuff == nullptr ||
-            this->iindex >= static_cast<int>(this->ibuff->size())) {
+        if (this->ibuff.size() == 0 ||
+            this->iindex >= static_cast<int>(this->ibuff.size())) {
 
             // The current in buffer is done, grab a new one:
 
@@ -139,12 +139,12 @@ void UniformBuffer::process() {
 
         int remaining =
             std::min(this->get_info()->out_buffer - this->index,
-                     static_cast<int>(this->ibuff->size()) - this->iindex);
+                     static_cast<int>(this->ibuff.size()) - this->iindex);
 
         // Fill the current buffer with this value:
 
-        std::copy_n(this->ibuff->ibegin() + this->iindex, remaining,
-                    this->buff->ibegin() + this->index);
+        std::copy_n(this->ibuff.ibegin() + this->iindex, remaining,
+                    this->buff.ibegin() + this->index);
 
         // Update values and move on:
 
@@ -161,9 +161,9 @@ void ConstModule::process() {
 
     // Create a new buffer:
 
-    this->set_buffer(this->create_buffer());
+    this->reserve();
 
     // Fill the buffer with the value:
 
-    std::fill(this->buff->sbegin(), this->buff->send(), this->value);
+    std::fill(this->buff.sbegin(), this->buff.send(), this->value);
 }

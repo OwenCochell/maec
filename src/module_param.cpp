@@ -17,7 +17,7 @@
 #include "base_module.hpp"
 #include "meta_audio.hpp"
 
-BufferPointer ModuleParam::get() {
+AudioBuffer&& ModuleParam::get() {
 
     // First, meta process:
 

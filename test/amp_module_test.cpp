@@ -77,7 +77,7 @@ TEST_CASE("AmplitudeScale Test", "[amp]") {
 
         // Ensure data is accurate:
 
-        for (auto iter = buff->ibegin(); iter != buff->send(); ++iter) {
+        for (auto iter = buff.ibegin(); iter != buff.send(); ++iter) {
 
             // Ensure value is correct:
 
@@ -112,7 +112,7 @@ TEST_CASE("AmplitudeAdd Test", "[amp]") {
 
         // Ensure data is accurate:
 
-        for (auto iter = buff->ibegin(); iter != buff->send(); ++iter) {
+        for (auto iter = buff.ibegin(); iter != buff.send(); ++iter) {
 
             // Ensure value is correct:
 

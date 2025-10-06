@@ -4,17 +4,16 @@
  * @brief Various tests for envelopes
  * @version 0.1
  * @date 2023-02-25
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
+
+#include "envelope.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-
 #include <cmath>
-
-#include "envelope.hpp"
 
 TEST_CASE("BaseEnvelopeTest", "[env]") {
 
@@ -48,7 +47,8 @@ TEST_CASE("BaseEnvelopeTest", "[env]") {
 
         REQUIRE(1 == env.time_diff());
         REQUIRE(1 == env.val_diff());
-        REQUIRE_THAT(4. / 3., Catch::Matchers::WithinAbs(env.val_divide(), 0.0001));
+        REQUIRE_THAT(4. / 3.,
+                     Catch::Matchers::WithinAbs(env.val_divide(), 0.0001));
     }
 
     SECTION("Time", "Ensures timing operations work correctly") {
@@ -97,7 +97,7 @@ TEST_CASE("DurationEnvelope Test", "[env]") {
 
         // Ensure value is correct:
 
-        REQUIRE(&val == dur.get_envelope());\
+        REQUIRE(&val == dur.get_envelope());
 
         SECTION("Process", "Ensures processing works correctly") {
 
@@ -109,7 +109,8 @@ TEST_CASE("DurationEnvelope Test", "[env]") {
 
             dur.start();
 
-            SECTION("Start", "Ensures the time values are correct when started") {
+            SECTION("Start",
+                    "Ensures the time values are correct when started") {
 
                 // Ensure start and stop times are valid:
 
@@ -140,7 +141,7 @@ TEST_CASE("DurationEnvelope Test", "[env]") {
 
                 auto buff = dur.get_buffer();
 
-                for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+                for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                     REQUIRE(1 == *iter);
                 }
@@ -152,7 +153,7 @@ TEST_CASE("DurationEnvelope Test", "[env]") {
 
             auto buff = dur.get_buffer();
 
-            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                 REQUIRE(5 == *iter);
             }
@@ -182,24 +183,20 @@ TEST_CASE("ConstantEnvelope Test", "[env]") {
 
         auto buff = cnst.get_buffer();
 
-        // Ensure the buffer is not null:
-
-        REQUIRE(nullptr != buff);
-
         // Ensure the buffer is the correct size:
 
-        REQUIRE(440 == buff->size());
+        REQUIRE(440 == buff.size());
 
         // Ensure values are correct:
 
-        for (auto& val : *buff) {
+        for (auto& val : buff) {
 
             REQUIRE_THAT(val, Catch::Matchers::WithinAbs(value, 0.0001));
         }
 
         // Jump to an arbitrary time:
 
-        cnst.get_timer()->set_sample(SAMPLE_RATE*2);
+        cnst.get_timer()->set_sample(SAMPLE_RATE * 2);
 
         // Process:
 
@@ -209,17 +206,13 @@ TEST_CASE("ConstantEnvelope Test", "[env]") {
 
         buff = cnst.get_buffer();
 
-        // Ensure the buffer is not null:
-
-        REQUIRE(nullptr != buff);
-
         // Ensure the buffer is the correct size:
 
-        REQUIRE(440 == buff->size());
+        REQUIRE(440 == buff.size());
 
         // Ensure values are correct:
 
-        for (auto& val : *buff) {
+        for (auto& val : buff) {
 
             REQUIRE_THAT(val, Catch::Matchers::WithinAbs(value, 0.0001));
         }
@@ -265,7 +258,7 @@ TEST_CASE("ExponentialRamp Test", "[env]") {
 
             // Ensure buffer is accurate
 
-            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                 // Ensure this value is bigger than the last:
 
@@ -274,8 +267,9 @@ TEST_CASE("ExponentialRamp Test", "[env]") {
                 if (last != -1) {
 
                     // Ensure delta is correct, should always be bigger
-                    // Not a super great way to ensure this ramp is truly exponential,
-                    // but as long as the delta keeps getting higher than it is close enough (for now)
+                    // Not a super great way to ensure this ramp is truly
+                    // exponential, but as long as the delta keeps getting
+                    // higher than it is close enough (for now)
 
                     REQUIRE(delta < *iter - last);
 
@@ -291,7 +285,8 @@ TEST_CASE("ExponentialRamp Test", "[env]") {
         REQUIRE_THAT(last, Catch::Matchers::WithinAbs(final_value, 0.05));
     }
 
-    SECTION("ValueLarge", "Ensures the returned values are correct with large inputs") {
+    SECTION("ValueLarge",
+            "Ensures the returned values are correct with large inputs") {
 
         // Seconds it will take to ramp to value:
 
@@ -324,7 +319,7 @@ TEST_CASE("ExponentialRamp Test", "[env]") {
 
             // Ensure buffer is accurate
 
-            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                 // Ensure this value is bigger than the last:
 
@@ -395,7 +390,7 @@ TEST_CASE("LinearRamp Test", "[env]") {
 
             // Ensure buffer is accurate
 
-            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                 // Ensure this value is bigger than the last:
 
@@ -406,7 +401,8 @@ TEST_CASE("LinearRamp Test", "[env]") {
                     // Ensure the delta is the same
                     // (or very close)
 
-                    REQUIRE_THAT(*iter - last, Catch::Matchers::WithinAbs(delta, 0.0001));
+                    REQUIRE_THAT(*iter - last,
+                                 Catch::Matchers::WithinAbs(delta, 0.0001));
                 }
 
                 delta = *iter - last;
@@ -423,7 +419,8 @@ TEST_CASE("LinearRamp Test", "[env]") {
         auto buff = lin.get_buffer();
     }
 
-    SECTION("Value Large", "Ensures we return correct values with large inputs") {
+    SECTION("Value Large",
+            "Ensures we return correct values with large inputs") {
 
         // Seconds it will take to ramp to value:
 
@@ -456,7 +453,7 @@ TEST_CASE("LinearRamp Test", "[env]") {
 
             // Ensure buffer is accurate
 
-            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                 // Ensure this value is bigger than the last:
 
@@ -467,7 +464,8 @@ TEST_CASE("LinearRamp Test", "[env]") {
                     // Ensure the delta is the same
                     // (or very close)
 
-                    REQUIRE_THAT(*iter - last, Catch::Matchers::WithinAbs(delta, 0.0001));
+                    REQUIRE_THAT(*iter - last,
+                                 Catch::Matchers::WithinAbs(delta, 0.0001));
                 }
 
                 delta = *iter - last;
@@ -519,7 +517,7 @@ TEST_CASE("SetValue Test", "[env]") {
 
             auto buff = val.get_buffer();
 
-            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                 // Determine if we are start or stop:
 
@@ -534,13 +532,15 @@ TEST_CASE("SetValue Test", "[env]") {
 
                     // Ensure we are the stop value:
 
-                    REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(final_value, 0.0001));
+                    REQUIRE_THAT(
+                        *iter, Catch::Matchers::WithinAbs(final_value, 0.0001));
                 }
             }
         }
     }
 
-    SECTION("Value Offset", "Ensures we work correctly with a weird, offset value") {
+    SECTION("Value Offset",
+            "Ensures we work correctly with a weird, offset value") {
 
         // Seconds it will take to ramp to value:
         // (Choose a super weird value here)
@@ -567,7 +567,7 @@ TEST_CASE("SetValue Test", "[env]") {
 
         auto buff = val.get_buffer();
 
-        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+        for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
             // Determine the value to check:
 
@@ -578,7 +578,8 @@ TEST_CASE("SetValue Test", "[env]") {
 
             else {
 
-                REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(final_value, 0.0001));
+                REQUIRE_THAT(*iter,
+                             Catch::Matchers::WithinAbs(final_value, 0.0001));
             }
         }
     }
@@ -635,7 +636,7 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         auto buff = chain.get_buffer();
 
-        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+        for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
             REQUIRE(*iter == 5);
         }
@@ -646,7 +647,7 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         buff = chain.get_buffer();
 
-        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+        for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
             REQUIRE(*iter == 5);
         }
@@ -657,7 +658,7 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         buff = chain.get_buffer();
 
-        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+        for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
             REQUIRE(*iter == 5);
         }
@@ -698,8 +699,8 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         // Ensure buffer is all 5:
 
-        for (auto iter = buff->sbegin();
-             static_cast<unsigned int>(iter.get_index()) < buff->size();
+        for (auto iter = buff.sbegin();
+             static_cast<unsigned int>(iter.get_index()) < buff.size();
              ++iter) {
 
             REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(5, 0.0001));
@@ -713,8 +714,8 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         // Ensure buffer is all 10:
 
-        for (auto iter = buff->sbegin();
-             static_cast<unsigned int>(iter.get_index()) < buff->size();
+        for (auto iter = buff.sbegin();
+             static_cast<unsigned int>(iter.get_index()) < buff.size();
              ++iter) {
 
             REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(10, 0.0001));
@@ -728,8 +729,8 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         // Ensure buffer is all 20:
 
-        for (auto iter = buff->sbegin();
-             static_cast<unsigned int>(iter.get_index()) < buff->size();
+        for (auto iter = buff.sbegin();
+             static_cast<unsigned int>(iter.get_index()) < buff.size();
              ++iter) {
 
             REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(20, 0.0001));
@@ -743,15 +744,17 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         // Ensure buffer is all 30:
 
-        for (auto iter = buff->sbegin();
-             static_cast<unsigned int>(iter.get_index()) < buff->size();
+        for (auto iter = buff.sbegin();
+             static_cast<unsigned int>(iter.get_index()) < buff.size();
              ++iter) {
 
             REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(30, 0.0001));
         }
     }
 
-    SECTION("MultiEnvelope Single", "Ensures envelopes with small duration in one buffer process correctly") {
+    SECTION("MultiEnvelope Single",
+            "Ensures envelopes with small duration in one buffer process "
+            "correctly") {
 
         // Configure the chain:
 
@@ -791,7 +794,7 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         // Ensure buffer is all 5:
 
-        for (auto iter = buff->sbegin();
+        for (auto iter = buff.sbegin();
              static_cast<unsigned int>(iter.get_index()) < 100; ++iter) {
 
             REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(5, 0.0001));
@@ -799,7 +802,7 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         // Ensure buffer is all 10:
 
-        for (auto iter = buff->sbegin() + 100;
+        for (auto iter = buff.sbegin() + 100;
              static_cast<unsigned int>(iter.get_index()) < 200; ++iter) {
 
             REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(10, 0.0001));
@@ -807,7 +810,7 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         // Ensure buffer is all 20:
 
-        for (auto iter = buff->sbegin() + 200;
+        for (auto iter = buff.sbegin() + 200;
              static_cast<unsigned int>(iter.get_index()) < 300; ++iter) {
 
             REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(20, 0.0001));
@@ -815,14 +818,15 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         // Ensure buffer is all 30:
 
-        for (auto iter = buff->sbegin() + 300;
+        for (auto iter = buff.sbegin() + 300;
              static_cast<unsigned int>(iter.get_index()) < 400; ++iter) {
 
             REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(30, 0.0001));
         }
     }
 
-    SECTION("Add After", "Ensures envelopes added during processing work correctly") {
+    SECTION("Add After",
+            "Ensures envelopes added during processing work correctly") {
 
         cnst.set_stop_time(NANO * 2);
         cnst.set_start_value(1);
@@ -842,7 +846,7 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
             // Ensure values are all 1:
 
-            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                 REQUIRE(*iter == 1);
             }
@@ -858,7 +862,7 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
             // Ensure all values are 5:
 
-            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                 REQUIRE(*iter == 5);
             }
@@ -889,7 +893,7 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
             // Ensure values are all 1:
 
-            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                 REQUIRE(*iter == 10);
             }
@@ -905,7 +909,7 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
             // Ensure all values are 5:
 
-            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                 REQUIRE(*iter == 20);
             }
@@ -992,7 +996,7 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
             // Iterate over the buffer:
 
-            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                 // Determine if the time is valid:
 

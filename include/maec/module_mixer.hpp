@@ -11,6 +11,7 @@
 
 #include <vector>
 
+#include "audio_buffer.hpp"
 #include "audio_module.hpp"
 #include "base_module.hpp"
 
@@ -54,13 +55,12 @@
  * The only processing we do on the given buffer(s) is to add them together.
  */
 class ModuleMixDown : virtual public AudioModule<> {
-
 private:
     /// Vector of pointers to all input modules
     std::vector<BaseModule*> in;
 
     /// Vector of all input buffers
-    std::vector<std::shared_ptr<AudioBuffer>> buffs;
+    std::vector<AudioBuffer> buffs;
 
 public:
     /**
@@ -150,10 +150,12 @@ public:
  * The only processing we do on the given buffer(s) is to add them together.
  */
 class ModuleMixUp : virtual public AudioModule<> {
-
 private:
     /// Vector of out modules
     std::vector<BaseModule*> out;
+
+    /// Temporary buffer to contain results
+    AudioBuffer tbuff;
 
 public:
     /**
@@ -186,7 +188,7 @@ public:
      *
      * @return AudioBuffer
      */
-    std::unique_ptr<AudioBuffer> get_buffer() override;
+    AudioBuffer&& get_buffer() override;
 
     /**
      * @brief Returns the number of output modules
