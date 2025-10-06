@@ -36,7 +36,7 @@ int main() {
     const std::size_t buff = 100;
 
     // Number of modules in each chain
-    const std::size_t nums = 100;
+    const std::size_t nums = 3;
 
     // Array to hold our modules
 
@@ -77,11 +77,11 @@ int main() {
 
         // Just for fun, add a LatencyModule
 
-        LatencyModule lat;
+        // LatencyModule lat;
 
         // Add the latency module to the chain
 
-        sink.link(&lat);
+        // sink.link(&lat);
 
         // Create a constant source
 
@@ -89,7 +89,7 @@ int main() {
 
         // Module to add to collection
 
-        BaseModule* lmod = &lat;
+        BaseModule* lmod = &sink;
 
         // Iterate over the number of modules to add
 
@@ -155,9 +155,9 @@ int main() {
 
         // Get the latency of the chain
 
-        auto latv = lat.latency();
+        // auto latv = lat.latency();
 
-        std::cout << "Module Latency: [" << latv << "] ns\n";
+        // std::cout << "Module Latency: [" << latv << "] ns\n";
 
         // Preform the meta stop
         // TODO: Should we keep track of meta operations?

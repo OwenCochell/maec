@@ -288,6 +288,12 @@ public:
 
         this->info_sync();
 
+        // Set forwards module of backwards module
+        // This is required for static chains that are not
+        // explicitly linked with another value.
+
+        this->backward().forward(this);
+
         // Preform backwards meta sync:
 
         this->backward().meta_info_sync();

@@ -14,7 +14,6 @@
  * I will likely be creating a 3rd party program to automate this.
  */
 
-#include <array>
 #include <chrono>
 #include <cstddef>
 #include <iostream>
@@ -66,49 +65,11 @@ int main() {
 
         // Create a static chain to utilize
 
-        SinkModule<> sink;
-
-        // Create a sink for the chain
-
-        SinkModule sink;
+        SinkModule<AudioModule<AudioModule<AudioModule<ConstModule>>>> sink;
 
         // The sink should have the desired size
 
         sink.get_info()->out_buffer = buff;
-
-        // Just for fun, add a LatencyModule
-
-        LatencyModule lat;
-
-        // Add the latency module to the chain
-
-        sink.link(&lat);
-
-        // Create a constant source
-
-        ConstModule source;
-
-        // Module to add to collection
-
-        BaseModule* lmod = &lat;
-
-        // Iterate over the number of modules to add
-
-        for (std::size_t modi = 0; modi < nums; ++modi) {
-
-            // Create a module to add to the collection,
-            // with a random amplitude value
-
-            mods[modi] = std::move(TestModule());
-
-            // Add the module to the chain
-
-            lmod = lmod->link(&mods[modi]);
-        }
-
-        // Add the source to the chain
-
-        lmod->link(&source);
 
         // Preform the info sync
 
@@ -153,12 +114,6 @@ int main() {
         std::cout << "Process Time: [" << ptime << "] ms\n";
 
         process += ptime;
-
-        // Get the latency of the chain
-
-        auto latv = lat.latency();
-
-        std::cout << "Module Latency: [" << latv << "] ns\n";
 
         // Preform the meta stop
         // TODO: Should we keep track of meta operations?
