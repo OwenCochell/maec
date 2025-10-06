@@ -273,7 +273,7 @@ int main() {
 
         auto end = std::chrono::high_resolution_clock::now();
 
-        buff->at(0) = 0;
+        buff.at(0) = 0;
 
         // Calculate the time:
 

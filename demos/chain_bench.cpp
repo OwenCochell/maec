@@ -89,7 +89,7 @@ int main() {
 
         // Module to add to collection
 
-        AudioModule<>* lmod = &lat;
+        BaseModule* lmod = &lat;
 
         // Iterate over the number of modules to add
 
