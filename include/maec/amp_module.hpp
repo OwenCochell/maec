@@ -14,6 +14,7 @@
 #pragma once
 
 #include "audio_module.hpp"
+#include "base_module.hpp"
 
 /**
  * @brief Base class for amplitude modules
@@ -23,7 +24,8 @@
  * as well as methods for getting and setting this value.
  *
  */
-class BaseAmplitude : public AudioModule<> {
+template <maecm B = BaseModule*>
+class BaseAmplitude : public AudioModule<B> {
 
 private:
     /// Value to scale the data:
@@ -72,10 +74,11 @@ public:
  * then after processing will be '0.5'.
  *
  */
-class AmplitudeScale : public BaseAmplitude {
+template <maecm B = BaseModule*>
+class AmplitudeScale : public BaseAmplitude<B> {
 
 public:
-    using BaseAmplitude::BaseAmplitude;
+    using BaseAmplitude<B>::BaseAmplitude;
 
     /**
      * @brief Scale the incoming audio data
@@ -83,7 +86,16 @@ public:
      * We multiply the incoming buffer by the given value.
      *
      */
-    void process() override;
+    void process() override {
+        // Scale the audio by the given value:
+
+        std::transform(this->buff.ibegin(), this->buff.iend(),
+                       this->buff.ibegin(), [this](long double inv) {
+                           // Scale the value:
+
+                           return this->get_value() * inv;
+                       });
+    }
 };
 
 /**
@@ -97,10 +109,11 @@ public:
  * then after processing will '1.25'.
  *
  */
-class AmplitudeAdd : public BaseAmplitude {
+template <maecm B = BaseModule*>
+class AmplitudeAdd : public BaseAmplitude<B> {
 
 public:
-    using BaseAmplitude::BaseAmplitude;
+    using BaseAmplitude<B>::BaseAmplitude;
 
     /**
      * @brief Add the value to the incoming audio data
@@ -108,5 +121,14 @@ public:
      * We add our value to the incoming audio data.
      *
      */
-    void process() override;
+    void process() override {
+        // Add the given value to the audio:
+
+        std::transform(this->buff.ibegin(), this->buff.iend(),
+                       this->buff.ibegin(), [this](long double inv) {
+                           // Add to the value:
+
+                           return this->get_value() + inv;
+                       });
+    }
 };
