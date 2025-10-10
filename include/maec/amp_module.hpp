@@ -24,8 +24,8 @@
  * as well as methods for getting and setting this value.
  *
  */
-template <maecm B = BaseModule*>
-class BaseAmplitude : public AudioModule<B> {
+template <typename C = void, maecm B = BaseModule*>
+class BaseAmplitude : public AudioModule<C, B> {
 
 private:
     /// Value to scale the data:
@@ -75,10 +75,10 @@ public:
  *
  */
 template <maecm B = BaseModule*>
-class AmplitudeScale : public BaseAmplitude<B> {
+class AmplitudeScale : public BaseAmplitude<AmplitudeScale<B>, B> {
 
 public:
-    using BaseAmplitude<B>::BaseAmplitude;
+    using BaseAmplitude<AmplitudeScale<B>, B>::BaseAmplitude;
 
     /**
      * @brief Scale the incoming audio data
@@ -110,10 +110,10 @@ public:
  *
  */
 template <maecm B = BaseModule*>
-class AmplitudeAdd : public BaseAmplitude<B> {
+class AmplitudeAdd : public BaseAmplitude<AmplitudeAdd<B>, B> {
 
 public:
-    using BaseAmplitude<B>::BaseAmplitude;
+    using BaseAmplitude<AmplitudeAdd<B>, B>::BaseAmplitude;
 
     /**
      * @brief Add the value to the incoming audio data

@@ -21,7 +21,7 @@ TEST_CASE("BaseAmplitude Test", "[amp]") {
 
     // Create BaseAmplitude
 
-    BaseAmplitude amp;
+    BaseAmplitude<> amp;
 
     SECTION("Default", "Ensures the default value is correct") {
 

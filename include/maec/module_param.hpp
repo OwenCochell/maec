@@ -97,7 +97,7 @@ public:
      *
      * @param imod Module to track
      */
-    ModuleParam(AudioModule* imod) { this->link(imod); }
+    ModuleParam(AudioModule<>* imod) { this->link(imod); }
 
     /**
      * @brief Gets the current buffer

@@ -22,6 +22,13 @@
 #include "sink_module.hpp"
 #include "source_module.hpp"
 
+template <typename T>
+class TestModule : public AudioModule<TestModule<T>, T> {
+public:
+    /// Dummy process method that does nothing
+    void process() override {}
+};
+
 TEST_CASE("AudioModule Test", "[mod]") {
 
     // Construct the AudioModule:
@@ -442,11 +449,11 @@ TEST_CASE("Static AudioModule Test", "[mod]") {
 
     // Construct the AudioModule:
 
-    AudioModule<ConstModule> mod;
+    TestModule<ConstModule> mod;
 
     // Construct an AudioModule chain
 
-    AudioModule<AudioModule<ConstModule>> modc;
+    TestModule<TestModule<ConstModule>> modc;
 
     // Add some dummy chain info:
 
@@ -881,11 +888,11 @@ TEST_CASE("Static->Dynamic", "Ensures static module can be linked to dynamic") {
 
     // Define the static module to utilize
 
-    AudioModule<ConstModule> smod;
+    TestModule<ConstModule> smod;
 
     // Define the dynamic module to utilize
 
-    AudioModule<> dmod;
+    AudioModule dmod;
 
     // Define constant module to move into static module
 
@@ -907,7 +914,7 @@ TEST_CASE("Static->Dynamic", "Ensures static module can be linked to dynamic") {
     // Preform the link
 
     sink.link(&dmod)->link(&smod);
-    smod.link(std::move(cmod));
+    smod.link_static(std::move(cmod));
 
     SECTION("Link", "Ensures we can link static to dynamic") {
 
@@ -1046,7 +1053,7 @@ TEST_CASE("Dynamic->Static", "Ensures dynamic module can be linked to static") {
 
     // Define AudioModule to move into SinkModule
 
-    AudioModule<> tmod;
+    AudioModule tmod;
 
     // Define constant module to link to static module
 
@@ -1062,7 +1069,7 @@ TEST_CASE("Dynamic->Static", "Ensures dynamic module can be linked to static") {
 
     // Preform the link
 
-    smod.link(tmod)->link(&cmod);
+    smod.link_static(std::move(tmod))->link(&cmod);
 
     SECTION("Link", "Ensures we can link static to dynamic") {
 

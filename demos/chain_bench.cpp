@@ -25,7 +25,7 @@
 #include "sink_module.hpp"
 
 /// Module to create the chain
-using TestModule = AmplitudeScale;
+using TestModule = AmplitudeScale<>;
 
 int main() {
 
@@ -33,10 +33,10 @@ int main() {
     const std::size_t iter = 500000;
 
     // Buffer size
-    const std::size_t buff = 100;
+    const std::size_t buff = 10;
 
     // Number of modules in each chain
-    const std::size_t nums = 3;
+    const std::size_t nums = 200;
 
     // Array to hold our modules
 

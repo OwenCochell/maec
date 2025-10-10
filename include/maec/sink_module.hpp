@@ -51,7 +51,7 @@
  * differing sample rates, channel numbers, ect.
  */
 template <maecm B = BaseModule*>
-class SinkModule : public AudioModule<B> {
+class SinkModule : public AudioModule<SinkModule<B>, B> {
 private:
     /// ChainInfo instance, to be shared with backward modules
     ChainInfo chain_instance;

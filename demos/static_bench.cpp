@@ -24,16 +24,13 @@
 #include "meta_audio.hpp"
 #include "sink_module.hpp"
 
-/// Module to create the chain
-using TestModule = AmplitudeScale;
-
 int main() {
 
     // Number of iterations to preform
     const std::size_t iter = 500000;
 
     // Buffer size
-    const std::size_t buff = 100;
+    const std::size_t buff = 10;
 
     // Number of modules in each chain
     const std::size_t nums = 100;
@@ -65,8 +62,7 @@ int main() {
 
         // Create a static chain to utilize
 
-        SinkModule<AudioModule<AudioModule<AudioModule<ConstModule>>>> sink;
-
+        SinkModule<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<ConstModule>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>sink;
         // The sink should have the desired size
 
         sink.get_info()->out_buffer = buff;
