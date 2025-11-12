@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "audio_module.hpp"
 #include "base_module.hpp"
 
@@ -89,12 +91,23 @@ public:
     void process() override {
         // Scale the audio by the given value:
 
-        std::transform(this->buff.ibegin(), this->buff.iend(),
-                       this->buff.ibegin(), [this](long double inv) {
-                           // Scale the value:
+        // for (auto iter = this->buff.ibegin(); iter != this->buff.iend();
+        //      ++iter) {
 
-                           return this->get_value() * inv;
-                       });
+        //     *iter *= this->get_value();
+        // }
+
+        for (std::size_t i = 0; i < this->buff.size(); ++i) {
+
+            this->buff.at(i) *= this->get_value();
+        }
+
+        // std::transform(this->buff.ibegin(), this->buff.iend(),
+        //                this->buff.ibegin(), [this](long double inv) {
+        //                    // Scale the value:
+
+        //                    return this->get_value() * inv;
+        //                });
     }
 };
 
@@ -124,11 +137,17 @@ public:
     void process() override {
         // Add the given value to the audio:
 
-        std::transform(this->buff.ibegin(), this->buff.iend(),
-                       this->buff.ibegin(), [this](long double inv) {
-                           // Add to the value:
+        for (auto iter = this->buff.ibegin(); iter != this->buff.iend();
+             ++iter) {
 
-                           return this->get_value() + inv;
-                       });
+            *iter += this->get_value();
+        }
+
+        // std::transform(this->buff.ibegin(), this->buff.iend(),
+        //                this->buff.ibegin(), [this](long double inv) {
+        //                    // Add to the value:
+
+        //                    return this->get_value() + inv;
+        //                });
     }
 };
