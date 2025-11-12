@@ -13,6 +13,7 @@ set(MISC_FILES
     call_benchmark.cpp
     vector_pass.cpp
     chain_bench.cpp
+    chain_bench_dyn.cpp
 )
 
 # Finally, build and link all misc. demo files:
