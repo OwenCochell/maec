@@ -14,6 +14,7 @@ set(MISC_FILES
     vector_pass.cpp
     chain_bench.cpp
     static_bench.cpp
+    chain_bench_dyn.cpp
 )
 
 # Finally, build and link all misc. demo files:
