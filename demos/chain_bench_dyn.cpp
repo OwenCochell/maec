@@ -29,13 +29,14 @@
 #include "amp_module.hpp"
 #include "audio_module.hpp"
 #include "base_module.hpp"
+#include "filter_module.hpp"
 #include "meta_audio.hpp"
 #include "sink_module.hpp"
 
 /// Module to create the chain
 using TestModule = AmplitudeScale<>;
 
-constexpr std::string CHAIN = "assssssaas";
+constexpr std::string CHAIN = "fsffafaass";
 
 int main() {
 
@@ -111,25 +112,35 @@ int main() {
 
             // Determine what module to add
 
+            BaseModule* mod = nullptr;
+
             if (CHAIN[modi] == 'a') {
 
                 // This is an add module
 
-                mods[modi] = std::move(
-                    AmplitudeScale<>((static_cast<double>(rand())) / RAND_MAX));
+                mod =
+                    new AmplitudeAdd<>(static_cast<double>(rand()) / RAND_MAX);
+
             }
 
             else if (CHAIN[modi] == 's') {
 
                 // This is a scale module
 
-                mods[modi] = std::move(
-                    AmplitudeScale<>((static_cast<double>(rand())) / RAND_MAX));
+                mod = new AmplitudeScale<>((static_cast<double>(rand())) /
+                                           RAND_MAX);
+            }
+
+            if (CHAIN[modi] == 'f') {
+
+                // This is a sinc filter
+
+                mod = new SincFilter();
             }
 
             // Add the module to the chain
 
-            lmod = lmod->link(&mods[modi]);
+            lmod = lmod->link(mod);
         }
 
         // Add the source to the chain

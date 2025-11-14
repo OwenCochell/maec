@@ -22,6 +22,7 @@
 #include "amp_module.hpp"
 #include "audio_module.hpp"
 #include "base_module.hpp"
+#include "filter_module.hpp"
 #include "meta_audio.hpp"
 #include "sink_module.hpp"
 
@@ -65,11 +66,10 @@ int main() {
 
         // Create a static chain to utilize
 
-        SinkModule<AmplitudeAdd<AmplitudeScale<AmplitudeScale<
-            AmplitudeScale<AmplitudeScale<AmplitudeScale<AmplitudeScale<
-                AmplitudeAdd<AmplitudeAdd<AmplitudeScale<ConstModule>>>>>>>>>>>
-            sink;  // The sink should have the desired size
-
+        SinkModule<SincFilter<AmplitudeScale<SincFilter<
+            SincFilter<AmplitudeAdd<SincFilter<AmplitudeAdd<AmplitudeAdd<
+                AmplitudeScale<AmplitudeScale<ConstModule>>>>>>>>>>>
+            sink;
         sink.get_info()->out_buffer = buff;
 
         // Preform the info sync
