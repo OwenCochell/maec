@@ -190,7 +190,7 @@ int main() {
 
         // Link them together
 
-        smix.link(tpar)->link(tfilt)->link(tsine);
+        pmix.link(tpar)->link(tfilt)->link(tsine);
     }
 
     // We now have our chain, iterate a number of times
