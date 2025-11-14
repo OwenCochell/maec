@@ -23,9 +23,9 @@ void ModuleMixDown::meta_process() {
 
     for (auto& mod : this->in) {
 
-        // Call the processing module of each:
+        // Call the meta process method of each module:
 
-        mod->process();
+        mod->meta_process();
 
         // Add the buffer to our own:
 
