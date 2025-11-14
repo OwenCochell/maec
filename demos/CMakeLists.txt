@@ -15,6 +15,7 @@ set(MISC_FILES
     chain_bench.cpp
     static_bench.cpp
     chain_bench_dyn.cpp
+    parallel_bench.cpp
 )
 
 # Finally, build and link all misc. demo files:
