@@ -137,10 +137,9 @@ public:
     void process() override {
         // Add the given value to the audio:
 
-        for (auto iter = this->buff.ibegin(); iter != this->buff.iend();
-             ++iter) {
+        for (std::size_t i = 0; i < this->buff.size(); ++i) {
 
-            *iter += this->get_value();
+            this->buff.at(i) += this->get_value();
         }
 
         // std::transform(this->buff.ibegin(), this->buff.iend(),
