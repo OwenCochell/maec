@@ -4,20 +4,19 @@
  * @brief Benchmark comparing serial and parallel components
  * @version 0.1
  * @date 2025-11-14
- * 
+ *
  * @copyright Copyright (c) 2025
- * 
+ *
  */
 
-#include <cstdint>
 #include <chrono>
 #include <iostream>
 
-#include "sink_module.hpp"
-#include "module_mixer.hpp"
-#include "fund_oscillator.hpp"
 #include "filter_module.hpp"
+#include "fund_oscillator.hpp"
+#include "module_mixer.hpp"
 #include "parallel.hpp"
+#include "sink_module.hpp"
 
 ///
 // Benchmark variables
@@ -27,7 +26,7 @@
 const std::size_t nmods = 3;
 
 /// Size of the start buffer
-const std::size_t bsize = 1000;
+const std::size_t bsize = 10;
 
 /// Size of the kernel
 const std::size_t ksize = 100;
@@ -36,7 +35,10 @@ const std::size_t ksize = 100;
 const std::size_t iters = 5;
 
 /// Number of times to iterate
-const std::size_t piter = 100;
+const std::size_t piter = 10;
+
+/// Size of the parallel cache
+const std::size_t csize = 1;
 
 int main() {
 
@@ -80,11 +82,11 @@ int main() {
 
         // We use a sine oscillator
 
-        SineOscillator* tsine = new SineOscillator(440);
+        auto* tsine = new SineOscillator(440);
 
         // We then use a SincFilter as it's expensive
 
-        SincFilter<>* tfilt = new SincFilter();
+        auto* tfilt = new SincFilter();
 
         // Set the kernel size on the filter
 
@@ -174,15 +176,19 @@ int main() {
 
         // The front should be a parallel module
 
-        ParallelModule* tpar = new ParallelModule();
+        auto* tpar = new ParallelModule();
+
+        // Set the cache size of the parallel module
+
+        tpar->max_size(csize);
 
         // We use a sine oscillator
 
-        SineOscillator* tsine = new SineOscillator(440);
+        auto* tsine = new SineOscillator(440);
 
         // We then use a SincFilter as it's expensive
 
-        SincFilter<>* tfilt = new SincFilter();
+        auto* tfilt = new SincFilter();
 
         // Set the kernel size on the filter
 
@@ -230,23 +236,42 @@ int main() {
 
         pstime += (kstop - kstart) + (sstop - sstart);
         pptime += (pstop - pstart);
-
     }
 
     // Print the results of the benchmark
 
     std::cout << "+=======================================+" << "\n";
     std::cout << "--== [  Serial Results ] ==--" << "\n";
-    std::cout << "Total State Time: " << std::chrono::duration<double, std::milli>(sstime).count() << "\n";
-    std::cout << "Total Process Time: " << std::chrono::duration<double, std::milli>(sptime).count() << "\n";
-    std::cout << "Average State Time: " << std::chrono::duration<double, std::milli>(sstime).count() / iters << "\n";
-    std::cout << "Average Process Time: " << std::chrono::duration<double, std::milli>(sptime).count() / iters << "\n";
+    std::cout << "Total State Time: "
+              << std::chrono::duration<double, std::milli>(sstime).count()
+              << "\n";
+    std::cout << "Total Process Time: "
+              << std::chrono::duration<double, std::milli>(sptime).count()
+              << "\n";
+    std::cout << "Average State Time: "
+              << std::chrono::duration<double, std::milli>(sstime).count() /
+                     iters
+              << "\n";
+    std::cout << "Average Process Time: "
+              << std::chrono::duration<double, std::milli>(sptime).count() /
+                     iters
+              << "\n";
 
     std::cout << "--== [  Parallel Results ] ==--" << "\n";
-    std::cout << "Total State Time: " << std::chrono::duration<double, std::milli>(pstime).count() << "\n";
-    std::cout << "Total Process Time: " << std::chrono::duration<double, std::milli>(pptime).count() << "\n";
-    std::cout << "Average State Time: " << std::chrono::duration<double, std::milli>(pstime).count() / iters << "\n";
-    std::cout << "Average Process Time: " << std::chrono::duration<double, std::milli>(pptime).count() / iters << "\n";
+    std::cout << "Total State Time: "
+              << std::chrono::duration<double, std::milli>(pstime).count()
+              << "\n";
+    std::cout << "Total Process Time: "
+              << std::chrono::duration<double, std::milli>(pptime).count()
+              << "\n";
+    std::cout << "Average State Time: "
+              << std::chrono::duration<double, std::milli>(pstime).count() /
+                     iters
+              << "\n";
+    std::cout << "Average Process Time: "
+              << std::chrono::duration<double, std::milli>(pptime).count() /
+                     iters
+              << "\n";
 
     return 0;
 }
