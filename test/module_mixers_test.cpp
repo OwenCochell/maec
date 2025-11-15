@@ -90,7 +90,7 @@ TEST_CASE("ModuleMixDown Tests", "[mixer]") {
 
     ModuleMixDown mix;
 
-    SECTION("Bind", "Ensures modules can be bound to the mixer") {
+    SECTION("Link", "Ensures modules can be linked to the mixer") {
 
         // Create the modules:
 
@@ -252,6 +252,47 @@ TEST_CASE("ModuleMixDown Tests", "[mixer]") {
 
             REQUIRE_THAT(item, Catch::Matchers::WithinAbs(0.5, 0.0001));
         }
+    }
+
+    SECTION("Chain Process",
+            "Ensures larger chains can be properly processed") {
+
+        // Create the sources
+
+        ConstModule osc1(0.25);
+        ConstModule osc2(0.25);
+
+        // Create the counters
+
+        Counter count1;
+        Counter count2;
+
+        // Link the modules together
+
+        mix.link(&count1)->link(&osc1);
+        mix.link(&count2)->link(&osc2);
+
+        // Process the values
+
+        mix.meta_process();
+
+        // Get the buffer
+
+        auto buff = mix.get_buffer();
+
+        // Iterate over the buffer:
+
+        for (auto item : buff) {
+
+            // Ensure the value is around 0.5:
+
+            REQUIRE_THAT(item, Catch::Matchers::WithinAbs(0.5, 0.0001));
+        }
+
+        // Ensure the count values are valid
+
+        REQUIRE(count1.processed() == 1);
+        REQUIRE(count2.processed() == 1);
     }
 }
 
