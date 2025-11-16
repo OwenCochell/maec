@@ -21,7 +21,7 @@ void ModuleMixDown::meta_process() {
 
     // Iterate over each module in our list:
 
-    for (auto& mod : this->in) {
+    for (auto* mod : this->in) {
 
         // Call the meta process method of each module:
 
