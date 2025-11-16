@@ -11,6 +11,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <limits>
 
 #include "filter_module.hpp"
 #include "fund_oscillator.hpp"
@@ -23,22 +24,22 @@
 ///
 
 /// Number of modules in the mixer
-const std::size_t nmods = 3;
+const std::size_t nmods = 5;
 
 /// Size of the start buffer
-const std::size_t bsize = 10;
+const std::size_t bsize = 1000;
 
 /// Size of the kernel
 const std::size_t ksize = 100;
 
 /// Number of iterations to preform
-const std::size_t iters = 5;
+const std::size_t iters = 10;
 
 /// Number of times to iterate
-const std::size_t piter = 10;
+const std::size_t piter = 100;
 
 /// Size of the parallel cache
-const std::size_t csize = 1;
+const std::size_t csize = 10;
 
 int main() {
 
@@ -55,10 +56,10 @@ int main() {
     std::chrono::duration<long, std::ratio<1, 1000000000>> sptime{};
 
     // Minimum time spent on state operations
-    std::chrono::duration<long, std::ratio<1, 1000000000>> ssmtime{};
+    std::chrono::duration<long, std::ratio<1, 1000000000>> ssmtime{std::numeric_limits<long>::max()};
 
     // Minimum time spent on processing operations
-    std::chrono::duration<long, std::ratio<1, 1000000000>> spmtime{};
+    std::chrono::duration<long, std::ratio<1, 1000000000>> spmtime{std::numeric_limits<long>::max()};
 
     // Serial sink
 
@@ -132,8 +133,14 @@ int main() {
 
         // Add the temp times to the total
 
-        sstime += (kstop - kstart) + (sstop - sstart);
-        sptime += (pstop - pstart);
+        auto ptime = (kstop - kstart) + (sstop - sstart);
+        auto pptime = (pstop - pstart);
+
+        ssmtime = std::min(ssmtime, ptime);
+        spmtime = std::min(spmtime, pptime);
+
+        sstime += ptime;
+        sptime += pptime;
     }
 
     ///
@@ -149,10 +156,10 @@ int main() {
     std::chrono::duration<long, std::ratio<1, 1000000000>> pptime{};
 
     // Minimum time spent on state operations
-    std::chrono::duration<long, std::ratio<1, 1000000000>> psmtime{};
+    std::chrono::duration<long, std::ratio<1, 1000000000>> psmtime{std::numeric_limits<long>::max()};
 
     // Minimum time spent on processing operations
-    std::chrono::duration<long, std::ratio<1, 1000000000>> ppmtime{};
+    std::chrono::duration<long, std::ratio<1, 1000000000>> ppmtime{std::numeric_limits<long>::max()};
 
     // Parallel sink
 
@@ -234,44 +241,53 @@ int main() {
 
         // Add the temp times to the total
 
-        pstime += (kstop - kstart) + (sstop - sstart);
-        pptime += (pstop - pstart);
+        auto stime = (kstop - kstart) + (sstop - sstart);
+        auto ptime = (pstop - pstart);
+
+        psmtime = std::min(psmtime, stime);
+        ppmtime = std::min(ppmtime, ptime);
+
+        pstime += stime;
+        pptime += ptime;
     }
 
     // Print the results of the benchmark
 
     std::cout << "+=======================================+" << "\n";
     std::cout << "--== [  Serial Results ] ==--" << "\n";
-    std::cout << "Total State Time: "
-              << std::chrono::duration<double, std::milli>(sstime).count()
+    std::cout << "Total State Time: " << std::chrono::duration<double, std::milli>(sstime)
               << "\n";
     std::cout << "Total Process Time: "
-              << std::chrono::duration<double, std::milli>(sptime).count()
+              << std::chrono::duration<double, std::milli>(sptime)
               << "\n";
     std::cout << "Average State Time: "
-              << std::chrono::duration<double, std::milli>(sstime).count() /
+              << std::chrono::duration<double, std::milli>(sstime) /
                      iters
               << "\n";
     std::cout << "Average Process Time: "
-              << std::chrono::duration<double, std::milli>(sptime).count() /
+              << std::chrono::duration<double, std::milli>(sptime) /
                      iters
               << "\n";
+    std::cout << "Minimum Process Time: " << std::chrono::duration<double, std::milli>(spmtime) << "\n";
+    std::cout << "Minimum State Time: " << std::chrono::duration<double, std::milli>(ssmtime) << "\n";
 
     std::cout << "--== [  Parallel Results ] ==--" << "\n";
     std::cout << "Total State Time: "
-              << std::chrono::duration<double, std::milli>(pstime).count()
+              << std::chrono::duration<double, std::milli>(pstime)
               << "\n";
     std::cout << "Total Process Time: "
-              << std::chrono::duration<double, std::milli>(pptime).count()
+              << std::chrono::duration<double, std::milli>(pptime)
               << "\n";
     std::cout << "Average State Time: "
-              << std::chrono::duration<double, std::milli>(pstime).count() /
+              << std::chrono::duration<double, std::milli>(pstime) /
                      iters
               << "\n";
     std::cout << "Average Process Time: "
-              << std::chrono::duration<double, std::milli>(pptime).count() /
+              << std::chrono::duration<double, std::milli>(pptime) /
                      iters
               << "\n";
+    std::cout << "Minimum Process Time: " << std::chrono::duration<double, std::milli>(ppmtime) << "\n";
+    std::cout << "Minimum State Time: " << std::chrono::duration<double, std::milli>(psmtime) << "\n";
 
     return 0;
 }
