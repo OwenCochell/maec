@@ -74,13 +74,13 @@ private:
      */
     void run_thread() {
 
-        // Define a lock to utilize for accessing the queue
-
-        std::unique_lock<std::mutex> lock(qmut);
-
         // First, we iterate until we are stopped
 
         while (true) {
+
+            // Define a lock to utilize for accessing the queue
+
+            std::unique_lock<std::mutex> lock(qmut);
 
             // Wait on the condition variable until we have enough space,
             // or until we have been stopped
@@ -96,13 +96,28 @@ private:
                 return;
             }
 
+            // We want to process the backward module,
+            // this can take some time so we unlock to allow readers to grab data
+
+            lock.unlock();
+
             // We now have the ability to sample the backwards module
 
             this->backward().meta_process();
 
+            // We need to grab the lock once more to ensure we have exclusive access
+
+            lock.lock();
+
             // Move the backwards buffer to the back of the dequeue
 
             queue.emplace_back(std::move(this->backward().get_buffer()));
+
+            // Remove the lock now that the value is added,
+            // we want the consumer to immediatly be able to pull buffers
+            // once notified
+
+            lock.unlock();
 
             // Alter the write we are done
 
@@ -157,6 +172,20 @@ public:
 
         AudioModule<>::start();
 
+        {
+            // We grab the lock to ensure our next operation
+            // on the queue is valid.
+            std::lock_guard<std::mutex> lock(qmut);
+
+            // Clear the queue
+
+            this->queue.clear();
+
+            // Set the done value to be false
+            
+            this->done = false;
+        }
+
         // Create the thread that runs the target function
 
         thread = std::thread{&ParallelModule::run_thread, this};
@@ -210,7 +239,13 @@ public:
         // We need to wait until we have been notified,
         // and when the queue is not empty
 
-        cv.wait(lock, [&] { return !this->queue.empty(); });
+        cv.wait(lock, [&] { return !this->queue.empty() || this->done; });
+
+        // Determine if we are done and should not continue
+
+        if (this->done) {
+            return;
+        }
 
         // Set the buffer to be front of the dequeue
 
@@ -219,6 +254,10 @@ public:
         // Remove the first value in the dequeue
 
         this->queue.pop_front();
+
+        // Explicitly unlock so the worker can process
+
+        lock.unlock();
 
         // Notify any threads that it is ok to write
 
