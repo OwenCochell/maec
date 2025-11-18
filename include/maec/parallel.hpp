@@ -52,13 +52,13 @@ private:
     std::deque<AudioBuffer> queue;
 
     /// Size of the queue, how many values to cache
-    std::size_t qsize = 1;
+    std::atomic<std::size_t> qsize = 1;
 
     /// Condition variable to determine if we can add to cache
     std::condition_variable cv;
 
     /// Mutex for mutual exclusion to queue
-    std::mutex qmut;
+    mutable std::mutex qmut;
 
     /// Boolean determining if threads should be done
     std::atomic<bool> done = false;
@@ -78,49 +78,30 @@ private:
 
         while (true) {
 
-            // Define a lock to utilize for accessing the queue
-
+            // Acquire the lock to check queue size and possibly wait.
             std::unique_lock<std::mutex> lock(qmut);
 
-            // Wait on the condition variable until we have enough space,
-            // or until we have been stopped
-
+            // Wait while the queue is full (or until we're asked to stop).
             cv.wait(lock, [&] { return queue.size() < qsize || done; });
 
-            // Determine if we are done here
-
+            // If we've been asked to stop, exit the thread.
             if (done) {
-
-                // We should stop processing now
-
                 return;
             }
 
-            // We want to process the backward module,
-            // this can take some time so we unlock to allow readers to grab data
-
+            // Release lock while running potentially-expensive processing.
             lock.unlock();
 
-            // We now have the ability to sample the backwards module
-
+            // Process the backwards module without holding the queue lock.
             this->backward().meta_process();
 
-            // We need to grab the lock once more to ensure we have exclusive access
-
+            // Re-acquire the lock to push the produced buffer.
             lock.lock();
-
-            // Move the backwards buffer to the back of the dequeue
 
             queue.emplace_back(std::move(this->backward().get_buffer()));
 
-            // Remove the lock now that the value is added,
-            // we want the consumer to immediatly be able to pull buffers
-            // once notified
-
+            // Unlock and notify consumers that there's data available.
             lock.unlock();
-
-            // Alter the write we are done
-
             cv.notify_all();
         }
     }
@@ -157,7 +138,7 @@ public:
      *
      * @return std::size_t Samples present in queue
      */
-    std::size_t size() const { return queue.size(); }
+    std::size_t size() const { std::lock_guard<std::mutex> lock(qmut); return queue.size(); }
 
     /**
      * @brief Starts the parallel module
@@ -215,9 +196,17 @@ public:
 
         this->cv.notify_all();
 
-        // Join the thread and wait for completion
-
-        this->thread.join();
+        // Join the thread and wait for completion if possible.
+        if (this->thread.joinable()) {
+            // If stop() is being called from the worker thread itself,
+            // attempting to join would cause a resource deadlock. In that
+            // case detach the std::thread object instead to avoid throwing.
+            if (this->thread.get_id() != std::this_thread::get_id()) {
+                this->thread.join();
+            } else {
+                this->thread.detach();
+            }
+        }
     }
 
     /**
@@ -236,14 +225,11 @@ public:
 
         std::unique_lock<std::mutex> lock(qmut);
 
-        // We need to wait until we have been notified,
-        // and when the queue is not empty
-
+        // Wait until there's data available or we're being stopped.
         cv.wait(lock, [&] { return !this->queue.empty() || this->done; });
 
-        // Determine if we are done and should not continue
-
-        if (this->done) {
+        // If we're done and there's no data to consume, return early.
+        if (this->done && this->queue.empty()) {
             return;
         }
 
@@ -255,12 +241,8 @@ public:
 
         this->queue.pop_front();
 
-        // Explicitly unlock so the worker can process
-
+        // Unlock and notify producers that space is available.
         lock.unlock();
-
-        // Notify any threads that it is ok to write
-
         cv.notify_all();
     }
 };
