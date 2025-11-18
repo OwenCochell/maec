@@ -137,7 +137,7 @@ private:
     BufferPointer kernel = nullptr;
 
     /// Size of the filter kernel
-    int size = 100;
+    int size = 50;
 
 public:
     /**
