@@ -137,14 +137,18 @@ void ModuleMixDown::process() {
 
     // Iterate over each buffer:
 
-    for (auto& b : this->buffs) {
+    for (const auto& b : this->buffs) {
 
-        // Iterate over each value in the buffer:
+        // Iterate over each value in the buffer,
+        // determine the minimum size
 
-        for (auto iter = b.sbegin();
-             static_cast<unsigned int>(iter.get_index()) < b.size(); ++iter) {
+        auto msize = std::min(b.size(), fbuff.size());
 
-            *(fbuff.sbegin() + iter) += *iter;
+        for (std::size_t i = 0; i < msize; ++i) {
+
+            fbuff.at(i) += b.at(i);
+
+            // *(fbuff.sbegin() + iter) += *iter;
         }
     }
 
