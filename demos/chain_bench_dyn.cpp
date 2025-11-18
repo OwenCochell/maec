@@ -43,10 +43,13 @@ int main() {
     srand(time(0));
 
     // Number of iterations to preform
-    const std::size_t iter = 50000;
+    const std::size_t iter = 100;
+
+    /// Number of processing iterations to preform
+    const std::size_t piter = 50;
 
     // Buffer size
-    const std::size_t buff = 10;
+    const std::size_t buff = 100;
 
     // Number of modules in each chain
     const std::size_t nums = CHAIN.size();
@@ -176,7 +179,10 @@ int main() {
 
         // Process the chain
 
-        sink.meta_process();
+        for (int j = 0; j < piter; j++) {
+
+            sink.meta_process();
+        }
 
         // Stop the clock
 
