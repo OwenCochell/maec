@@ -24,270 +24,296 @@
 ///
 
 /// Number of modules in the mixer
-const std::size_t nmods = 5;
+const std::size_t nmods = 160;
 
 /// Size of the start buffer
-const std::size_t bsize = 1000;
+const std::size_t bsize = 50;
 
 /// Size of the kernel
 const std::size_t ksize = 100;
 
 /// Number of iterations to preform
-const std::size_t iters = 10;
+const std::size_t iters = 20;
 
 /// Number of times to iterate
-const std::size_t piter = 100;
+const std::size_t piter = 10;
 
 /// Size of the parallel cache
 const std::size_t csize = 10;
 
+/// Determines if we should preform serial operations
+const bool do_serial = true;
+
+/// Determines if we should preform parallel operations
+const bool do_parallel = true;
+
 int main() {
 
-    ///
-    // Serial section
-    ///
+    if (do_serial) {
 
-    // Define the values to hold our times
+        ///
+        // Serial section
+        ///
 
-    // Time spent on state operations
-    std::chrono::duration<long, std::ratio<1, 1000000000>> sstime{};
+        // Define the values to hold our times
 
-    // Time spent on processing operations
-    std::chrono::duration<long, std::ratio<1, 1000000000>> sptime{};
+        // Time spent on state operations
+        std::chrono::duration<long, std::ratio<1, 1000000000>> sstime{};
 
-    // Minimum time spent on state operations
-    std::chrono::duration<long, std::ratio<1, 1000000000>> ssmtime{std::numeric_limits<long>::max()};
+        // Time spent on processing operations
+        std::chrono::duration<long, std::ratio<1, 1000000000>> sptime{};
 
-    // Minimum time spent on processing operations
-    std::chrono::duration<long, std::ratio<1, 1000000000>> spmtime{std::numeric_limits<long>::max()};
+        // Minimum time spent on state operations
+        std::chrono::duration<long, std::ratio<1, 1000000000>> ssmtime{
+            std::numeric_limits<long>::max()};
 
-    // Serial sink
+        // Minimum time spent on processing operations
+        std::chrono::duration<long, std::ratio<1, 1000000000>> spmtime{
+            std::numeric_limits<long>::max()};
 
-    SinkModule ssink;
+        // Serial sink
 
-    // Set the buffer size
+        SinkModule ssink;
 
-    ssink.get_chain_info()->buffer_size = bsize;
+        // Set the buffer size
 
-    // Add a mixer to the sink
+        ssink.get_chain_info()->buffer_size = bsize;
 
-    ModuleMixDown smix;
+        // Add a mixer to the sink
 
-    // Attach the mixer to the sink
+        ModuleMixDown smix;
 
-    ssink.link(&smix);
+        // Attach the mixer to the sink
 
-    // Attach expensive modules to the mixer
+        ssink.link(&smix);
 
-    for (int i = 0; i < nmods; ++i) {
+        // Attach expensive modules to the mixer
 
-        // We use a sine oscillator
+        for (int i = 0; i < nmods; ++i) {
 
-        auto* tsine = new SineOscillator(440);
+            // We use a sine oscillator
 
-        // We then use a SincFilter as it's expensive
+            auto* tsine = new SineOscillator(440);
 
-        auto* tfilt = new SincFilter();
+            // We then use a SincFilter as it's expensive
 
-        // Set the kernel size on the filter
+            auto* tfilt = new SincFilter();
 
-        tfilt->set_size(ksize);
+            // Set the kernel size on the filter
 
-        // Link them together
+            tfilt->set_size(ksize);
 
-        smix.link(tfilt)->link(tsine);
-    }
+            // Set a filtering frequency, in hertz
 
-    // We now have our chain, iterate a number of times
+            tfilt->set_start_freq(200);
 
-    for (int i = 0; i < iters; ++i) {
+            // Link them together
 
-        // Start the chain
-
-        auto sstart = std::chrono::high_resolution_clock::now();
-
-        ssink.meta_start();
-
-        auto sstop = std::chrono::high_resolution_clock::now();
-
-        // Start our iteration loop
-
-        auto pstart = std::chrono::high_resolution_clock::now();
-
-        for (int j = 0; j < piter; ++j) {
-
-            // Process the chain
-
-            ssink.meta_process();
+            smix.link(tfilt)->link(tsine);
         }
 
-        auto pstop = std::chrono::high_resolution_clock::now();
+        // We now have our chain, iterate a number of times
 
-        // Stop the chain
+        for (int i = 0; i < iters; ++i) {
 
-        auto kstart = std::chrono::high_resolution_clock::now();
+            // Start the chain
 
-        ssink.meta_stop();
+            auto sstart = std::chrono::high_resolution_clock::now();
 
-        auto kstop = std::chrono::high_resolution_clock::now();
+            ssink.meta_start();
 
-        // Add the temp times to the total
+            auto sstop = std::chrono::high_resolution_clock::now();
 
-        auto ptime = (kstop - kstart) + (sstop - sstart);
-        auto pptime = (pstop - pstart);
+            // Start our iteration loop
 
-        ssmtime = std::min(ssmtime, ptime);
-        spmtime = std::min(spmtime, pptime);
+            auto pstart = std::chrono::high_resolution_clock::now();
 
-        sstime += ptime;
-        sptime += pptime;
-    }
+            for (int j = 0; j < piter; ++j) {
 
-    ///
-    // Parallel section
-    ///
+                // Process the chain
 
-    // Define the values to hold our times
+                ssink.meta_process();
+            }
 
-    // Time spent on state operations
-    std::chrono::duration<long, std::ratio<1, 1000000000>> pstime{};
+            auto pstop = std::chrono::high_resolution_clock::now();
 
-    // Time spent on processing operations
-    std::chrono::duration<long, std::ratio<1, 1000000000>> pptime{};
+            // Stop the chain
 
-    // Minimum time spent on state operations
-    std::chrono::duration<long, std::ratio<1, 1000000000>> psmtime{std::numeric_limits<long>::max()};
+            auto kstart = std::chrono::high_resolution_clock::now();
 
-    // Minimum time spent on processing operations
-    std::chrono::duration<long, std::ratio<1, 1000000000>> ppmtime{std::numeric_limits<long>::max()};
+            ssink.meta_stop();
 
-    // Parallel sink
+            auto kstop = std::chrono::high_resolution_clock::now();
 
-    SinkModule psink;
+            // Add the temp times to the total
 
-    // Set the buffer size
+            auto ptime = (kstop - kstart) + (sstop - sstart);
+            auto pptime = (pstop - pstart);
 
-    psink.get_chain_info()->buffer_size = bsize;
+            ssmtime = std::min(ssmtime, ptime);
+            spmtime = std::min(spmtime, pptime);
 
-    // Add a mixer to the sink
-
-    ModuleMixDown pmix;
-
-    // Attach the mixer to the sink
-
-    psink.link(&pmix);
-
-    // Attach expensive modules to the mixer
-
-    for (int i = 0; i < nmods; ++i) {
-
-        // The front should be a parallel module
-
-        auto* tpar = new ParallelModule();
-
-        // Set the cache size of the parallel module
-
-        tpar->max_size(csize);
-
-        // We use a sine oscillator
-
-        auto* tsine = new SineOscillator(440);
-
-        // We then use a SincFilter as it's expensive
-
-        auto* tfilt = new SincFilter();
-
-        // Set the kernel size on the filter
-
-        tfilt->set_size(ksize);
-
-        // Link them together
-
-        pmix.link(tpar)->link(tfilt)->link(tsine);
-    }
-
-    // We now have our chain, iterate a number of times
-
-    for (int i = 0; i < iters; ++i) {
-
-        // Start the chain
-
-        auto sstart = std::chrono::high_resolution_clock::now();
-
-        psink.meta_start();
-
-        auto sstop = std::chrono::high_resolution_clock::now();
-
-        // Start our iteration loop
-
-        auto pstart = std::chrono::high_resolution_clock::now();
-
-        for (int j = 0; j < piter; ++j) {
-
-            // Process the chain
-
-            psink.meta_process();
+            sstime += ptime;
+            sptime += pptime;
         }
 
-        auto pstop = std::chrono::high_resolution_clock::now();
-
-        // Stop the chain
-
-        auto kstart = std::chrono::high_resolution_clock::now();
-
-        psink.meta_stop();
-
-        auto kstop = std::chrono::high_resolution_clock::now();
-
-        // Add the temp times to the total
-
-        auto stime = (kstop - kstart) + (sstop - sstart);
-        auto ptime = (pstop - pstart);
-
-        psmtime = std::min(psmtime, stime);
-        ppmtime = std::min(ppmtime, ptime);
-
-        pstime += stime;
-        pptime += ptime;
+        std::cout << "+=======================================+" << "\n";
+        std::cout << "--== [  Serial Results ] ==--" << "\n";
+        std::cout << "Total State Time: "
+                  << std::chrono::duration<double, std::milli>(sstime) << "\n";
+        std::cout << "Total Process Time: "
+                  << std::chrono::duration<double, std::milli>(sptime) << "\n";
+        std::cout << "Average State Time: "
+                  << std::chrono::duration<double, std::milli>(sstime) / iters
+                  << "\n";
+        std::cout << "Average Process Time: "
+                  << std::chrono::duration<double, std::milli>(sptime) /
+                         (iters * piter)
+                  << "\n";
+        std::cout << "Minimum Process Time: "
+                  << std::chrono::duration<double, std::milli>(spmtime) << "\n";
+        std::cout << "Minimum State Time: "
+                  << std::chrono::duration<double, std::milli>(ssmtime) << "\n";
     }
 
-    // Print the results of the benchmark
+    if (do_parallel) {
 
-    std::cout << "+=======================================+" << "\n";
-    std::cout << "--== [  Serial Results ] ==--" << "\n";
-    std::cout << "Total State Time: " << std::chrono::duration<double, std::milli>(sstime)
-              << "\n";
-    std::cout << "Total Process Time: "
-              << std::chrono::duration<double, std::milli>(sptime)
-              << "\n";
-    std::cout << "Average State Time: "
-              << std::chrono::duration<double, std::milli>(sstime) /
-                     iters
-              << "\n";
-    std::cout << "Average Process Time: "
-              << std::chrono::duration<double, std::milli>(sptime) /
-                     iters
-              << "\n";
-    std::cout << "Minimum Process Time: " << std::chrono::duration<double, std::milli>(spmtime) << "\n";
-    std::cout << "Minimum State Time: " << std::chrono::duration<double, std::milli>(ssmtime) << "\n";
+        ///
+        // Parallel section
+        ///
 
-    std::cout << "--== [  Parallel Results ] ==--" << "\n";
-    std::cout << "Total State Time: "
-              << std::chrono::duration<double, std::milli>(pstime)
-              << "\n";
-    std::cout << "Total Process Time: "
-              << std::chrono::duration<double, std::milli>(pptime)
-              << "\n";
-    std::cout << "Average State Time: "
-              << std::chrono::duration<double, std::milli>(pstime) /
-                     iters
-              << "\n";
-    std::cout << "Average Process Time: "
-              << std::chrono::duration<double, std::milli>(pptime) /
-                     iters
-              << "\n";
-    std::cout << "Minimum Process Time: " << std::chrono::duration<double, std::milli>(ppmtime) << "\n";
-    std::cout << "Minimum State Time: " << std::chrono::duration<double, std::milli>(psmtime) << "\n";
+        // Define the values to hold our times
+
+        // Time spent on state operations
+        std::chrono::duration<long, std::ratio<1, 1000000000>> pstime{};
+
+        // Time spent on processing operations
+        std::chrono::duration<long, std::ratio<1, 1000000000>> pptime{};
+
+        // Minimum time spent on state operations
+        std::chrono::duration<long, std::ratio<1, 1000000000>> psmtime{
+            std::numeric_limits<long>::max()};
+
+        // Minimum time spent on processing operations
+        std::chrono::duration<long, std::ratio<1, 1000000000>> ppmtime{
+            std::numeric_limits<long>::max()};
+
+        // Parallel sink
+
+        SinkModule psink;
+
+        // Set the buffer size
+
+        psink.get_chain_info()->buffer_size = bsize;
+
+        // Add a mixer to the sink
+
+        ModuleMixDown pmix;
+
+        // Attach the mixer to the sink
+
+        psink.link(&pmix);
+
+        // Attach expensive modules to the mixer
+
+        for (int i = 0; i < nmods; ++i) {
+
+            // The front should be a parallel module
+
+            auto* tpar = new ParallelModule();
+
+            // Set the cache size of the parallel module
+
+            tpar->max_size(csize);
+
+            // We use a sine oscillator
+
+            auto* tsine = new SineOscillator(440);
+
+            // We then use a SincFilter as it's expensive
+
+            auto* tfilt = new SincFilter();
+
+            // Set the kernel size on the filter
+
+            tfilt->set_size(ksize);
+
+            // Set a filtering frequency, in hertz
+
+            tfilt->set_start_freq(200);
+
+            // Link them together
+
+            pmix.link(tpar)->link(tfilt)->link(tsine);
+        }
+
+        // We now have our chain, iterate a number of times
+
+        for (int i = 0; i < iters; ++i) {
+
+            // Start the chain
+
+            auto sstart = std::chrono::high_resolution_clock::now();
+
+            psink.meta_start();
+
+            auto sstop = std::chrono::high_resolution_clock::now();
+
+            // Start our iteration loop
+
+            auto pstart = std::chrono::high_resolution_clock::now();
+
+            for (int j = 0; j < piter; ++j) {
+
+                // Process the chain
+
+                psink.meta_process();
+            }
+
+            auto pstop = std::chrono::high_resolution_clock::now();
+
+            // Stop the chain
+
+            auto kstart = std::chrono::high_resolution_clock::now();
+
+            psink.meta_stop();
+
+            auto kstop = std::chrono::high_resolution_clock::now();
+
+            // Add the temp times to the total
+
+            auto stime = (kstop - kstart) + (sstop - sstart);
+            auto ptime = (pstop - pstart);
+
+            psmtime = std::min(psmtime, stime);
+            ppmtime = std::min(ppmtime, ptime);
+
+            pstime += stime;
+            pptime += ptime;
+        }
+
+        std::cout << "--== [  Parallel Results ] ==--" << "\n";
+        std::cout << "Total State Time: "
+                  << std::chrono::duration<double, std::milli>(pstime) << "\n";
+        std::cout << "Total Process Time: "
+                  << std::chrono::duration<double, std::milli>(pptime) << "\n";
+        std::cout << "Average State Time: "
+                  << std::chrono::duration<double, std::milli>(pstime) / iters
+                  << "\n";
+        std::cout << "Average Process Time: "
+                  << std::chrono::duration<double, std::milli>(pptime) /
+                         (iters * piter)
+                  << "\n";
+        std::cout << "Minimum Process Time: "
+                  << std::chrono::duration<double, std::milli>(ppmtime) << "\n";
+        std::cout << "Minimum State Time: "
+                  << std::chrono::duration<double, std::milli>(psmtime) << "\n";
+
+        // std::cout << "\nTotal Difference: "
+        //           << std::chrono::duration<double, std::milli>(sptime) -
+        //                  std::chrono::duration<double, std::milli>(pptime)
+        //           << "\n";
+    }
 
     return 0;
 }
