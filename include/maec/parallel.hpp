@@ -145,7 +145,12 @@ public:
      *
      * We set our state as usual,
      * and spin up the thread in the background.
-     *
+     * 
+     * In addition to thread management,
+     * we also make sure the queue is properly cleared
+     * so we don't contain any old values.
+     * Please note that this means any data present in the queue
+     * will be destroyed upon restart!
      */
     void start() override {
 
@@ -179,8 +184,12 @@ public:
      * and notify the thread that is is time to stop.
      *
      * We also join the thread to enable a graceful shutdown,
-     * so this method may block for some time
+     * so this method may block for some time.
+     * A check is in place to detatch the thread in case
+     * this is called from the running thread.
      *
+     * Please note, this will NOT clear the underlying queue!
+     * Any values present will presist until this module has been started again.
      */
     void stop() override {
 
