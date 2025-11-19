@@ -11,6 +11,7 @@
 
 #include <sciplot/sciplot.hpp>
 #include <vector>
+#include <iostream>
 
 #include "filter_module.hpp"
 #include "fund_oscillator.hpp"
@@ -26,7 +27,7 @@
 const std::size_t snmods = 1;
 
 /// Maximum number of modules to add
-const std::size_t mnmods = 100;
+const std::size_t mnmods = 160;
 
 /// Size of the start buffer
 const std::size_t bsize = 50;
@@ -35,7 +36,7 @@ const std::size_t bsize = 50;
 const std::size_t ksize = 50;
 
 /// Number of iterations to preform
-const std::size_t iters = 10;
+const std::size_t iters = 5;
 
 /// Number of times to iterate
 const std::size_t piter = 10;
@@ -294,6 +295,8 @@ int main() {
 
         pstimer.push_back(
             std::chrono::duration<double, std::milli>(pstime).count() / iters);
+
+        std::cout << nmods << "\n";
     }
 
     // Create the plots, one for processing and one for state
@@ -301,18 +304,26 @@ int main() {
     sp::Plot2D pplot;
     pplot.drawCurve(x, stime).label("Serial");
     pplot.drawCurve(x, ptime).label("Parallel");
+    pplot.ylabel("Time in Milliseconds");
+    pplot.xlabel("Number of Modules");
+    pplot.legend().atLeft();
 
     sp::Plot2D splot;
     splot.drawCurve(x, sstimer).label("Serial");
     splot.drawCurve(x, pstimer).label("Parallel");
+    splot.ylabel("Time in Milliseconds");
+    splot.xlabel("Number of Modules");
+    splot.legend().atLeft();
 
     // Use previous plots as sub-figures in larger 1x2 figure
 
-    sp::Figure fig = {{pplot}, {splot}};
+    sp::Figure pfig = {{pplot}, {splot}};
+    pfig.title("Processing Operations");
 
     // Create the canvas to hold the figure
 
-    sp::Canvas canv = {{fig}};
+    sp::Canvas canv = {{pfig}};
+    canv.title("Serial vs. Parallel Operations");
     canv.size(800, 800);
 
     // Show the plot
