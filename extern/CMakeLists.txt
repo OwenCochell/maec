@@ -7,3 +7,4 @@ set(CMAKE_FOLDER extern)
 # Include external targets:
 
 add_subdirectory(sciplot)
+add_subdirectory(catch2)
