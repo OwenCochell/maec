@@ -1,17 +1,16 @@
 /**
- * @file parallel_bench.cpp
+ * @file parallel_plot.cpp
  * @author Owen Cochell (owencochell@gmail.com)
- * @brief Benchmark comparing serial and parallel components
+ * @brief Plots a comparision between seriel and parallel module chains
  * @version 0.1
- * @date 2025-11-14
+ * @date 2025-11-18
  *
  * @copyright Copyright (c) 2025
  *
  */
 
-#include <chrono>
-#include <iostream>
-#include <limits>
+#include <sciplot/sciplot.hpp>
+#include <vector>
 
 #include "filter_module.hpp"
 #include "fund_oscillator.hpp"
@@ -23,8 +22,11 @@
 // Benchmark variables
 ///
 
-/// Number of modules in the mixer
-const std::size_t nmods = 160;
+/// Lowest number of modules to add
+const std::size_t snmods = 1;
+
+/// Maximum number of modules to add
+const std::size_t mnmods = 100;
 
 /// Size of the start buffer
 const std::size_t bsize = 50;
@@ -41,21 +43,28 @@ const std::size_t piter = 10;
 /// Size of the parallel cache
 const std::size_t csize = 10;
 
-/// Determines if we should preform serial operations
-const bool do_serial = true;
-
-/// Determines if we should preform parallel operations
-const bool do_parallel = true;
+namespace sp = sciplot;
 
 int main() {
 
-    if (do_serial) {
+    // Create a vector of module sizes
+
+    const auto x = sp::linspace(snmods, mnmods, mnmods - snmods);
+
+    // Define arrays for serial and parallel times for processing and state
+
+    std::vector<double> stime;
+    std::vector<double> ptime;
+    std::vector<double> sstimer;
+    std::vector<double> pstimer;
+
+    // Iterate over X values
+
+    for (auto nmods : x) {
 
         ///
-        // Serial section
+        // Serial Section
         ///
-
-        // Define the values to hold our times
 
         // Time spent on state operations
         std::chrono::duration<long, std::ratio<1, 1000000000>> sstime{};
@@ -157,26 +166,13 @@ int main() {
             sptime += pptime;
         }
 
-        std::cout << "+=======================================+" << "\n";
-        std::cout << "--== [  Serial Results ] ==--" << "\n";
-        std::cout << "Total State Time: "
-                  << std::chrono::duration<double, std::milli>(sstime) << "\n";
-        std::cout << "Total Process Time: "
-                  << std::chrono::duration<double, std::milli>(sptime) << "\n";
-        std::cout << "Average State Time: "
-                  << std::chrono::duration<double, std::milli>(sstime) / iters
-                  << "\n";
-        std::cout << "Average Process Time: "
-                  << std::chrono::duration<double, std::milli>(sptime) /
-                         (iters * piter)
-                  << "\n";
-        std::cout << "Minimum Process Time: "
-                  << std::chrono::duration<double, std::milli>(spmtime) << "\n";
-        std::cout << "Minimum State Time: "
-                  << std::chrono::duration<double, std::milli>(ssmtime) << "\n";
-    }
+        // Determine the average computation time and add to results
 
-    if (do_parallel) {
+        stime.push_back(
+            std::chrono::duration<double, std::milli>(sptime).count() / iters);
+
+        sstimer.push_back(
+            std::chrono::duration<double, std::milli>(sstime).count() / iters);
 
         ///
         // Parallel section
@@ -292,28 +288,35 @@ int main() {
             pptime += ptime;
         }
 
-        std::cout << "--== [  Parallel Results ] ==--" << "\n";
-        std::cout << "Total State Time: "
-                  << std::chrono::duration<double, std::milli>(pstime) << "\n";
-        std::cout << "Total Process Time: "
-                  << std::chrono::duration<double, std::milli>(pptime) << "\n";
-        std::cout << "Average State Time: "
-                  << std::chrono::duration<double, std::milli>(pstime) / iters
-                  << "\n";
-        std::cout << "Average Process Time: "
-                  << std::chrono::duration<double, std::milli>(pptime) /
-                         (iters * piter)
-                  << "\n";
-        std::cout << "Minimum Process Time: "
-                  << std::chrono::duration<double, std::milli>(ppmtime) << "\n";
-        std::cout << "Minimum State Time: "
-                  << std::chrono::duration<double, std::milli>(psmtime) << "\n";
+        ptime.push_back(
+            std::chrono::duration<double, std::milli>(pptime).count() /
+            (iters));
 
-        // std::cout << "\nTotal Difference: "
-        //           << std::chrono::duration<double, std::milli>(sptime) -
-        //                  std::chrono::duration<double, std::milli>(pptime)
-        //           << "\n";
+        pstimer.push_back(
+            std::chrono::duration<double, std::milli>(pstime).count() / iters);
     }
+
+    // Create the plots, one for processing and one for state
+
+    sp::Plot2D pplot;
+    pplot.drawCurve(x, stime).label("Serial");
+    pplot.drawCurve(x, ptime).label("Parallel");
+
+    sp::Plot2D splot;
+    splot.drawCurve(x, sstimer).label("Serial");
+    splot.drawCurve(x, pstimer).label("Parallel");
+
+    // Use previous plots as sub-figures in larger 1x2 figure
+
+    sp::Figure fig = {{pplot}, {splot}};
+
+    // Create the canvas to hold the figure
+
+    sp::Canvas canv = {{fig}};
+    canv.size(800, 800);
+
+    // Show the plot
+    canv.show();
 
     return 0;
 }

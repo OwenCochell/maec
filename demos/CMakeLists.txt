@@ -1,5 +1,9 @@
 project(Demos)
 
+# Include demo subdirectories tha might have custom CMake requirements:
+
+add_subdirectory( parallel_plot )
+
 # Demo files to be ran
 
 set(MISC_FILES
