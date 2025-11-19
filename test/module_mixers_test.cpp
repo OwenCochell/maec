@@ -252,6 +252,20 @@ TEST_CASE("ModuleMixDown Tests", "[mixer]") {
 
             REQUIRE_THAT(item, Catch::Matchers::WithinAbs(0.5, 0.0001));
         }
+
+        SECTION("Multi-process", "Ensures we can process multiple times") {
+
+            mix.meta_process();
+
+            buff = mix.get_buffer();
+
+            for (auto item : buff) {
+
+                // Ensure the value is around 0.5:
+
+                REQUIRE_THAT(item, Catch::Matchers::WithinAbs(0.5, 0.0001));
+            }
+        }
     }
 
     SECTION("Chain Process",
@@ -369,6 +383,34 @@ TEST_CASE("MultiMix Tests", "[mixer]") {
             // Ensure the value is around 0.5:
 
             REQUIRE_THAT(item, Catch::Matchers::WithinAbs(0.50, 0.0001));
+        }
+
+        SECTION("Multi-process", "Ensures we can multi-process correctly") {
+
+            // Process again
+
+            mix.meta_process();
+
+            // Grab the buffers again
+
+            buff = mix.get_buffer();
+            buff1 = mix.get_buffer();
+
+            for (auto item : buff) {
+
+                // Ensure the value is around 0.5:
+
+                REQUIRE_THAT(item, Catch::Matchers::WithinAbs(0.50, 0.0001));
+            }
+
+            // Iterate over the second buffer:
+
+            for (auto item : buff1) {
+
+                // Ensure the value is around 0.5:
+
+                REQUIRE_THAT(item, Catch::Matchers::WithinAbs(0.50, 0.0001));
+            }
         }
     }
 }
