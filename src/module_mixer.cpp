@@ -21,6 +21,10 @@ void ModuleMixDown::meta_process() {
 
     // Iterate over each module in our list:
 
+    // Ensure we start fresh and avoid unbounded growth
+    this->buffs.clear();
+    this->buffs.reserve(this->in.size());
+
     for (auto* mod : this->in) {
 
         // Call the meta process method of each module:
@@ -155,6 +159,9 @@ void ModuleMixDown::process() {
     // Set our buffer to the new buffer:
 
     this->set_buffer(std::move(fbuff));
+
+    // We have consumed the input buffers for this cycle; release them
+    this->buffs.clear();
 }
 
 void ModuleMixUp::forward(BaseModule* mod) {
