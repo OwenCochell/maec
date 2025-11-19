@@ -155,9 +155,15 @@ TEST_CASE("Parallel module tests", "[mod][parallel]") {
 
         par.meta_process();
 
-        // Just grab the buffer for fun....
-
+        // Grab the buffer for testing
         auto buf = par.get_buffer();
+
+        for (auto val : buf) {
+
+            // Ensure the first buffer retrieved is all 0
+
+            REQUIRE(val == 0.);
+        }
 
         // Wait another 4 seconds to allow the queue to be filled
 
@@ -166,6 +172,25 @@ TEST_CASE("Parallel module tests", "[mod][parallel]") {
         // Ensure the queue is back to maximum again
 
         REQUIRE(par.size() == par.max_size());
+
+        SECTION("Multi-process",
+                "Ensures the parallel module can be processed twice") {
+
+            // Process the module once again
+
+            par.meta_process();
+
+            // Grab the buffer
+
+            buf = par.get_buffer();
+
+            // Ensure the values are all 1
+
+            for (auto val : buf) {
+
+                REQUIRE(val == 1.);
+            }
+        }
 
         // Now, stop the parallel module
 
@@ -217,6 +242,82 @@ TEST_CASE("Parallel module tests", "[mod][parallel]") {
         }
 
         // We are done, lets stop now
+
+        par.stop();
+    }
+
+    SECTION("Restart",
+            "Ensures the parallel module works correctly after being "
+            "stopped/started") {
+
+        // Maximum queue size
+
+        const std::size_t qsize = 5;
+
+        // Create a source, just make it constant
+
+        TestParallel source;
+
+        // Link the source to the parallel module
+
+        par.link(static_cast<ConstModule*>(&source));
+
+        // Set the maximum size to be bigger than 1
+
+        par.max_size(qsize);
+
+        // Start the module,
+        // this will spin up the processing thread
+
+        par.start();
+
+        // Process as many times that are in the queue
+
+        for (int i = 0; i < qsize; ++i) {
+
+            // Process and grab the buffer
+
+            par.meta_process();
+
+            auto buf = par.get_buffer();
+
+            // Ensure the values match the current index
+
+            for (auto val : buf) {
+                REQUIRE(val == static_cast<double>(i));
+            }
+        }
+
+        // Now, stop the module
+
+        par.stop();
+
+        // Determine the new offset
+
+        const std::size_t offset = qsize + par.size();
+
+        // Start the module again
+
+        par.start();
+
+        // Process as many times that are in the queue
+
+        for (int i = 0; i < qsize; ++i) {
+
+            // Process and grab the buffer
+
+            par.meta_process();
+
+            auto buf = par.get_buffer();
+
+            // Ensure the values match the current index
+
+            for (auto val : buf) {
+                REQUIRE(val == static_cast<double>(i + offset));
+            }
+        }
+
+        // Finally, stop the module
 
         par.stop();
     }
