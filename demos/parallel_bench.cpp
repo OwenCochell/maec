@@ -24,7 +24,7 @@
 ///
 
 /// Number of modules in the mixer
-const std::size_t nmods = 160;
+const std::size_t nmods = 200;
 
 /// Size of the start buffer
 const std::size_t bsize = 50;
@@ -83,9 +83,13 @@ int main() {
 
         ModuleMixDown smix;
 
+        // Add a lattency module to the sink
+
+        LatencyModule lat;
+
         // Attach the mixer to the sink
 
-        ssink.link(&smix);
+        ssink.link(&lat)->link(&smix);
 
         // Attach expensive modules to the mixer
 
@@ -174,6 +178,8 @@ int main() {
                   << std::chrono::duration<double, std::milli>(spmtime) << "\n";
         std::cout << "Minimum State Time: "
                   << std::chrono::duration<double, std::milli>(ssmtime) << "\n";
+        std::cout << "Average Latency: " << lat.average_latency() * 1e-6 << " ms\n";
+        std::cout << "Total Latency: "<< lat.total_latency() * 1e-6 << " ms\n";
     }
 
     if (do_parallel) {
@@ -206,13 +212,17 @@ int main() {
 
         psink.get_chain_info()->buffer_size = bsize;
 
+        // Add a latency module to the chain
+
+        LatencyModule lat;
+
         // Add a mixer to the sink
 
         ModuleMixDown pmix;
 
         // Attach the mixer to the sink
 
-        psink.link(&pmix);
+        psink.link(&lat)->link(&pmix);
 
         // Attach expensive modules to the mixer
 
@@ -308,6 +318,8 @@ int main() {
                   << std::chrono::duration<double, std::milli>(ppmtime) << "\n";
         std::cout << "Minimum State Time: "
                   << std::chrono::duration<double, std::milli>(psmtime) << "\n";
+        std::cout << "Average Latency:" << lat.average_latency() * 1e-6 << " ms\n";
+        std::cout << "Total Latency: " << lat.total_latency() * 1e-6 << "ms\n";
 
         // std::cout << "\nTotal Difference: "
         //           << std::chrono::duration<double, std::milli>(sptime) -
