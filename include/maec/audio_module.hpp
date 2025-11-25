@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include <cstddef>
 #include <type_traits>
 
 #include "base_module.hpp"
@@ -31,8 +30,7 @@
  * @tparam T Type to check
  */
 template <typename T>
-concept maecm =
-    std::is_base_of_v<BaseModule, remove_qualifiers<T>> || std::is_void_v<T>;
+concept maecm = std::is_base_of_v<BaseModule, remove_qualifiers<T>> || std::is_void_v<T>;
 
 /**
  * @brief Module for working with audio data
@@ -61,11 +59,6 @@ public:
     /// Type of child module
     using CT = C;
 
-private:
-    /// Module instance behind us
-    BT backwardv{};
-
-public:
     /// Default Constructor
     AudioModule() = default;
 
@@ -84,6 +77,13 @@ public:
     /// Move assignment operator
     AudioModule& operator=(AudioModule&&) = default;
 
+    /**
+     * @brief Gets a reference to the backward module
+     * 
+     * This function is only enabled in dynamic chains
+     * where the backwards module is a pointer.
+     * We simply de-reference and return a reference.
+     */
     BV& backward()
         requires(std::is_pointer_v<BT>)
     {
@@ -93,6 +93,13 @@ public:
         return *backwardv;
     }
 
+    /**
+     * @brief Gets a reference to the backward module
+     * 
+     * This function is only enabled in static chains
+     * where the backwards module is known and is an instance.
+     * We simply create and return a reference to the backwards module.
+     */
     BV& backward()
         requires(std::is_class_v<BT> || std::is_reference_v<BT>)
     {
@@ -109,6 +116,9 @@ public:
      * This method contains all the meta code such as
      * retrieving the buffer from the previous module,
      * and calling the necessary processing methods.
+     * We also include some logic for preforming 
+     * explicit de-virtualization, as well as explicitly
+     * calling target functions in static chains.
      *
      * Most users will not need to alter the code in this module,
      * but some advanced modules will need to, such as the audio mixers.
@@ -117,7 +127,8 @@ public:
         override {  // NOLINT(misc-no-recursion): No recursion cycles present,
                     // valid chains will eventually end
 
-        // We have a separate path here depending on the backwards module type
+        // We have a separate path here depending on the backwards module type,
+        // if the backwards type is known then we can directly call it's meta processing method
 
         if constexpr (!std::is_pointer_v<BT>) {
 
@@ -129,9 +140,6 @@ public:
             // Grab the buffer
 
             this->set_buffer(backwardv.get_buffer());
-
-            static_cast<CT*>(this)->CT::process();
-
         }
 
         else {
@@ -141,52 +149,26 @@ public:
             this->backward().meta_process();
 
             this->set_buffer(this->backward().get_buffer());
-
-            this->process();
         }
 
-        // Grab the buffer from the module behind us:
+        // Now, we need to define a seperate path here if we know the child type,
+        // if so we can preform some manual de-virtualization by explicitly calling the process method
 
-        // this->set_buffer(std::move(this->backward().get_buffer()));
+        if constexpr (std::is_void_v<CT>) {
 
-        // If we are provided with a child type,
-        // then we will directly call the process method of the child,
-        // with the intention of devirtualization
+            // The child module is NOT specified,
+            // so just use the generic case.
+            // This will at worst preform a virtual call,
+            // but if defined correctly it could be optimized out.
 
-        // if constexpr (!std::is_same_v<void, CT> &&
-        //               !std::is_same_v<BaseModule*, CT>) {
-
-        //     // we want to directly call the child process method
-
-        //     // this->CT::process();
-        //     static_cast<CT*>(this)->*process();
-        // }
-
-        // else {
-        //     // Otherwise, call process method and use VTable
-
-        //     this->process();
-        // }
-
-        // if constexpr (std::is_same_v<void, CT> ||
-        //               std::is_same_v<BaseModule*, CT>) {
-
-        //     // we want to directly call the child process method
-
-        //     // this->CT::process();
-
-        //     this->process();
-        // } else {
-
-        //     static_assert(
-        //         std::is_base_of_v<AudioModule<CT, B>, CT>,
-        //         "CT must derive from AudioModule<CT, B> for
-        //         devirtualization.");
-
-        //     // Otherwise, call process method and use VTable
-
-        //     static_cast<CT*>(this)->CT::process();
-        // }
+            this->process();
+        } 
+        else {
+            // Attempt explicit de-virtualization. If CT is still incomplete
+            // this qualified call is ill-formed. In this case,
+            // users should rely on virtual dispatch or ensure CT definition precedes use.
+            static_cast<CT*>(this)->CT::process();
+        }
     }
 
     /**
@@ -497,83 +479,6 @@ public:
         }
     }
 
-    // virtual AudioModule<B>::BV* link(AudioModule<B>::BT mod)
-    // // requires(std::is_same_v<B, BaseModule*>)
-    // {
-
-    //     // Set our backwards module to this value
-
-    //     this->backwardv = mod;
-
-    //     // Get the NEW standardized backwards module
-
-    //     auto& nmod = this->backward();
-
-    //     // Give them a pointer to ourselves
-
-    //     nmod.forward(this);
-
-    //     // Set the chain info back to ours:
-    //     // TODO: Really need to find a more robust way of doing this!
-    //     // If a chain is added to another, previous ChainInfo pointers will
-    //     // not be updated!
-
-    //     nmod.set_chain_info(this->get_chain_info());
-
-    //     // Update the number of modules in the chain
-    //     // TODO: We need to find a better way to do this!
-    //     // If a large subchain is removed, then this value will NOT be
-    //     // updated !
-    //     // We essentially would like to find methods for removing subchains
-    //     // Hmmm, if a source is not present any linking WILL fail!
-    //     // maybe we can give each module chain info by default?
-    //     // We REALLY need to hash out how chain info gets worked with
-
-    //     // this->get_chain_info()->module_num++;
-
-    //     // Return pointer to backwards value
-
-    //     return &this->backward();
-    // }
-
-    // BV* link(B mod) {
-
-    //     // Set our backwards module to this value
-
-    //     this->backwardv = mod;
-
-    //     // Get the NEW standardized backwards module
-
-    //     auto& nmod = this->backward();
-
-    //     // Give them a pointer to ourselves
-
-    //     nmod.forward(this);
-
-    //     // Set the chain info back to ours:
-    //     // TODO: Really need to find a more robust way of doing this!
-    //     // If a chain is added to another, previous ChainInfo pointers will
-    //     not
-    //     // be updated!
-
-    //     nmod.set_chain_info(this->get_chain_info());
-
-    //     // Update the number of modules in the chain
-    //     // TODO: We need to find a better way to do this!
-    //     // If a large subchain is removed, then this value will NOT be
-    //     updated!
-    //     // We essentially would like to find methods for removing subchains
-    //     // Hmmm, if a source is not present any linking WILL fail!
-    //     // maybe we can give each module chain info by default?
-    //     // We REALLY need to hash out how chain info gets worked with
-
-    //     // this->get_chain_info()->module_num++;
-
-    //     // Return pointer to backwards value
-
-    //     return &this->backward();
-    // }
-
     BV* link_static(BT&& mod)
         requires(!std::is_pointer_v<BT>)  // We DON'T want to work with pointers
     {
@@ -615,4 +520,8 @@ public:
 
         return &this->backward();
     }
+
+private:
+    /// Module instance behind us
+    BT backwardv{};
 };
