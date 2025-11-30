@@ -96,12 +96,44 @@ public:
      */
     void meta_process() override;
 
+    /**
+     * @brief Meta start method
+     *
+     * We iterate over each backwards module,
+     * and call their meta start methods.
+     * We are guaranteed to do this sequentially in order!
+     * The modules will be started in the order they are added
+     */
     void meta_start() override;
 
+    /**
+     * @brief Meta stop method
+     *
+     * We iterate over each backwards module,
+     * and call their meta stop methods.
+     * We are guaranteed to do this sequentially in order!
+     * The modules will be stopped in the order they are added
+     */
     void meta_stop() override;
 
+    /**
+     * @brief Meta finish method
+     *
+     * We iterate over each backwards module,
+     * and call their meta finish methods.
+     * We are guaranteed to do this sequentially in order!
+     * The modules will be finished in the order they are added
+     */
     void meta_finish() override;
 
+    /**
+     * @brief Meta info sync method
+     *
+     * We iterate over each backwards module,
+     * and call their meta info sync methods.
+     * We are guaranteed to do this sequentially in order!
+     * The modules will be synced in the order they are added
+     */
     void meta_info_sync() override;
 
     /**
