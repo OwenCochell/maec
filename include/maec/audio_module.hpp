@@ -27,6 +27,12 @@
  * which will be reduced to a qualifier free type
  * for checking.
  *
+ * Any component that utilizes template metaprograming
+ * and is taking in compile time maec module types
+ * (such as static chains),
+ * should use this concept to enforce compile time checks
+ * and ensure the incoming types are valid and safe.
+ *
  * @tparam T Type to check
  */
 template <typename T>
@@ -297,16 +303,25 @@ public:
      * Modules can traverse the chain and consider ChainInfo,
      * but this can lead to bugprone behavior.
      *
-     * This function is called automatically when modules are linked,
-     * but it can be called anytime to preform a new info sync,
-     * although it is recommended to do so BEFORE modules are started
-     * to ensure the info is properly utilized.
+     * An info sync should ONLY be preformed until the chain is completely linked!
+     * Otherwise, any additions or removals could lead to runtime issues.
+     * Best practice is asking the sink to preform a meta info sync
+     * after you have constructed the chain.
      *
      * By default, we directly mirror the AudioInfo from the forward module.
      * Again, modules can overload this method and preform any action here.
      * As a note for users, if one wants to alter the AudioInfo,
      * they should do so AFTER the module is linked to the chain,
      * otherwise their changes may be destroyed by the info sync.
+     * In addition, we also preform the chain info sync here,
+     * which allows for large chain operations to still be valid after an info sync.
+     * Finally, we also increment the number of modules attached in the chain info.
+     * This allows for the module count to be accurate even after large chain changes.
+     *
+     * It is HIGHLY recommended to call this parent function
+     * if you intend to overload and implement your own functionality!
+     * We preform some very important housekeeping here,
+     * and failing to preform these actions could lead to trouble!
      */
     void info_sync() override {
 
@@ -314,6 +329,14 @@ public:
         // This is ugly? Maybe we should return a reference instead...
 
         *(this->get_info()) = *(this->forward()->get_info());
+
+        // Also, copy the chain info from the front as well
+
+        this->set_chain_info(this->forward()->get_chain_info());
+
+        // Increment the number of modules in the chain
+
+        this->get_chain_info()->module_num++;
     }
 
     /**
@@ -333,12 +356,6 @@ public:
         // Preform the current info sync:
 
         this->info_sync();
-
-        // Set forwards module of backwards module
-        // This is required for static chains that are not
-        // explicitly linked with another value.
-
-        this->backward().forward(this);
 
         // Preform backwards meta sync:
 
@@ -454,25 +471,6 @@ public:
 
             nmod.forward(this);
 
-            // Set the chain info back to ours:
-            // TODO: Really need to find a more robust way of doing this!
-            // If a chain is added to another, previous ChainInfo pointers will
-            // not
-            // be updated!
-
-            nmod.set_chain_info(this->get_chain_info());
-
-            // Update the number of modules in the chain
-            // TODO: We need to find a better way to do this!
-            // If a large subchain is removed, then this value will NOT be
-            // updated!
-            // We essentially would like to find methods for removing subchains
-            // Hmmm, if a source is not present any linking WILL fail!
-            // maybe we can give each module chain info by default?
-            // We REALLY need to hash out how chain info gets worked with
-
-            // this->get_chain_info()->module_num++;
-
             // Return pointer to backwards value
 
             return (&this->backward());
@@ -496,25 +494,6 @@ public:
         // Give them a pointer to ourselves
 
         nmod.forward(this);
-
-        auto* temp = this;
-
-        // Set the chain info back to ours:
-        // TODO: Really need to find a more robust way of doing this!
-        // If a chain is added to another, previous ChainInfo pointers will not
-        // be updated!
-
-        nmod.set_chain_info(this->get_chain_info());
-
-        // Update the number of modules in the chain
-        // TODO: We need to find a better way to do this!
-        // If a large subchain is removed, then this value will NOT be updated!
-        // We essentially would like to find methods for removing subchains
-        // Hmmm, if a source is not present any linking WILL fail!
-        // maybe we can give each module chain info by default?
-        // We REALLY need to hash out how chain info gets worked with
-
-        // this->get_chain_info()->module_num++;
 
         // Return pointer to backwards value
 

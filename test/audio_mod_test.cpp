@@ -295,6 +295,14 @@ TEST_CASE("AudioModule Test", "[mod]") {
         REQUIRE(saudio_info->in_buffer == 123);
         REQUIRE(saudio_info->out_buffer == 456);
 
+        // The number of modules in the chain info should be set correctly
+
+        REQUIRE(mod.get_chain_info()->module_num == 2);
+
+        // The chain info should be uniform across all modules
+
+        REQUIRE(mod.get_chain_info() == mod2.get_chain_info());
+
         SECTION("MetaInfoSync", "Ensures we can preform a meta info sync") {
 
             // Add a sink to prevent large sync issues
@@ -328,6 +336,16 @@ TEST_CASE("AudioModule Test", "[mod]") {
             REQUIRE(ssaudio_info->channels == 123);
             REQUIRE(ssaudio_info->in_buffer == 456);
             REQUIRE(ssaudio_info->out_buffer == 456);
+
+            // The number of modules registered should be correct
+
+            REQUIRE(sink.get_chain_info()->module_num);
+
+            // The chain info should be the same across all modules
+
+            REQUIRE(sink.get_chain_info() == mod.get_chain_info());
+            REQUIRE(sink.get_chain_info() == mod2.get_chain_info());
+            REQUIRE(sink.get_chain_info() == smod.get_chain_info());
         }
     }
 
@@ -376,20 +394,32 @@ TEST_CASE("AudioModule Test", "[mod]") {
 
     SECTION("Meta Finish", "Ensures we can meta finish") {
 
+        // In this case, we NEED a new module to be behind the module with the chain info,
+        // as otherwise it will attempt to grab info from in front of it,
+        // which can lead to a segfault as by default the forward module pointer is NULL
+
+        AudioModule<> dmod;
+
         // Link the two modules:
 
-        mod.link(&smod);
+        mod.link(&dmod)->link(&smod);
+
+        // Preform the info sync on the newly created dummy module,
+        // again we CAN'T do this on mod as it does not have anything in front of it
+
+        dmod.meta_info_sync();
 
         // Meta finish the first
 
         mod.meta_finish();
 
-        // Ensure both modules are finished, and the chain
+        // Ensure all modules are finished, and the chain
         // info has been updated
 
         REQUIRE(mod.get_state() == BaseModule::State::Finished);
+        REQUIRE(dmod.get_state() == BaseModule::State::Finished);
         REQUIRE(smod.get_state() == BaseModule::State::Finished);
-        REQUIRE(mod.get_chain_info()->module_finish == 2);
+        REQUIRE(mod.get_chain_info()->module_finish == 3);
     }
 
     SECTION("Finish", "Ensures we finished modules will immediately be done") {
@@ -726,11 +756,15 @@ TEST_CASE("Static AudioModule Test", "[mod]") {
         REQUIRE(saudio_info->in_buffer == 123);
         REQUIRE(saudio_info->out_buffer == 456);
 
+        // The number of modules should be correct
+
+        REQUIRE(mod.get_chain_info()->module_num == 2);
+
+        // Each module should have the same chain info
+
+        REQUIRE(mod.get_chain_info() == mod.backward().get_chain_info());
+
         SECTION("MetaInfoSync", "Ensures we can preform a meta info sync") {
-
-            // Bind the source:
-
-            mod.link_static(std::move(smod));
 
             // Add a forward module for sync purposes
 
@@ -746,6 +780,11 @@ TEST_CASE("Static AudioModule Test", "[mod]") {
             audio_info->in_buffer = 456;
             audio_info->out_buffer = 789;
 
+            // Also, define the chain info to prevent segfault
+
+            ChainInfo cinfo;
+            fmod.set_chain_info(&cinfo);
+
             // Preform a meta sink operation:
 
             mod.meta_info_sync();
@@ -757,6 +796,15 @@ TEST_CASE("Static AudioModule Test", "[mod]") {
             REQUIRE(ssaudio_info->channels == 123);
             REQUIRE(ssaudio_info->in_buffer == 456);
             REQUIRE(ssaudio_info->out_buffer == 789);
+
+            // Ensure the number of registered modules is correct
+
+            REQUIRE(fmod.get_chain_info()->module_num == 3);
+
+            // ALL modules should share the same chain info
+
+            REQUIRE(mod.get_chain_info() == fmod.get_chain_info());
+            REQUIRE(mod.get_chain_info() == mod.backward().get_chain_info());
         }
     }
 
@@ -808,6 +856,11 @@ TEST_CASE("Static AudioModule Test", "[mod]") {
         // Link the two modules:
 
         mod.link_static(std::move(smod));
+
+        // Preform an info sync on the backwards module,
+        // this is to allow the chain info to propagate correctly
+
+        mod.backward().info_sync();
 
         // Meta finish the first
 
@@ -936,6 +989,10 @@ TEST_CASE("Static->Dynamic", "Ensures static module can be linked to dynamic") {
         REQUIRE(dmod.get_chain_info() == info);
         REQUIRE(smod.get_chain_info() == info);
         REQUIRE(smod.backward().get_chain_info() == info);
+
+        // Ensure the number of registered modules is correct
+
+        REQUIRE(sink.get_chain_info()->module_num == 4);
 
         // Ensure all of the chain info is correct
         // For sinks
@@ -1090,6 +1147,10 @@ TEST_CASE("Dynamic->Static", "Ensures dynamic module can be linked to static") {
         REQUIRE(smod.get_chain_info() == info);
         REQUIRE(smod.backward().get_chain_info() == info);
         REQUIRE(cmod.get_chain_info() == info);
+
+        // Ensure the number of modules is correct
+
+        REQUIRE(smod.get_chain_info()->module_num == 3);
 
         // Ensure all of the chain info is correct
         // For sinks
