@@ -70,6 +70,13 @@ public:
         this->set_chain_info(&chain_instance);
     }
 
+    // void meta_info_sync() override {
+
+    //     // Preform the current info sync
+
+    //     this->info_sync();
+    // }
+
     /**
      * @brief Preforms an info sync
      *
