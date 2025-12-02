@@ -8,3 +8,4 @@ set(CMAKE_FOLDER extern)
 
 add_subdirectory(sciplot)
 add_subdirectory(catch2)
+add_subdirectory(matplotpp)
