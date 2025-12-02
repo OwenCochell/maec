@@ -313,10 +313,14 @@ int main() {
     f->color("w");
 
     // Left subplot: Processing Operations
-    mp::subplot(2, 1, 1);
-    mp::plot(x, stime)->display_name("Serial");
+    mp::subplot(2, 1, 2);
+    auto plotps = mp::plot(x, stime);
+    plotps->display_name("Serial");
+    plotps->line_width(2.5);
     mp::hold(mp::on);
-    mp::plot(x, ptime)->display_name("Parallel");
+    auto plotpp = mp::plot(x, ptime);
+    plotpp->display_name("Parallel");
+    plotpp->line_width(2.5);
     mp::hold(mp::off);
     mp::title("Processing Operations");
     mp::xlabel("Number of Modules");
@@ -324,7 +328,7 @@ int main() {
     mp::legend()->location(mp::legend::general_alignment::left);
 
     // Right subplot: State Operations
-    mp::subplot(2, 1, 2);
+    mp::subplot(2, 1, 1);
     mp::plot(x, sstimer)->display_name("Serial");
     mp::hold(mp::on);
     mp::plot(x, pstimer)->display_name("Parallel");
