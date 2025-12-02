@@ -13,18 +13,9 @@
 
 #include "audio_buffer.hpp"
 
-// std::unique_ptr<AudioBuffer> BaseModule::create_buffer(int channels) {
-
-//     // Allocate the new buffer:
-
-//     return std::make_unique<AudioBuffer>(this->info.out_buffer, channels,
-//                                          this->info.sample_rate);
-// }
-
 void BaseModule::reserve() {
 
     // Set the buffer parameters
-    // TODO: Grab channels from module info?
 
     buff.set_channels(info.channels);
     buff.set_samplerate(info.sample_rate);
@@ -33,14 +24,6 @@ void BaseModule::reserve() {
 
     buff.resize(this->info.out_buffer * info.channels);
 }
-
-// std::unique_ptr<AudioBuffer> BaseModule::create_buffer(int size, int
-// channels) {
-
-//     // Allocate the new buffer:
-
-//     return std::make_unique<AudioBuffer>(size, channels);
-// }
 
 void BaseModule::reserve(int size, int channels) {
 
