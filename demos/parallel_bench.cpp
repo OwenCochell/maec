@@ -27,7 +27,7 @@
 const std::size_t nmods = 200;
 
 /// Size of the start buffer
-const std::size_t bsize = 50;
+const std::size_t bsize = 100;
 
 /// Size of the kernel
 const std::size_t ksize = 50;
@@ -178,8 +178,9 @@ int main() {
                   << std::chrono::duration<double, std::milli>(spmtime) << "\n";
         std::cout << "Minimum State Time: "
                   << std::chrono::duration<double, std::milli>(ssmtime) << "\n";
-        std::cout << "Average Latency: " << lat.average_latency() * 1e-6 << " ms\n";
-        std::cout << "Total Latency: "<< lat.total_latency() * 1e-6 << " ms\n";
+        std::cout << "Average Latency: " << lat.average_latency() * 1e-6
+                  << " ms\n";
+        std::cout << "Total Latency: " << lat.total_latency() * 1e-6 << " ms\n";
     }
 
     if (do_parallel) {
@@ -318,7 +319,8 @@ int main() {
                   << std::chrono::duration<double, std::milli>(ppmtime) << "\n";
         std::cout << "Minimum State Time: "
                   << std::chrono::duration<double, std::milli>(psmtime) << "\n";
-        std::cout << "Average Latency:" << lat.average_latency() * 1e-6 << " ms\n";
+        std::cout << "Average Latency:" << lat.average_latency() * 1e-6
+                  << " ms\n";
         std::cout << "Total Latency: " << lat.total_latency() * 1e-6 << "ms\n";
 
         // std::cout << "\nTotal Difference: "
