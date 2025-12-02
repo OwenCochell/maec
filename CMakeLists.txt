@@ -22,7 +22,6 @@ add_library(${PROJECT_NAME}
     src/chrono.cpp
     src/envelope.cpp
     src/utils.cpp
-    src/filter_module.cpp
     src/io/wav.cpp
     src/io/mstream.cpp
     src/dsp/conv.cpp
