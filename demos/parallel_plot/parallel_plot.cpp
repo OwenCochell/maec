@@ -32,7 +32,7 @@
 const std::size_t snmods = 1;
 
 /// Maximum number of modules to add
-const std::size_t mnmods = 100;
+const std::size_t mnmods = 200;
 
 /// Size of the start buffer
 const std::size_t bsize = 100;
@@ -329,9 +329,13 @@ int main() {
 
     // Right subplot: State Operations
     mp::subplot(2, 1, 1);
-    mp::plot(x, sstimer)->display_name("Serial");
+    plotps = mp::plot(x, sstimer);
+    plotps->display_name("Serial");
+    plotps->line_width(2.5);
     mp::hold(mp::on);
-    mp::plot(x, pstimer)->display_name("Parallel");
+    plotpp = mp::plot(x, pstimer);
+    plotpp->display_name("Parallel");
+    plotpp->line_width(2.5);
     mp::hold(mp::off);
     mp::title("State Operations");
     mp::xlabel("Number of Modules");
