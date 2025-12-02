@@ -11,4 +11,4 @@ target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
 
 # Link maec and gnuplot
 
-target_link_libraries( ${PROJECT_NAME} maec sciplot )
+target_link_libraries( ${PROJECT_NAME} maec sciplot matplot )
