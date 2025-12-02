@@ -7,6 +7,8 @@
  *
  * @copyright Copyright (c) 2025
  *
+ * Preforms a comparison between serial and parallel modules in mixing scenarios.
+ * Also, I know this program leaks memory...
  */
 
 #include <sciplot/sciplot.hpp>
@@ -27,16 +29,16 @@
 const std::size_t snmods = 1;
 
 /// Maximum number of modules to add
-const std::size_t mnmods = 160;
+const std::size_t mnmods = 20;
 
 /// Size of the start buffer
-const std::size_t bsize = 50;
+const std::size_t bsize = 100;
 
 /// Size of the kernel
 const std::size_t ksize = 50;
 
 /// Number of iterations to preform
-const std::size_t iters = 5;
+const std::size_t iters = 10;
 
 /// Number of times to iterate
 const std::size_t piter = 10;
