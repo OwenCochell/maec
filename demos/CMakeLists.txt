@@ -1,5 +1,9 @@
 project(Demos)
 
+# Group targets under one group
+
+set(CMAKE_FOLDER demos)
+
 # Include demo subdirectories tha might have custom CMake requirements:
 
 add_subdirectory( parallel_plot )
