@@ -150,6 +150,10 @@ int main() {
 
         lmod->link(&source);
 
+        // Determine the stop time
+
+        auto stop = std::chrono::high_resolution_clock::now();
+
         // Preform the info sync
 
         sink.meta_info_sync();
@@ -157,10 +161,6 @@ int main() {
         // Preform the meta start
 
         sink.meta_start();
-
-        // Determine the stop time
-
-        auto stop = std::chrono::high_resolution_clock::now();
 
         // Add the time to the total
 
