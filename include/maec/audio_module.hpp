@@ -36,7 +36,8 @@
  * @tparam T Type to check
  */
 template <typename T>
-concept maecm = std::is_base_of_v<BaseModule, remove_qualifiers<T>> || std::is_void_v<T>;
+concept maecm =
+    std::is_base_of_v<BaseModule, remove_qualifiers<T>> || std::is_void_v<T>;
 
 /**
  * @brief Module for working with audio data
@@ -85,7 +86,7 @@ public:
 
     /**
      * @brief Gets a reference to the backward module
-     * 
+     *
      * This function is only enabled in dynamic chains
      * where the backwards module is a pointer.
      * We simply de-reference and return a reference.
@@ -101,7 +102,7 @@ public:
 
     /**
      * @brief Gets a reference to the backward module
-     * 
+     *
      * This function is only enabled in static chains
      * where the backwards module is known and is an instance.
      * We simply create and return a reference to the backwards module.
@@ -122,7 +123,7 @@ public:
      * This method contains all the meta code such as
      * retrieving the buffer from the previous module,
      * and calling the necessary processing methods.
-     * We also include some logic for preforming 
+     * We also include some logic for preforming
      * explicit de-virtualization, as well as explicitly
      * calling target functions in static chains.
      *
@@ -134,7 +135,8 @@ public:
                     // valid chains will eventually end
 
         // We have a separate path here depending on the backwards module type,
-        // if the backwards type is known then we can directly call it's meta processing method
+        // if the backwards type is known then we can directly call it's meta
+        // processing method
 
         if constexpr (!std::is_pointer_v<BT>) {
 
@@ -157,8 +159,9 @@ public:
             this->set_buffer(this->backward().get_buffer());
         }
 
-        // Now, we need to define a seperate path here if we know the child type,
-        // if so we can preform some manual de-virtualization by explicitly calling the process method
+        // Now, we need to define a seperate path here if we know the child
+        // type, if so we can preform some manual de-virtualization by
+        // explicitly calling the process method
 
         if constexpr (std::is_void_v<CT>) {
 
@@ -168,11 +171,11 @@ public:
             // but if defined correctly it could be optimized out.
 
             this->process();
-        } 
-        else {
+        } else {
             // Attempt explicit de-virtualization. If CT is still incomplete
             // this qualified call is ill-formed. In this case,
-            // users should rely on virtual dispatch or ensure CT definition precedes use.
+            // users should rely on virtual dispatch or ensure CT definition
+            // precedes use.
             static_cast<CT*>(this)->CT::process();
         }
     }
@@ -303,9 +306,9 @@ public:
      * Modules can traverse the chain and consider ChainInfo,
      * but this can lead to bugprone behavior.
      *
-     * An info sync should ONLY be preformed until the chain is completely linked!
-     * Otherwise, any additions or removals could lead to runtime issues.
-     * Best practice is asking the sink to preform a meta info sync
+     * An info sync should ONLY be preformed until the chain is completely
+     * linked! Otherwise, any additions or removals could lead to runtime
+     * issues. Best practice is asking the sink to preform a meta info sync
      * after you have constructed the chain.
      *
      * By default, we directly mirror the AudioInfo from the forward module.
@@ -314,9 +317,10 @@ public:
      * they should do so AFTER the module is linked to the chain,
      * otherwise their changes may be destroyed by the info sync.
      * In addition, we also preform the chain info sync here,
-     * which allows for large chain operations to still be valid after an info sync.
-     * Finally, we also increment the number of modules attached in the chain info.
-     * This allows for the module count to be accurate even after large chain changes.
+     * which allows for large chain operations to still be valid after an info
+     * sync. Finally, we also increment the number of modules attached in the
+     * chain info. This allows for the module count to be accurate even after
+     * large chain changes.
      *
      * It is HIGHLY recommended to call this parent function
      * if you intend to overload and implement your own functionality!
@@ -352,6 +356,17 @@ public:
      *
      */
     void meta_info_sync() override {
+
+        // Determine if we are a static chain,
+        // if so then we may need to define the forward module for the backward
+        // module
+
+        if constexpr (!std::is_pointer_v<BT>) {
+
+            // Backwards module is static, set the forward module
+
+            this->backwardv.forward(this);
+        }
 
         // Preform the current info sync:
 
