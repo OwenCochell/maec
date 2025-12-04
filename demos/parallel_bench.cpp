@@ -322,11 +322,6 @@ int main() {
         std::cout << "Average Latency:" << lat.average_latency() * 1e-6
                   << " ms\n";
         std::cout << "Total Latency: " << lat.total_latency() * 1e-6 << "ms\n";
-
-        // std::cout << "\nTotal Difference: "
-        //           << std::chrono::duration<double, std::milli>(sptime) -
-        //                  std::chrono::duration<double, std::milli>(pptime)
-        //           << "\n";
     }
 
     return 0;
