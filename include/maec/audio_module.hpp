@@ -408,60 +408,36 @@ public:
     }
 
     /**
-     * @brief Binds another module to us
+     * @brief Links another module to us
      *
-     * This method binds a module to us,
+     * The process of 'linking' creates a relationship between
+     * ourselves and the module behind us.
+     * This relationship describes the processing order of the modules,
+     * and modifies the sequence of operations preformed when using the chain.
+     *
+     * This method links a module to us,
      * and makes that the source of audio buffers.
-     *
+     * We also set ourselves as the forward module.
      * Most users can use the default method here with no problem,
      * but some advanced modules may put some custom code here.
-     *
-     * We also specify if the AudioInfo should be synced between the two
-     * modules.
      *
      * We also return the AudioModule we added, allowing for operations like
      * this:
      *
      * mod.bind(mod1.bind(mod2.bind(mod3)));
-     * TODO: ^ This is less ideal, as AudioInfo structs are not synced,
-     * elaborate on this
      *
      * or:
      *
-     * mod.bind(mod1).bind(mod2).bind(mod3);
+     * mod.link(mod1)->link(mod2)->link(mod3);
      *
      * The result would be this:
      *
      * mod3 -> mod2 -> mod1 -> mod
      *
      * @param mod The module to bind to us
-     * @return AudioModule* The AudioModule we just bound
+     * @return BaseModule* The AudioModule we just bound
      */
-    // virtual AudioModule* bind(AudioModule* mod) {
-
-    //     // Simply attach the pointer to ourselves:
-    //     // TODO: This is no good now...
-
-    //     this->backwardv = mod;
-
-    //     // Set the forward module:
-
-    //     mod->forward(this);
-
-    //     // Set the chain info in the back to ours:
-    //     // TODO: Really need to find a more robust way of doing this!
-    //     // If a chain is added to another, previous ChainInfo pointers will
-    //     not
-    //     // be updated!
-
-    //     mod->set_chain_info(this->get_chain_info());
-
-    //     return mod;
-    // }
-
-    BaseModule* link(BaseModule* mod) override
-    // requires(std::is_same_v<B, BaseModule*>)
-    {
+    BaseModule* link(BaseModule* mod) override {
 
         // Disable this body if we are NOT a BaseModule
 
