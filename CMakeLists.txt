@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 3.25)
 project(maec VERSION 1.0.0 DESCRIPTION "Modular Audio Engine in C++" HOMEPAGE_URL "https://github.com/Owen-Cochell/cmae" LANGUAGES CXX)
 
+# Include 3rd party dependencies
+
+add_subdirectory(extern)
+
 # Define our target and set properties:
 
 add_library(${PROJECT_NAME}
     src/base_module.cpp
-    src/audio_module.cpp
     src/module_mixer.cpp
     src/meta_audio.cpp
     src/base_oscillator.cpp
@@ -19,7 +22,6 @@ add_library(${PROJECT_NAME}
     src/chrono.cpp
     src/envelope.cpp
     src/utils.cpp
-    src/filter_module.cpp
     src/io/wav.cpp
     src/io/mstream.cpp
     src/dsp/conv.cpp
@@ -101,7 +103,7 @@ endif()
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
 
 # Add binaries in demos
-add_subdirectory("demos")
+add_subdirectory(demos)
 
 # Add binaries in test
-add_subdirectory("test")
+add_subdirectory(test)

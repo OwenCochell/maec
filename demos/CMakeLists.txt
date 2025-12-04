@@ -1,5 +1,13 @@
 project(Demos)
 
+# Group targets under one group
+
+set(CMAKE_FOLDER demos)
+
+# Include demo subdirectories tha might have custom CMake requirements:
+
+add_subdirectory( parallel_plot )
+
 # Demo files to be ran
 
 set(MISC_FILES
@@ -13,7 +21,9 @@ set(MISC_FILES
     call_benchmark.cpp
     vector_pass.cpp
     chain_bench.cpp
+    static_bench.cpp
     chain_bench_dyn.cpp
+    parallel_bench.cpp
 )
 
 # Finally, build and link all misc. demo files:

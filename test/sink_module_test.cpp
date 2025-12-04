@@ -4,14 +4,15 @@
  * @brief Basic tests for sink modules
  * @version 0.1
  * @date 2022-12-23
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
+
+#include "sink_module.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
-#include "sink_module.hpp"
 #include "meta_audio.hpp"
 
 TEST_CASE("SinkModule Test", "[sink]") {
@@ -47,7 +48,7 @@ TEST_CASE("SinkModule Test", "[sink]") {
     SECTION("ChainInfo", "Ensures the chain info is correct") {
 
         // Ensures the ChainInfo is present:
-        
+
         REQUIRE(sink.get_chain_info() != nullptr);
     }
 }
@@ -85,7 +86,7 @@ TEST_CASE("PeriodSink", "[sink]") {
 
         // Bind the two modules together:
 
-        sink.bind(&count)->bind(&oconst);
+        sink.link(&count)->link(&oconst);
 
         // Meta process the sink:
 

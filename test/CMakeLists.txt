@@ -14,6 +14,7 @@ set(TEST_FILES
     audio_mod_test.cpp
     amp_module_test.cpp
     audio_buffer_test.cpp
+    parallel_test.cpp
     io/mstream_test.cpp
     io/wav_test.cpp
     io/alsa_module_test.cpp
@@ -27,19 +28,11 @@ set(TEST_FILES
 # Enable testing for the project
 enable_testing()
 
-include(FetchContent)
-
-FetchContent_Declare(
-  Catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG v3.8.0
-  SYSTEM
-)
-
-FetchContent_MakeAvailable(Catch2)
-
 # Adding the tests target
 add_executable(test ${TEST_FILES})
+
+# Make Catch2 available to this file
+FetchContent_MakeAvailable(Catch2)
 
 # Linking test with the Catch2 libraries
 target_link_libraries(test PRIVATE maec Catch2::Catch2WithMain)

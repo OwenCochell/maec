@@ -4,16 +4,17 @@
  * @brief Tests for various meta modules
  * @version 0.1
  * @date 2023-01-25
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include "meta_audio.hpp"
+#include "audio_buffer.hpp"
 #include "fund_oscillator.hpp"
+#include "meta_audio.hpp"
 
 TEST_CASE("MetaCount Test", "[meta][count]") {
 
@@ -32,7 +33,7 @@ TEST_CASE("MetaCount Test", "[meta][count]") {
 
     // Bind the constant oscillator:
 
-    count.bind(&con);
+    count.link(&con);
 
     SECTION("Processing", "Ensures processing works correctly") {
 
@@ -73,7 +74,7 @@ TEST_CASE("MetaLatency Test", "[meta]") {
 
     // Bind the sine oscillator:
 
-    late.bind(&sine);
+    late.link(&sine);
 
     SECTION("Default", "Ensure default values are accurate") {
 
@@ -92,7 +93,8 @@ TEST_CASE("MetaLatency Test", "[meta]") {
     late.start();
     late.meta_process();
 
-    SECTION("Total Time", "Ensures our understanding of total time is accurate") {
+    SECTION("Total Time",
+            "Ensures our understanding of total time is accurate") {
 
         // Ensure start time is not zero:
 
@@ -100,14 +102,16 @@ TEST_CASE("MetaLatency Test", "[meta]") {
 
         // Get total time elapsed:
 
-        REQUIRE(std::abs(late.elapsed() - (get_time() - late.get_start_time())) < 1000);
+        REQUIRE(std::abs(late.elapsed() -
+                         (get_time() - late.get_start_time())) < 1000);
 
         // Get expected time:
 
         REQUIRE(440 * (NANO / 44100) == late.expected());
     }
 
-    SECTION("Operation Time", "Ensures our understanding of the operation time is accurate") {
+    SECTION("Operation Time",
+            "Ensures our understanding of the operation time is accurate") {
 
         // Get the elapsed time:
 
@@ -128,7 +132,8 @@ TEST_CASE("MetaLatency Test", "[meta]") {
         REQUIRE(total / 2 == late.average_time());
     }
 
-    SECTION("Latency Time", "Ensures our understanding of the latency time is accurate") {
+    SECTION("Latency Time",
+            "Ensures our understanding of the latency time is accurate") {
 
         // Get the elapsed time:
 
@@ -201,7 +206,7 @@ TEST_CASE("MetaBuffer Test", "[meta]") {
 
         // Next, ensure data is accurate:
 
-        std::shared_ptr<AudioBuffer> tdata = nullptr;
+        AudioBuffer tdata;
 
         for (int i = 0; i < 10 * 4; ++i) {
 
@@ -214,7 +219,7 @@ TEST_CASE("MetaBuffer Test", "[meta]") {
             }
 
             REQUIRE_THAT(data.at(i % 10),
-                         Catch::Matchers::WithinAbs(tdata->at(i % 10), 0.0001));
+                         Catch::Matchers::WithinAbs(tdata.at(i % 10), 0.0001));
         }
     }
 }
@@ -229,7 +234,8 @@ TEST_CASE("UniformBuffer Test", "[meta]") {
 
     BufferModule mbuf;
 
-    SECTION("Same Size", "Ensures the UniformBuffer can return data of the same size") {
+    SECTION("Same Size",
+            "Ensures the UniformBuffer can return data of the same size") {
 
         // Configure modules:
 
@@ -240,7 +246,7 @@ TEST_CASE("UniformBuffer Test", "[meta]") {
 
         // Bind the modules:
 
-        uni.bind(&mbuf);
+        uni.link(&mbuf);
 
         // Create buffer:
 
@@ -270,7 +276,7 @@ TEST_CASE("UniformBuffer Test", "[meta]") {
 
             // Ensure buffer is valid:
 
-            iter = buff->ibegin();
+            iter = buff.ibegin();
 
             for (int j = 0; j < size; ++j) {
 
@@ -279,7 +285,8 @@ TEST_CASE("UniformBuffer Test", "[meta]") {
         }
     }
 
-    SECTION("Smaller Size", "Ensures the UniformBuffer can return data of smaller size") {
+    SECTION("Smaller Size",
+            "Ensures the UniformBuffer can return data of smaller size") {
 
         // Configure modules:
 
@@ -291,7 +298,7 @@ TEST_CASE("UniformBuffer Test", "[meta]") {
 
         // Bind the modules:
 
-        uni.bind(&mbuf);
+        uni.link(&mbuf);
 
         // Loop a certain number of times:
 
@@ -321,13 +328,15 @@ TEST_CASE("UniformBuffer Test", "[meta]") {
 
         // Ensure buffer is accurate:
 
-        for (auto iter = obuff->ibegin(); iter != obuff->iend(); ++iter) {
+        for (auto iter = obuff.ibegin(); iter != obuff.iend(); ++iter) {
 
-            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(iter.get_index() % isize, 0.0001));
+            REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(
+                                    iter.get_index() % isize, 0.0001));
         }
     }
 
-    SECTION("Bigger Size", "Ensures the UniformBuffer can return data of larger size") {
+    SECTION("Bigger Size",
+            "Ensures the UniformBuffer can return data of larger size") {
 
         // Configure the module:
 
@@ -339,7 +348,7 @@ TEST_CASE("UniformBuffer Test", "[meta]") {
 
         // Bind the modules:
 
-        uni.bind(&mbuf);
+        uni.link(&mbuf);
 
         // Create a buffer:
 
@@ -371,11 +380,13 @@ TEST_CASE("UniformBuffer Test", "[meta]") {
 
             // Ensure buffer is accurate:
 
-            for (auto tier = obuff->ibegin(); tier != obuff->iend(); ++tier) {
+            for (auto tier = obuff.ibegin(); tier != obuff.iend(); ++tier) {
 
                 // Check value:
 
-                REQUIRE_THAT(*tier, Catch::Matchers::WithinAbs(tier.get_index() + (i * osize), 0.0001));
+                REQUIRE_THAT(*tier,
+                             Catch::Matchers::WithinAbs(
+                                 tier.get_index() + (i * osize), 0.0001));
             }
         }
     }
@@ -421,17 +432,13 @@ TEST_CASE("ConstModule Test", "[meta]") {
 
     auto buff = osc.get_buffer();
 
-    // Ensure the buffer is not null:
-
-    REQUIRE(buff != nullptr);
-
     // Ensure the buffer is the correct size:
 
-    REQUIRE(buff->size() == 440);
+    REQUIRE(buff.size() == 440);
 
     // Ensure the buffer is filled with the correct value:
 
-    for (auto& val : *buff) {
+    for (auto& val : buff) {
 
         REQUIRE(val == 1.0);
     }

@@ -1,46 +1,31 @@
 /**
- * @file chain_bench.cpp
+ * @file static_bench.cpp
  * @author Owen Cochell (owencochell@gmail.com)
- * @brief Generic dynamic chain benchmark
+ * @brief Benchmark for static chains
  * @version 0.1
  * @date 2025-10-04
  *
  * @copyright Copyright (c) 2025
  *
- * We implement a basic chain benchmark
- * for profiling chain implementations.
- * The primary purpose is to compare performance between
- * differing chain implementations.
+ * We primarily benchmark static chains,
+ * which can be compared to dynamic chains.
  *
- * This file will read in a dynamic chain definition,
- * which will create a chain at runtime.
+ * As of now, I do NOT have a method to generate static chains,
+ * I will likely be creating a 3rd party program to automate this.
  */
 
-#include <array>
+#include <algorithm>
 #include <chrono>
 #include <cstddef>
-#include <cstdlib>
 #include <iostream>
-#include <random>
-#include <ratio>
-#include <string>
-#include <utility>
 
 #include "amp_module.hpp"
-#include "audio_module.hpp"
 #include "base_module.hpp"
 #include "filter_module.hpp"
 #include "meta_audio.hpp"
 #include "sink_module.hpp"
 
-/// Module to create the chain
-using TestModule = AmplitudeScale<>;
-
-constexpr std::string CHAIN = "fsffafaass";
-
 int main() {
-
-    srand(time(0));
 
     // Number of iterations to preform
     const std::size_t iter = 100;
@@ -50,13 +35,6 @@ int main() {
 
     // Buffer size
     const std::size_t buff = 100;
-
-    // Number of modules in each chain
-    const std::size_t nums = CHAIN.size();
-
-    // Array to hold our modules
-
-    std::array<TestModule, nums> mods;
 
     std::cout << "+================================+" << '\n';
     std::cout << " !Benchmarking chain performance!" << '\n';
@@ -85,70 +63,13 @@ int main() {
 
         auto start = std::chrono::high_resolution_clock::now();
 
-        // Create a sink for the chain
+        // Create a static chain to utilize
 
-        SinkModule sink;
-
-        // The sink should have the desired size
-
+        SinkModule<SincFilter<AmplitudeScale<SincFilter<
+            SincFilter<AmplitudeAdd<SincFilter<AmplitudeAdd<AmplitudeAdd<
+                AmplitudeScale<AmplitudeScale<ConstModule>>>>>>>>>>>
+            sink;
         sink.get_info()->out_buffer = buff;
-
-        // Just for fun, add a LatencyModule
-
-        // LatencyModule lat;
-
-        // Add the latency module to the chain
-
-        // sink.link(&lat);
-
-        // Create a constant source
-
-        ConstModule source;
-
-        // Module to add to collection
-
-        BaseModule* lmod = &sink;
-
-        // Iterate over the dynamic definition
-
-        for (std::size_t modi = 0; modi < nums; ++modi) {
-
-            // Determine what module to add
-
-            BaseModule* mod = nullptr;
-
-            if (CHAIN[modi] == 'a') {
-
-                // This is an add module
-
-                mod =
-                    new AmplitudeAdd<>(static_cast<double>(rand()) / RAND_MAX);
-
-            }
-
-            else if (CHAIN[modi] == 's') {
-
-                // This is a scale module
-
-                mod = new AmplitudeScale<>((static_cast<double>(rand())) /
-                                           RAND_MAX);
-            }
-
-            if (CHAIN[modi] == 'f') {
-
-                // This is a sinc filter
-
-                mod = new SincFilter();
-            }
-
-            // Add the module to the chain
-
-            lmod = lmod->link(mod);
-        }
-
-        // Add the source to the chain
-
-        lmod->link(&source);
 
         // Determine the stop time
 
@@ -167,9 +88,8 @@ int main() {
         if (!cset) {
             create = stop - start;
             cset = true;
-        }
+        } else {
 
-        else {
             create = std::min(stop - start, create);
         }
 
@@ -179,8 +99,7 @@ int main() {
 
         // Process the chain
 
-        for (int j = 0; j < piter; j++) {
-
+        for (int j = 0; j < piter; ++j) {
             sink.meta_process();
         }
 
@@ -188,22 +107,13 @@ int main() {
 
         stop = std::chrono::high_resolution_clock::now();
 
-        // Calculate the diff
-
         if (!pset) {
             process = stop - start;
             pset = true;
-        }
+        } else {
 
-        else {
             process = std::min(stop - start, process);
         }
-
-        // Get the latency of the chain
-
-        // auto latv = lat.latency();
-
-        // std::cout << "Module Latency: [" << latv << "] ns\n";
 
         // Preform the meta stop
         // TODO: Should we keep track of meta operations?

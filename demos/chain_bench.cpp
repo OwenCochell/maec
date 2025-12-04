@@ -25,7 +25,7 @@
 #include "sink_module.hpp"
 
 /// Module to create the chain
-using TestModule = AmplitudeScale;
+using TestModule = AmplitudeScale<>;
 
 int main() {
 
@@ -33,10 +33,10 @@ int main() {
     const std::size_t iter = 500000;
 
     // Buffer size
-    const std::size_t buff = 100;
+    const std::size_t buff = 10;
 
     // Number of modules in each chain
-    const std::size_t nums = 100;
+    const std::size_t nums = 200;
 
     // Array to hold our modules
 
@@ -75,13 +75,21 @@ int main() {
 
         sink.get_info()->out_buffer = buff;
 
+        // Just for fun, add a LatencyModule
+
+        // LatencyModule lat;
+
+        // Add the latency module to the chain
+
+        // sink.link(&lat);
+
         // Create a constant source
 
         ConstModule source;
 
         // Module to add to collection
 
-        AudioModule* lmod = &sink;
+        BaseModule* lmod = &sink;
 
         // Iterate over the number of modules to add
 
@@ -144,6 +152,12 @@ int main() {
         std::cout << "Process Time: [" << ptime << "] ms\n";
 
         process += ptime;
+
+        // Get the latency of the chain
+
+        // auto latv = lat.latency();
+
+        // std::cout << "Module Latency: [" << latv << "] ns\n";
 
         // Preform the meta stop
         // TODO: Should we keep track of meta operations?

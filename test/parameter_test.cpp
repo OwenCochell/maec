@@ -4,9 +4,9 @@
  * @brief Tests for ModuleParameters
  * @version 0.1
  * @date 2023-02-03
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
 #include <catch2/catch_test_macros.hpp>
@@ -61,13 +61,14 @@ TEST_CASE("Module Parameter Tests", "[param]") {
         REQUIRE(module_info->out_buffer == info->in_buffer);
     }
 
-    SECTION("Constant Parameter Functionality", "Ensure we can use constant parameters") {
+    SECTION("Constant Parameter Functionality",
+            "Ensure we can use constant parameters") {
 
         // Ensures we can get a constant value:
 
         auto buff = const_param.get();
 
-        for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+        for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
             REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(5., 0.0001));
         }
@@ -78,22 +79,23 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
         // Test the values multiple times:
 
-        for(int i = 0; i < 5; ++i) {
+        for (int i = 0; i < 5; ++i) {
 
             buff = const_param.get();
 
-            for (auto iter = buff->ibegin(); iter != buff->iend(); ++iter) {
+            for (auto iter = buff.ibegin(); iter != buff.iend(); ++iter) {
 
                 REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(3., 0.0001));
             }
         }
     }
 
-    SECTION("Module Parameter Functionality", "Ensure we can bind modules to parameters") {
+    SECTION("Module Parameter Functionality",
+            "Ensure we can bind modules to parameters") {
 
         // Dummy data to utilize
 
-        std::vector<long double> data = {1,2,3,4,5,6,7,8,9,10};
+        std::vector<long double> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
         // Create a module to use:
 
@@ -107,7 +109,7 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
         auto buffp = mod_param.get();
 
-        for (auto iter = buffp->ibegin(); iter < buffp->iend(); ++iter) {
+        for (auto iter = buffp.ibegin(); iter < buffp.iend(); ++iter) {
 
             REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(3.0, 0.0001));
         }
@@ -124,7 +126,7 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
         // Set the source module
 
-        mod_param.bind(&src);
+        mod_param.link(&src);
 
         // Now, ensure values are accurate:
 
@@ -132,7 +134,8 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
         for (int i = 0; i < data.size(); ++i) {
 
-            REQUIRE_THAT(buffp->at(i), Catch::Matchers::WithinAbs(data.at(i), 0.0001));
+            REQUIRE_THAT(buffp.at(i),
+                         Catch::Matchers::WithinAbs(data.at(i), 0.0001));
         }
     }
 }
@@ -250,10 +253,10 @@ TEST_CASE("BaseParamTest", "[param]") {
 
             // Just for fun, ensure previous module is synced correctly:
 
-            auto* back = param->get_backward();
+            auto& back = param->backward();
 
-            info = back->get_info();
-            mcinfo = back->get_chain_info();
+            info = back.get_info();
+            mcinfo = back.get_chain_info();
 
             REQUIRE(mcinfo->buffer_size == bsize);
             REQUIRE(mcinfo->channels == channels);
@@ -283,7 +286,7 @@ TEST_CASE("ParamModule Test", "[param][mod]") {
 
     SourceModule source;
 
-    mod.bind(&source);
+    mod.link(&source);
 
     SECTION("GetArray", "Ensures array contents are valid") {
 
@@ -352,7 +355,7 @@ TEST_CASE("ParamModule Test", "[param][mod]") {
 
         // Bind the sink/source:
 
-        sink.bind(&mod)->bind(&source);
+        sink.link(&mod)->link(&source);
 
         // Set some crazy values:
 
@@ -390,10 +393,10 @@ TEST_CASE("ParamModule Test", "[param][mod]") {
 
             // Just for fun, ensure previous module is synced correctly:
 
-            auto* back = param->get_backward();
+            auto& back = param->backward();
 
-            info = back->get_info();
-            mcinfo = back->get_chain_info();
+            info = back.get_info();
+            mcinfo = back.get_chain_info();
 
             REQUIRE(mcinfo->buffer_size == bsize);
             REQUIRE(mcinfo->channels == channels);
@@ -423,7 +426,7 @@ TEST_CASE("ParamSink Test", "[param][mod][sink]") {
 
     SourceModule source;
 
-    mod.bind(&source);
+    mod.link(&source);
 
     SECTION("GetArray", "Ensures array contents are valid") {
 
@@ -488,7 +491,7 @@ TEST_CASE("ParamSink Test", "[param][mod][sink]") {
 
         // Bind the sink/source:
 
-        mod.bind(&source);
+        mod.link(&source);
 
         // Set some crazy values:
 
@@ -526,10 +529,10 @@ TEST_CASE("ParamSink Test", "[param][mod][sink]") {
 
             // Just for fun, ensure previous module is synced correctly:
 
-            auto* back = param->get_backward();
+            auto& back = param->backward();
 
-            info = back->get_info();
-            mcinfo = back->get_chain_info();
+            info = back.get_info();
+            mcinfo = back.get_chain_info();
 
             REQUIRE(mcinfo->buffer_size == bsize);
             REQUIRE(mcinfo->channels == channels);
@@ -618,7 +621,7 @@ TEST_CASE("ParamSource Test", "[param][mod][source]") {
 
         // Bind the sink/source:
 
-        sink.bind(&mod);
+        sink.link(&mod);
 
         // Set some crazy values:
 
@@ -656,10 +659,10 @@ TEST_CASE("ParamSource Test", "[param][mod][source]") {
 
             // Just for fun, ensure previous module is synced correctly:
 
-            auto* back = param->get_backward();
+            auto& back = param->backward();
 
-            info = back->get_info();
-            mcinfo = back->get_chain_info();
+            info = back.get_info();
+            mcinfo = back.get_chain_info();
 
             REQUIRE(mcinfo->buffer_size == bsize);
             REQUIRE(mcinfo->channels == channels);

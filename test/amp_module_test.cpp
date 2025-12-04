@@ -4,9 +4,9 @@
  * @brief Tests for amplitude modules
  * @version 0.1
  * @date 2023-02-02
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
 #include "amp_module.hpp"
@@ -21,7 +21,7 @@ TEST_CASE("BaseAmplitude Test", "[amp]") {
 
     // Create BaseAmplitude
 
-    BaseAmplitude amp;
+    BaseAmplitude<> amp;
 
     SECTION("Default", "Ensures the default value is correct") {
 
@@ -55,7 +55,7 @@ TEST_CASE("AmplitudeScale Test", "[amp]") {
 
     // Create an AmplitudeScale:
 
-    AmplitudeScale amp;
+    AmplitudeScale<> amp;
 
     SECTION("Process", "Ensures the amplitude modules processes correctly") {
 
@@ -65,7 +65,7 @@ TEST_CASE("AmplitudeScale Test", "[amp]") {
 
         // Bind the module together:
 
-        amp.bind(&osc);
+        amp.link(&osc);
 
         // Process the data:
 
@@ -77,7 +77,7 @@ TEST_CASE("AmplitudeScale Test", "[amp]") {
 
         // Ensure data is accurate:
 
-        for (auto iter = buff->ibegin(); iter != buff->send(); ++iter) {
+        for (auto iter = buff.ibegin(); iter != buff.send(); ++iter) {
 
             // Ensure value is correct:
 
@@ -90,7 +90,7 @@ TEST_CASE("AmplitudeAdd Test", "[amp]") {
 
     // Create with a value of 0.5:
 
-    AmplitudeAdd amp(0.5);
+    AmplitudeAdd<> amp(0.5);
 
     SECTION("Process", "Ensures the amplitude module processes correctly") {
 
@@ -100,7 +100,7 @@ TEST_CASE("AmplitudeAdd Test", "[amp]") {
 
         // Bind the module together:
 
-        amp.bind(&osc);
+        amp.link(&osc);
 
         // Process the data:
 
@@ -112,7 +112,7 @@ TEST_CASE("AmplitudeAdd Test", "[amp]") {
 
         // Ensure data is accurate:
 
-        for (auto iter = buff->ibegin(); iter != buff->send(); ++iter) {
+        for (auto iter = buff.ibegin(); iter != buff.send(); ++iter) {
 
             // Ensure value is correct:
 

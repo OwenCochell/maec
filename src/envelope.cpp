@@ -4,14 +4,16 @@
  * @brief Implementations of envelopes
  * @version 0.1
  * @date 2023-02-25
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
+
+#include "envelope.hpp"
 
 #include <cmath>
 
-#include "envelope.hpp"
+#include "audio_buffer.hpp"
 
 int64_t BaseEnvelope::get_time_inc() {
 
@@ -26,7 +28,6 @@ int64_t BaseEnvelope::get_time_inc() {
     // Return the current time:
 
     return time;
-
 }
 
 void DurationEnvelope::start() {
@@ -48,28 +49,29 @@ void ConstantEnvelope::process() {
 
     // Create a buffer for use:
 
-    this->set_buffer(this->create_buffer());
+    this->reserve();
 
     // Fill the buffer:
 
-    std::fill(this->buff->sbegin(), this->buff->send(), this->get_start_value());
+    std::fill(this->buff.sbegin(), this->buff.send(), this->get_start_value());
 
     // Set the time:
 
-    this->get_timer()->add_sample(static_cast<int>(this->buff->size()));
+    this->get_timer()->add_sample(static_cast<int>(this->buff.size()));
 }
 
 void SetValue::process() {
 
     // Create a buffer for use:
 
-    this->set_buffer(this->create_buffer());
+    this->reserve();
 
     // Determine the number of values to be initial:
 
-    auto size = this->buff->size();
+    auto size = this->buff.size();
 
-    int64_t initial = std::min(this->remaining_samples(), static_cast<int64_t>(size));
+    int64_t initial =
+        std::min(this->remaining_samples(), static_cast<int64_t>(size));
 
     // Determine the number of values to be final:
 
@@ -77,9 +79,9 @@ void SetValue::process() {
 
     // Fill in the buffer:
 
-    std::fill_n(this->buff->ibegin(), initial, this->get_start_value());
+    std::fill_n(this->buff.ibegin(), initial, this->get_start_value());
 
-    std::fill_n(this->buff->ibegin() + initial, after, this->get_stop_value());
+    std::fill_n(this->buff.ibegin() + initial, after, this->get_stop_value());
 
     // Set the time:
 
@@ -90,12 +92,12 @@ void ExponentialRamp::process() {
 
     // Create a buffer for use:
 
-    this->set_buffer(this->create_buffer());
+    this->reserve();
 
     // Iterate over values in buffer:
 
-    for (auto iter = this->buff->ibegin();
-         static_cast<unsigned int>(iter.get_index()) < this->buff->size();
+    for (auto iter = this->buff.ibegin();
+         static_cast<unsigned int>(iter.get_index()) < this->buff.size();
          ++iter) {
 
         // Determine value at current time:
@@ -113,12 +115,12 @@ void LinearRamp::process() {
 
     // Create a buffer for use:
 
-    this->set_buffer(this->create_buffer());
+    this->reserve();
 
     // Iterate over values in buffer:
 
-    for (auto iter = this->buff->ibegin();
-         static_cast<unsigned int>(iter.get_index()) < this->buff->size();
+    for (auto iter = this->buff.ibegin();
+         static_cast<unsigned int>(iter.get_index()) < this->buff.size();
          ++iter) {
 
         // Determine value at current time:
@@ -165,7 +167,8 @@ void ChainEnvelope::optimize() {
 
         auto* env = this->envs[this->optimized];
 
-        if (env->get_stop_time() >= this->envs[this->optimized+1]->get_start_time()) {
+        if (env->get_stop_time() >=
+            this->envs[this->optimized + 1]->get_start_time()) {
 
             // Valid chain! No inserts necessary ...
 
@@ -177,7 +180,6 @@ void ChainEnvelope::optimize() {
         // Otherwise, create internal envelope:
 
         this->create_internal(++(this->optimized));
-
     }
 
     // Finally, add envelope to the back:
@@ -189,7 +191,8 @@ void ChainEnvelope::create_internal(int index) {
 
     // Create the InternalEnvelope:
 
-    std::unique_ptr<InternalEnvelope> interp = std::make_unique<InternalEnvelope>();
+    std::unique_ptr<InternalEnvelope> interp =
+        std::make_unique<InternalEnvelope>();
 
     // Determine start value and time:
 
@@ -200,13 +203,13 @@ void ChainEnvelope::create_internal(int index) {
         interp->set_start_value(this->get_start_value());
         interp->set_start_time(0);
     }
- 
+
     else {
 
         // Otherwise, use previous stop value:
 
-        interp->set_start_value(this->envs[index-1]->get_stop_value());
-        interp->set_start_time(this->envs[index-1]->get_stop_time());
+        interp->set_start_value(this->envs[index - 1]->get_stop_value());
+        interp->set_start_time(this->envs[index - 1]->get_stop_time());
     }
 
     // Determine stop time:
@@ -227,7 +230,7 @@ void ChainEnvelope::create_internal(int index) {
 
     // Insert the envelope into the collection:
 
-    this->envs.insert(this->envs.begin()+index, interp.get());
+    this->envs.insert(this->envs.begin() + index, interp.get());
 
     // Add this envelope to the internal list:
 
@@ -249,7 +252,9 @@ void ChainEnvelope::process() {
 
     // Create a final buffer:
 
-    auto tbuff = this->create_buffer();
+    auto tbuff =
+        AudioBuffer(this->get_info()->out_buffer, this->get_info()->channels,
+                    this->get_info()->sample_rate);
 
     int processed = 0;
 
@@ -263,14 +268,14 @@ void ChainEnvelope::process() {
 
         if (this->current->get_stop_time() >= 0) {
 
-            num = std::min(num, static_cast<int>(this->current->remaining_samples()));
-
+            num = std::min(
+                num, static_cast<int>(this->current->remaining_samples()));
         }
 
         // Set size of current envelope to num value:
 
         this->current->get_info()->out_buffer = num;
- 
+
         // Grab buffer from current envelope:
 
         this->current->meta_process();
@@ -279,7 +284,7 @@ void ChainEnvelope::process() {
 
         // First, fill it with contents of first envelope:
 
-        std::copy_n(cbuff->ibegin(), num, tbuff->ibegin()+processed);
+        std::copy_n(cbuff.ibegin(), num, tbuff.ibegin() + processed);
 
         // Update the number of samples processed:
 
@@ -289,13 +294,13 @@ void ChainEnvelope::process() {
 
         this->get_timer()->add_sample(num);
 
-        if (this->current->get_stop_time() >= 0 && this->get_time() >= this->current->get_stop_time()) {
+        if (this->current->get_stop_time() >= 0 &&
+            this->get_time() >= this->current->get_stop_time()) {
 
             // Get a new envelope:
 
             this->next_envelope();
         }
-
     }
 
     // Finally, set the buffer:
@@ -341,8 +346,7 @@ void ADSREnvelope::start() {
     this->add_envelope(sus.get());
     this->envs.add_object(sus);
 
-    // 
-
+    //
 }
 
 void ADSREnvelope::finish() {

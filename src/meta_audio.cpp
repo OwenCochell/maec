@@ -4,12 +4,10 @@
  * @brief Implementations of meta audio modules
  * @version 0.1
  * @date 2022-09-16
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
-
-#include <cmath>
 
 #include "meta_audio.hpp"
 
@@ -21,7 +19,8 @@ void Counter::process() {
 
     // Increment the number of samples encountered:
 
-    this->m_samples += static_cast<int>(this->buff->size()) * this->buff->channels();
+    this->m_samples +=
+        static_cast<int>(this->buff.size()) * this->buff.channels();
 }
 
 void LatencyModule::reset() {
@@ -50,7 +49,7 @@ void LatencyModule::meta_process() {
 
     // Call the module behind us:
 
-    this->get_backward()->meta_process();
+    this->backward().meta_process();
 
     // Get stop time:
 
@@ -58,7 +57,7 @@ void LatencyModule::meta_process() {
 
     // Grab the buffer from the module behind us:
 
-    this->set_buffer(this->get_backward()->get_buffer());
+    this->set_buffer(this->backward().get_buffer());
 
     // Update the counter statistics:
 
@@ -66,12 +65,13 @@ void LatencyModule::meta_process() {
 
     // Get size of buffer:
 
-    const int samples = static_cast<int>(this->buff->size() * this->buff->channels());
+    const int samples =
+        static_cast<int>(this->buff.size() * this->buff.channels());
 
     // Update chain timer:
 
-    this->timer.set_samplerate(static_cast<int>(this->buff->get_samplerate()));
-    this->timer.set_channels(this->buff->channels());
+    this->timer.set_samplerate(static_cast<int>(this->buff.get_samplerate()));
+    this->timer.set_channels(this->buff.channels());
     this->timer.add_sample(samples);
 
     // Save the time:
@@ -84,7 +84,8 @@ void LatencyModule::meta_process() {
 
     // Determine the latency:
 
-    this->operation_latency = this->operation_time - this->timer.get_time(samples);
+    this->operation_latency =
+        this->operation_time - this->timer.get_time(samples);
 
     // Add to total latency:
 
@@ -99,35 +100,35 @@ void BufferModule::process() {
 
     // First, create a buffer to use:
 
-    this->set_buffer(this->create_buffer());
+    this->reserve();
 
     // Next, fill it using the contents of our old buffer:
 
-    std::copy(this->gbuff->ibegin(), this->gbuff->iend(), this->buff->ibegin());
-
+    std::copy(this->gbuff->ibegin(), this->gbuff->iend(), this->buff.ibegin());
 }
 
 void UniformBuffer::process() {
 
     // Create new empty buffer:
 
-    this->set_buffer(this->create_buffer());
+    this->reserve();
 
     while (this->index < this->get_info()->out_buffer) {
 
         // Determine if in buffer is out of values:
 
-        if (this->ibuff == nullptr || this->iindex >= static_cast<int>(this->ibuff->size())) {
+        if (this->ibuff.size() == 0 ||
+            this->iindex >= static_cast<int>(this->ibuff.size())) {
 
             // The current in buffer is done, grab a new one:
 
             // Meta process back module:
 
-            this->get_backward()->meta_process();
+            this->backward().meta_process();
 
             // Save the buffer:
 
-            this->ibuff = this->get_backward()->get_buffer();
+            this->ibuff = this->backward().get_buffer();
 
             // Update the in index:
 
@@ -136,11 +137,14 @@ void UniformBuffer::process() {
 
         // Determine the number of samples yet to fill:
 
-        int remaining = std::min(this->get_info()->out_buffer - this->index, static_cast<int>(this->ibuff->size()) - this->iindex);
+        int remaining =
+            std::min(this->get_info()->out_buffer - this->index,
+                     static_cast<int>(this->ibuff.size()) - this->iindex);
 
         // Fill the current buffer with this value:
 
-        std::copy_n(this->ibuff->ibegin() + this->iindex, remaining, this->buff->ibegin() + this->index);
+        std::copy_n(this->ibuff.ibegin() + this->iindex, remaining,
+                    this->buff.ibegin() + this->index);
 
         // Update values and move on:
 
@@ -157,9 +161,9 @@ void ConstModule::process() {
 
     // Create a new buffer:
 
-    this->set_buffer(this->create_buffer());
+    this->reserve();
 
     // Fill the buffer with the value:
 
-    std::fill(this->buff->sbegin(), this->buff->send(), this->value);
+    std::fill(this->buff.sbegin(), this->buff.send(), this->value);
 }

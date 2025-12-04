@@ -4,9 +4,9 @@
  * @brief Tests ALSA modules
  * @version 0.1
  * @date 2022-12-25
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include <iostream>
@@ -15,9 +15,9 @@
 
 #ifdef ALSA_F
 
-#include "io/alsa_module.hpp"
-#include "fund_oscillator.hpp"
 #include "filter_module.hpp"
+#include "fund_oscillator.hpp"
+#include "io/alsa_module.hpp"
 #include "meta_audio.hpp"
 
 int main() {
@@ -38,22 +38,23 @@ int main() {
 
     std::cout << "Binding the modules ..." << std::endl;
 
-    sink.bind(&saw);
+    sink.link(&saw);
 
     // Meta sync and start the chain:
 
     sink.meta_info_sync();
     sink.meta_start();
 
-    // Temporary buffer size - Prevent underruns? TAKE INTO ACCOUNT THE SIZE OF THE FORMAT!
+    // Temporary buffer size - Prevent underruns? TAKE INTO ACCOUNT THE SIZE OF
+    // THE FORMAT!
 
     // sink.get_info()->out_buffer = 524288 / 4;
     // saw.get_info()->out_buffer = 524288 / 4;
-    //saw.get_info()->out_buffer = (sink.get_info()->out_buffer);
-    //saw.get_info()->out_buffer = sink.get_info()->out_buffer;
+    // saw.get_info()->out_buffer = (sink.get_info()->out_buffer);
+    // saw.get_info()->out_buffer = sink.get_info()->out_buffer;
 
     // Get expected period time:
- 
+
     // Finally, meta process forever!
 
     // for(int i = 0; i < 5; i++) {
