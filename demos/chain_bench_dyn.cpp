@@ -21,10 +21,12 @@
 #include <cstddef>
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <random>
 #include <ratio>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "amp_module.hpp"
 #include "audio_module.hpp"
@@ -79,6 +81,10 @@ int main() {
     std::chrono::duration<long, std::ratio<1, 1000000000>> process{};
     bool pset = false;
 
+    std::vector<std::shared_ptr<AmplitudeAdd<>>> ampa;
+    std::vector<std::shared_ptr<AmplitudeScale<>>> amps;
+    std::vector<std::shared_ptr<SincFilter<>>> filts;
+
     for (std::size_t i = 0; i < iter; ++i) {
 
         // Start the clock
@@ -121,8 +127,12 @@ int main() {
 
                 // This is an add module
 
-                mod =
-                    new AmplitudeAdd<>(static_cast<double>(rand()) / RAND_MAX);
+                auto temp = std::make_shared<AmplitudeAdd<>>(
+                    static_cast<double>(rand()) / RAND_MAX);
+
+                ampa.push_back(temp);
+
+                mod = temp.get();
 
             }
 
@@ -130,15 +140,22 @@ int main() {
 
                 // This is a scale module
 
-                mod = new AmplitudeScale<>((static_cast<double>(rand())) /
-                                           RAND_MAX);
+                auto temp = std::make_shared<AmplitudeScale<>>(
+                    (static_cast<double>(rand())) / RAND_MAX);
+
+                amps.push_back(temp);
+
+                mod = temp.get();
             }
 
             if (CHAIN[modi] == 'f') {
 
                 // This is a sinc filter
 
-                mod = new SincFilter();
+                auto temp = std::make_shared<SincFilter<>>();
+                filts.push_back(temp);
+
+                mod = temp.get();
             }
 
             // Add the module to the chain
@@ -209,6 +226,10 @@ int main() {
         // TODO: Should we keep track of meta operations?
 
         sink.meta_stop();
+
+        ampa.clear();
+        amps.clear();
+        filts.clear();
     }
 
     // Output the results
