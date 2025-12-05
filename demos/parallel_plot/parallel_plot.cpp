@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2025
  *
  * Preforms a comparison between serial and parallel modules in mixing
- * scenarios. Also, I know this program leaks memory...
+ * scenarios.
  */
 
 #include <matplot/matplot.h>
@@ -108,15 +108,20 @@ int main() {
 
         // Attach expensive modules to the mixer
 
+        std::vector<std::shared_ptr<SineOscillator>> oscs;
+        std::vector<std::shared_ptr<SincFilter<>>> filts;
+
         for (int i = 0; i < nmods; ++i) {
 
             // We use a sine oscillator
 
-            auto* tsine = new SineOscillator(440);
+            auto tsine = std::make_shared<SineOscillator>(440);
+            oscs.push_back(tsine);
 
             // We then use a SincFilter as it's expensive
 
-            auto* tfilt = new SincFilter();
+            auto tfilt = std::make_shared<SincFilter<>>();
+            filts.push_back(tfilt);
 
             // Set the kernel size on the filter
 
@@ -128,7 +133,7 @@ int main() {
 
             // Link them together
 
-            smix.link(tfilt)->link(tsine);
+            smix.link(tfilt.get())->link(tsine.get());
         }
 
         // We now have our chain, iterate a number of times
@@ -221,11 +226,14 @@ int main() {
 
         // Attach expensive modules to the mixer
 
+        std::vector<std::shared_ptr<ParallelModule>> pars;
+
         for (int i = 0; i < nmods; ++i) {
 
             // The front should be a parallel module
 
-            auto* tpar = new ParallelModule();
+            auto tpar = std::make_shared<ParallelModule>();
+            pars.push_back(tpar);
 
             // Set the cache size of the parallel module
 
@@ -233,11 +241,13 @@ int main() {
 
             // We use a sine oscillator
 
-            auto* tsine = new SineOscillator(440);
+            auto tsine = std::make_shared<SineOscillator>(440);
+            oscs.push_back(tsine);
 
             // We then use a SincFilter as it's expensive
 
-            auto* tfilt = new SincFilter();
+            auto tfilt = std::make_shared<SincFilter<>>();
+            filts.push_back(tfilt);
 
             // Set the kernel size on the filter
 
@@ -249,7 +259,7 @@ int main() {
 
             // Link them together
 
-            pmix.link(tpar)->link(tfilt)->link(tsine);
+            pmix.link(tpar.get())->link(tfilt.get())->link(tsine.get());
         }
 
         // We now have our chain, iterate a number of times
