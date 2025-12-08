@@ -19,7 +19,6 @@
 #include <iostream>
 
 #include "amp_module.hpp"
-#include "audio_module.hpp"
 #include "base_module.hpp"
 #include "meta_audio.hpp"
 #include "sink_module.hpp"
