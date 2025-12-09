@@ -5,14 +5,14 @@ function(optimize target_name)
     # Determine if we should enable native optimizations
 
     if (MAEC_NATIVE)
-        include(cmake/NativeBuild.cmake)
+        include(NativeBuild)
         enable_native(${target_name})
     endif()
 
     # Determine if we should enable Polly optimizations
 
     if (MAEC_POLY)
-        include(cmake/LLVMPolly.cmake)
+        include(LLVMPolly)
         enable_polly(${target_name})
     endif()
 endfunction()
