@@ -2,8 +2,6 @@
 # https://polly.llvm.org/
 # Enables Polly only if Clang supports it and only for Release configs.
 
-option(MAEC_POLY "Applies LLVM Poly optimizations to certain targets" ON)
-
 include(CheckCXXSourceCompiles)  # <-- Ensure the check macro is available
 
 # Probe once: can the configured Clang compile with -mllvm -polly?
