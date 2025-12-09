@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.25)
-project(maec VERSION 1.0.0 DESCRIPTION "Modular Audio Engine in C++" HOMEPAGE_URL "https://github.com/Owen-Cochell/cmae" LANGUAGES CXX)
+project(maec VERSION 1.0.0 DESCRIPTION "Modular Audio Engine in C++" HOMEPAGE_URL "https://github.com/Owen-Cochell/maec" LANGUAGES CXX)
+
+###
+# Configure Options
+###
+
+option(MAEC_NATIVE "Enables native CPU optimizations" ON)
+option(MAEC_POLY "Applies LLVM Poly optimizations to certain targets" OFF)
 
 # Include 3rd party dependencies
 
