@@ -5,7 +5,7 @@ project(maec VERSION 1.0.0 DESCRIPTION "Modular Audio Engine in C++" HOMEPAGE_UR
 # Configure Options
 ###
 
-option(MAEC_NATIVE "Enables native CPU optimizations" ON)
+option(MAEC_NATIVE "Enables native CPU optimizations, your build may not work on other architectures!" ON)
 option(MAEC_POLY "Applies LLVM Poly optimizations to certain targets" OFF)
 
 # Include 3rd party dependencies
@@ -108,6 +108,11 @@ else()
 endif()
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
+
+# Add optimization options to MAEC target
+
+include(Optimize)
+optimize(maec)
 
 # Add binaries in demos
 add_subdirectory(demos)

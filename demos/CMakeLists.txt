@@ -38,6 +38,11 @@ foreach( demosourcefile ${MISC_FILES} )
 
     add_executable( ${demoname} ${demosourcefile} )
 
+    # Preform optimizations, if any
+
+    include(Optimize)
+    optimize(${demoname})
+
     # Link MAEC
 
     target_link_libraries( ${demoname} maec )
