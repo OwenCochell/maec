@@ -12,6 +12,7 @@
 #include "dsp/window.hpp"
 
 #include <cmath>
+#include <numbers>
 
 double window_rectangle(int, int) {  // NOLINT: Parameters not used in function
 
@@ -24,7 +25,8 @@ double window_hann(int num, int size, double a0) {
 
     // Calculate and return:
 
-    return a0 - (1 - a0) * std::cos(2 * M_PI * num / (size - 1));
+    return a0 - ((1 - a0) *
+                 std::cos(2 * std::numbers::pi_v<double> * num / (size - 1)));
 }
 
 double window_hamming(int num, int size, double a0) {
@@ -38,8 +40,10 @@ double window_blackmanc(int num, int size, double alpha) {
 
     // Calculate and return:
 
-    return ((1 - alpha) / 2) - 0.5 * std::cos(2 * M_PI * num / (size - 1)) +
-           (alpha / 2) * std::cos(4 * M_PI * num / (size - 1));
+    return ((1 - alpha) / 2) -
+           (0.5 * std::cos(2 * std::numbers::pi_v<double> * num / (size - 1))) +
+           ((alpha / 2) *
+            std::cos(4 * std::numbers::pi_v<double> * num / (size - 1)));
 }
 
 double window_blackman(int num, int size) {

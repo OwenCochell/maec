@@ -15,15 +15,14 @@
  * but we will see for sure here.
  */
 
-#define _USE_MATH_DEFINES
-
 #include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <iostream>
+#include <numbers>
 #include <vector>
 
-const double TWO_PI = 2.0 * M_PI;
+const double TWO_PI = 2.0 * std::numbers::pi_v<double>;
 
 float conv(double val) { return int16_t(val * 32768.0); }
 

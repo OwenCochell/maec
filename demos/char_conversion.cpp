@@ -33,7 +33,7 @@ int main() {
     // Create initial array.
     // The size is the number of output values there will be
 
-    const int size = 400;
+    const std::size_t size = 400;
     std::array<char, size * 2> data = {};
 
     // Fill with random chars:
@@ -47,18 +47,17 @@ int main() {
 
     std::vector<double> odata(size);
 
-    std::cout << "+=========================================+" << std::endl;
-    std::cout << " !Benchmarking char conversion performance!" << std::endl;
-    std::cout << "+=========================================+" << std::endl;
+    std::cout << "+=========================================+" << '\n';
+    std::cout << " !Benchmarking char conversion performance!" << '\n';
+    std::cout << "+=========================================+" << '\n';
 
     // Determine if our clock is steady:
 
     if (!std::chrono::high_resolution_clock::is_steady) {
 
-        std::cout << "Warning: high_resolution_clock is not steady!"
-                  << std::endl;
-        std::cout << "This may cause inaccurate results." << std::endl;
-        std::cout << "+=======================================+" << std::endl;
+        std::cout << "Warning: high_resolution_clock is not steady!" << '\n';
+        std::cout << "This may cause inaccurate results." << '\n';
+        std::cout << "+=======================================+" << '\n';
     }
 
     long double acopy = 0;
@@ -75,7 +74,7 @@ int main() {
         // Read data into vector via reinterpret_cast
         //
 
-        std::cout << "Testing all in one copy..." << std::endl;
+        std::cout << "Testing all in one copy..." << '\n';
 
         auto start = std::chrono::high_resolution_clock::now();
 
@@ -107,7 +106,7 @@ int main() {
 
         std::cout << "All in one copy time [" << j << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -127,7 +126,8 @@ int main() {
 
             // Copy values over:
 
-            std::copy_n(data.begin() + i * 2, 2, reinterpret_cast<char*>(&val));
+            std::copy_n(data.begin() + (i * 2), 2,
+                        reinterpret_cast<char*>(&val));
 
             // Add value to final vector:
 
@@ -144,7 +144,7 @@ int main() {
 
         std::cout << "Single copy time [" << j << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -179,7 +179,7 @@ int main() {
 
         std::cout << "Single safe copy time [" << j << "]: "
                   << std::chrono::duration<double, std::milli>(diff).count()
-                  << " ms" << std::endl;
+                  << " ms" << '\n';
 
         // Add to the total:
 
@@ -190,13 +190,12 @@ int main() {
     // Output Results
     //
 
-    std::cout << "+=======================================+" << std::endl;
-    std::cout << " -== [ Results: ] ==--" << std::endl;
+    std::cout << "+=======================================+" << '\n';
+    std::cout << " -== [ Results: ] ==--" << '\n';
 
     std::cout << "Average all in one copy time: " << acopy / iter << " ms"
-              << std::endl;
-    std::cout << "Average single copy time: " << scopy / iter << " ms"
-              << std::endl;
+              << '\n';
+    std::cout << "Average single copy time: " << scopy / iter << " ms" << '\n';
     std::cout << "Average single safe copy time: " << sscopy / iter << " ms"
-              << std::endl;
+              << '\n';
 }

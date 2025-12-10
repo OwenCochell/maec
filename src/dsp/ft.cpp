@@ -9,24 +9,25 @@
  *
  */
 
+#include <numbers>
 #define _USE_MATH_DEFINES
 
-#include "dsp/ft.hpp"
-
 #include <cmath>
+
+#include "dsp/ft.hpp"
 
 double cos_basis(int phase, int total, double freq) {
 
     // Preform operation and return:
 
-    return cos((2 * M_PI * freq * phase) / total);
+    return cos((2 * std::numbers::pi_v<double> * freq * phase) / total);
 }
 
 double sin_basis(int phase, int total, double freq) {
 
     // Preform operation and return:
 
-    return sin((2 * M_PI * freq * phase) / total);
+    return sin((2 * std::numbers::pi_v<double> * freq * phase) / total);
 }
 
 int length_ft(std::size_t size) {

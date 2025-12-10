@@ -9,14 +9,12 @@
  *
  */
 
-#define _USE_MATH_DEFINES  // NOLINT(bugprone-reserved-identifier): Required to
-                           // get access to M_PI
-
 #include "fund_oscillator.hpp"
 
 #include <cmath>
+#include <numbers>
 
-const double TWO_PI = 2.0 * M_PI;
+const double TWO_PI = 2.0 * std::numbers::pi_v<double>;
 
 void SineOscillator::process() {
 

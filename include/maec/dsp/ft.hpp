@@ -22,8 +22,7 @@
 
 #include <complex>
 #include <iterator>
-
-#include "util.hpp"
+#include <numbers>
 
 /**
  * @brief Cosine basis function
@@ -80,7 +79,8 @@ double sin_basis(int phase, int total, double freq);
 template <typename T>
 std::complex<T> twiddle(int k, int size, int sign = -1) {
 
-    std::complex<T> res = std::polar<T>(1.0, sign * 2 * M_PI * k / size);
+    std::complex<T> res =
+        std::polar<T>(1.0, sign * 2 * std::numbers::pi_v<double> * k / size);
 
     return res;
 }
@@ -469,7 +469,7 @@ void fft_c_radix2(I input, int size, O output, int stride = 1, int sign = -1) {
     // Pre-compute some common values:
 
     const int N_2 = size / 2;
-    const double THETA = sign * 2 * M_PI / size;
+    const double THETA = sign * 2 * std::numbers::pi_v<double> / size;
 
     // Call function recursively for first half:
 
@@ -591,7 +591,7 @@ void fft_c_radix2(I input, int size, int sign = -1) {
     // Pre-compute some common values:
 
     const int N_2 = size / 2;
-    const double THETA = sign * 2 * M_PI / size;
+    const double THETA = sign * 2 * std::numbers::pi_v<double> / size;
 
     // Iterate over frequency components:
 

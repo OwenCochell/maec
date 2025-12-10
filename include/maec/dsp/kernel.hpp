@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <algorithm>
+#include <numbers>
 
 #include "dsp/util.hpp"
 #include "dsp/window.hpp"
@@ -108,7 +108,7 @@ void sinc_kernel(double freq, int size, O output,
     // Determine some constants:
 
     const int size2 = (size - 1) / 2;
-    const double inner = 2 * M_PI * freq;
+    const double inner = 2 * std::numbers::pi_v<double> * freq;
 
     double sum = 1.;
 

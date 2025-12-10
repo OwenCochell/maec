@@ -159,9 +159,6 @@ protected:
     AudioBuffer buff;
 
 public:
-    /// Backward type, by default BaseModule pointer
-    // using BT = BaseModule*;
-
     /// Forward type, by default BaseModule pointer
     using FT = BaseModule*;
 
