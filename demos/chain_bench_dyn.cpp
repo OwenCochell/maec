@@ -22,14 +22,11 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
-#include <random>
 #include <ratio>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "amp_module.hpp"
-#include "audio_module.hpp"
 #include "base_module.hpp"
 #include "filter_module.hpp"
 #include "meta_audio.hpp"
@@ -74,11 +71,11 @@ int main() {
     }
 
     // Time to create each time
-    std::chrono::duration<long, std::ratio<1, 1000000000>> create{};
+    std::chrono::duration<int64_t, std::ratio<1, 1000000000>> create{};
     bool cset = false;
 
     // Process time of each chain
-    std::chrono::duration<long, std::ratio<1, 1000000000>> process{};
+    std::chrono::duration<int64_t, std::ratio<1, 1000000000>> process{};
     bool pset = false;
 
     std::vector<std::shared_ptr<AmplitudeAdd<>>> ampa;

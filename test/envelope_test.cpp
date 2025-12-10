@@ -171,7 +171,7 @@ TEST_CASE("ConstantEnvelope Test", "[env]") {
 
         // Set the start value:
 
-        const long double value = 0.5;
+        const double value = 0.5;
 
         cnst.set_start_value(value);
 
@@ -233,7 +233,7 @@ TEST_CASE("ExponentialRamp Test", "[env]") {
 
         // Final value to ramp to:
 
-        const long double final_value = 1;
+        const double final_value = 1;
 
         // Set some values:
 
@@ -243,8 +243,8 @@ TEST_CASE("ExponentialRamp Test", "[env]") {
         exp.get_info()->out_buffer = 1000;
         exp.get_timer()->set_samplerate(1000);
 
-        long double last = -1;
-        long double delta = 0;
+        double last = -1;
+        double delta = 0;
 
         for (int i = 0; i < seconds; ++i) {
 
@@ -294,7 +294,7 @@ TEST_CASE("ExponentialRamp Test", "[env]") {
 
         // Final value to ramp to:
 
-        const long double final_value = 1;
+        const double final_value = 1;
 
         // Set some values:
 
@@ -304,8 +304,8 @@ TEST_CASE("ExponentialRamp Test", "[env]") {
         exp.get_info()->out_buffer = 5000;
         exp.get_timer()->set_samplerate(1000);
 
-        long double last = -1;
-        long double delta = 0;
+        double last = -1;
+        double delta = 0;
 
         for (int i = 0; i < seconds / 5; ++i) {
 
@@ -365,7 +365,7 @@ TEST_CASE("LinearRamp Test", "[env]") {
 
         // Final value to ramp to:
 
-        const long double final_value = 1;
+        const double final_value = 1;
 
         // Set some values:
 
@@ -375,8 +375,8 @@ TEST_CASE("LinearRamp Test", "[env]") {
         lin.get_info()->out_buffer = 1000;
         lin.get_timer()->set_samplerate(1000);
 
-        long double last = 0;
-        long double delta = 0;
+        double last = 0;
+        double delta = 0;
 
         for (int i = 0; i < seconds; ++i) {
 
@@ -428,7 +428,7 @@ TEST_CASE("LinearRamp Test", "[env]") {
 
         // Final value to ramp to:
 
-        const long double final_value = 1;
+        const double final_value = 1;
 
         // Set some values:
 
@@ -438,8 +438,8 @@ TEST_CASE("LinearRamp Test", "[env]") {
         lin.get_info()->out_buffer = 5000;
         lin.get_timer()->set_samplerate(1000);
 
-        long double last = 0;
-        long double delta = 0;
+        double last = 0;
+        double delta = 0;
 
         for (int i = 0; i < seconds / 5; ++i) {
 
@@ -497,7 +497,7 @@ TEST_CASE("SetValue Test", "[env]") {
 
         // Final value to ramp to:
 
-        const long double final_value = 1;
+        const double final_value = 1;
 
         // Set some values:
 
@@ -549,7 +549,7 @@ TEST_CASE("SetValue Test", "[env]") {
 
         // Final value to ramp to:
 
-        const long double final_value = 1;
+        const double final_value = 1;
 
         // Set some values:
 
@@ -931,14 +931,14 @@ TEST_CASE("ChainEnvelope", "[env]") {
         const int64_t time3_start = 0;
         const int64_t time3_stop = 0;
 
-        const long double value1_start = 0;
-        const long double value1_stop = 0;
+        const double value1_start = 0;
+        const double value1_stop = 0;
 
-        const long double value2_start = 0;
-        const long double value2_stop = 0;
+        const double value2_start = 0;
+        const double value2_stop = 0;
 
-        const long double value3_start = 0;
-        const long double value3_stop = 0;
+        const double value3_start = 0;
+        const double value3_stop = 0;
 
         const int loops = std::ceil(
             time3_stop / sample_rate);  // By default, we loop until complete

@@ -28,15 +28,15 @@
 #include "sink_module.hpp"
 
 /// Define vector return type
-using VectorPointer = std::unique_ptr<std::vector<long double>>;
+using VectorPointer = std::unique_ptr<std::vector<double>>;
 
 /// Define single function pointer type
-using SingleFuncPoint = std::function<long double()>;
+using SingleFuncPoint = std::function<double()>;
 
 /// Define vector function pointer type
 using VectorFuncPoint = std::function<VectorPointer(int)>;
 
-long double single_return() {
+double single_return() {
 
     // Just return a single value:
 
@@ -47,7 +47,7 @@ VectorPointer vector_return(int size) {
 
     // Create a vector:
 
-    VectorPointer vect = std::make_unique<std::vector<long double>>(size);
+    VectorPointer vect = std::make_unique<std::vector<double>>(size);
 
     // Fill the vector:
 
@@ -84,11 +84,11 @@ int main() {
 
     std::cout << " --== [ Testing Normal Single Call ] ==--" << "\n";
 
-    long double single_norm = 0;
+    double single_norm = 0;
 
     for (int i = 0; i < iter; ++i) {
 
-        long double val = 0;
+        double val = 0;
 
         // Start the clock:
 
@@ -127,7 +127,7 @@ int main() {
 
     std::cout << "--== [ Testing Normal Vector Call ] ==--" << "\n";
 
-    long double vector_norm = 0;
+    double vector_norm = 0;
 
     for (int i = 0; i < iter; ++i) {
 
@@ -163,13 +163,13 @@ int main() {
 
     std::cout << "--== [ Testing Pointer Single Call ] ==--" << "\n";
 
-    long double single_point = 0;
+    double single_point = 0;
 
     SingleFuncPoint spointf = &single_return;
 
     for (int i = 0; i < iter; ++i) {
 
-        long double val = 0;
+        double val = 0;
 
         // Start the clock:
 
@@ -208,7 +208,7 @@ int main() {
 
     std::cout << "--== [ Testing Pointer Vector Call ] ==--" << "\n";
 
-    long double vector_point = 0;
+    double vector_point = 0;
 
     VectorFuncPoint vpointf = &vector_return;
 
@@ -246,7 +246,7 @@ int main() {
 
     std::cout << "--== [ Testing MAEC Calls ] ==--" << "\n";
 
-    long double maec_call = 0;
+    double maec_call = 0;
 
     // Create the modules:
 

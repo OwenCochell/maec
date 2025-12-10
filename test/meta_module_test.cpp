@@ -183,7 +183,7 @@ TEST_CASE("MetaBuffer Test", "[meta]") {
 
     // Create a dummy buffer:
 
-    std::vector<long double> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::vector<double> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
     AudioBuffer rep(data);
 
@@ -302,7 +302,7 @@ TEST_CASE("UniformBuffer Test", "[meta]") {
 
         // Loop a certain number of times:
 
-        long double last = 0;
+        double last = 0;
 
         // Create buffer:
 

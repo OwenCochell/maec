@@ -21,7 +21,7 @@
 #include "base_oscillator.hpp"
 
 // Vector of an ideal sine wave, generated in Audacity
-const std::vector<long double> prime_sine = {
+const std::vector<double> prime_sine = {
     0.00000,  0.06265,  0.12505,  0.18696,  0.24814,  0.30834,  0.36733,
     0.42488,  0.48075,  0.53474,  0.58663,  0.63622,  0.68330,  0.72770,
     0.76924,  0.80776,  0.84310,  0.87514,  0.90373,  0.92878,  0.95017,
@@ -85,7 +85,7 @@ const std::vector<long double> prime_sine = {
     0.93087,  0.95193,  0.96925,  0.98276,  0.99242,  0.99817,  1.00000,
     0.99790,  0.99188,  0.98197,  0.96819,  0.95062,  0.92930,  0.90434,
     0.87583,  0.84387,  0.80860,  0.77015,  0.72868,  0.68434};
-const std::vector<long double> prime_square = {
+const std::vector<double> prime_square = {
     1.00000,  1.00000,  1.00000,  1.00000,  1.00000,  1.00000,  1.00000,
     1.00000,  1.00000,  1.00000,  1.00000,  1.00000,  1.00000,  1.00000,
     1.00000,  1.00000,  1.00000,  1.00000,  1.00000,  1.00000,  1.00000,
@@ -150,7 +150,7 @@ const std::vector<long double> prime_square = {
     1.00000,  1.00000,  1.00000,  1.00000,  1.00000,  1.00000,  1.00000,
     1.00000,  1.00000,  1.00000,  1.00000,  1.00000,  1.00000,
 };
-const std::vector<long double> prime_saw = {
+const std::vector<double> prime_saw = {
     0.00000,  0.01995,  0.03991,  0.05986,  0.07982,  0.09977,  0.11973,
     0.13968,  0.15964,  0.17959,  0.19955,  0.21950,  0.23946,  0.25941,
     0.27937,  0.29932,  0.31927,  0.33923,  0.35918,  0.37914,  0.39909,
@@ -215,7 +215,7 @@ const std::vector<long double> prime_saw = {
     0.52063,  0.54059,  0.56054,  0.58050,  0.60045,  0.62041,  0.64036,
     0.66032,  0.68027,  0.70023,  0.72018,  0.74014,  0.76009,
 };
-const std::vector<long double> prime_triangle = {
+const std::vector<double> prime_triangle = {
     0.00000,  0.03991,  0.07982,  0.11973,  0.15964,  0.19955,  0.23946,
     0.27937,  0.31927,  0.35918,  0.39909,  0.43900,  0.47891,  0.51882,
     0.55873,  0.59864,  0.63855,  0.67846,  0.71837,  0.75828,  0.79819,
@@ -295,8 +295,7 @@ const double FREQ = 440.0;
  * @param osc Oscillator to work with
  * @param expected Expected buffer of audio
  */
-void CompareBuffer(BaseOscillator* osc,
-                   const std::vector<long double>* expected) {
+void CompareBuffer(BaseOscillator* osc, const std::vector<double>* expected) {
 
     // Process the oscillator:
 
@@ -315,7 +314,7 @@ void CompareBuffer(BaseOscillator* osc,
     for (auto iter = buff.sbegin();
          static_cast<unsigned int>(iter.get_index()) < buff.size(); ++iter) {
 
-        // Use assert near, prime sine is not as accurate as long double:
+        // Use assert near, prime sine is not as accurate as double:
 
         REQUIRE_THAT(*iter, Catch::Matchers::WithinAbs(
                                 expected->at(iter.get_index()), 0.0001));

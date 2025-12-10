@@ -386,7 +386,7 @@ class ConstModule : public SourceModule {
 
 private:
     /// The value to return
-    long double value = 0.0;
+    double value = 0.0;
 
 public:
     ConstModule() = default;
@@ -396,23 +396,23 @@ public:
      *
      * @param invalue Value to use in buffer creation
      */
-    ConstModule(long double invalue) : value(invalue) {}
+    ConstModule(double invalue) : value(invalue) {}
 
     /**
      * @brief Set the value to use in buffer creation
      *
      * @param invalue Value to use in buffer creation
      */
-    void set_value(long double invalue) { this->value = invalue; }
+    void set_value(double invalue) { this->value = invalue; }
 
     /**
      * @brief Get the value object
      *
      * We return the value that will be used in buffer creation.
      *
-     * @return long double
+     * @return double
      */
-    long double get_value() const { return this->value; }
+    double get_value() const { return this->value; }
 
     /**
      * @brief Override process method

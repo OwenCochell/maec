@@ -4,30 +4,30 @@
  * @brief Tests for various vector passes
  * @version 0.1
  * @date 2024-07-11
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  * This benchmark preforms tests for common vector 'sharing' operations:
  * - Copy - Copys vector content between the two
  * - Pointer - Passes unique pointer between components
  * - Move - Moves vector between values
- * 
+ *
  * This test includes creation, read/write, and destruction.
  * Each approach will be tested and timed.
  */
 
-#include <vector>
+#include <algorithm>
 #include <array>
-#include <memory>
 #include <chrono>
 #include <iostream>
-#include <algorithm>
+#include <memory>
 #include <random>
+#include <vector>
 
 #include "dsp/buffer.hpp"
 
 /// Vector type
-using Vect = Buffer<long double>;
+using Vect = Buffer<double>;
 
 /// Vector pointer type
 using VecPoint = std::unique_ptr<Vect>;
@@ -41,7 +41,7 @@ std::mt19937 e2(rd());
 /// Random distribution
 std::uniform_real_distribution<> dist(0, 10);
 
-long double rand_val(long double in) {
+double rand_val(double in) {
 
     // Generate random value and return:
 
@@ -53,8 +53,8 @@ int main() {
     // Define parameters:
 
     const int size = 10000;  // Size of each vector
-    const int num = 50;  // Number of vectors to test
-    const int iters = 100;  // Number of repetitions
+    const int num = 50;      // Number of vectors to test
+    const int iters = 100;   // Number of repetitions
 
     std::cout << "+======================================+" << '\n';
     std::cout << " !Benchmarking vector pass performance!" << '\n';
@@ -112,7 +112,8 @@ int main() {
 
                 // Add values to vector:
 
-                std::transform(v_arr[0].begin(), v_arr[0].end(), v_arr[0].begin(), rand_val);
+                std::transform(v_arr[0].begin(), v_arr[0].end(),
+                               v_arr[0].begin(), rand_val);
 
                 auto stop = std::chrono::high_resolution_clock::now();
 
@@ -129,7 +130,7 @@ int main() {
 
             v_arr[i].reserve(size);
 
-            std::copy_n(v_arr[i-1].begin(), size, v_arr[i].begin());
+            std::copy_n(v_arr[i - 1].begin(), size, v_arr[i].begin());
 
             auto stop = std::chrono::high_resolution_clock::now();
 
@@ -192,8 +193,7 @@ int main() {
 
                 auto start = std::chrono::high_resolution_clock::now();
 
-                vpoint_arr[0] =
-                    std::make_unique<Vect>(size);
+                vpoint_arr[0] = std::make_unique<Vect>(size);
 
                 std::transform(vpoint_arr[0]->begin(), vpoint_arr[0]->end(),
                                vpoint_arr[0]->begin(), rand_val);
@@ -302,7 +302,7 @@ int main() {
 
             // Move vector contents:
 
-            vm_arr[i] = std::move(vm_arr[i-1]);
+            vm_arr[i] = std::move(vm_arr[i - 1]);
 
             auto stop = std::chrono::high_resolution_clock::now();
 

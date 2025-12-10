@@ -4,22 +4,22 @@
  * @brief Benchmarks the Radix2 FFT
  * @version 0.1
  * @date 2023-06-11
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  * This demo does some benchmarks on the maec
  * FFT Radix2 algorithms.
  * We also test some variations on the Radix2 FFT,
  * which are compared against the default maec FFT implementations.
- * 
-*/
+ *
+ */
 
-#include <chrono>
-#include <iostream>
-#include <ctime>
-#include <random>
-#include <complex>
 #include <algorithm>
+#include <chrono>
+#include <complex>
+#include <ctime>
+#include <iostream>
+#include <random>
 
 #include "dsp/ft.hpp"
 #include "dsp/util.hpp"
@@ -32,14 +32,14 @@ const int num = 1000;
 
 /**
  * @brief Generates N complex random number
- * 
+ *
  * The real and imaginary parts of the complex number
  * will be -1 < p < 1.
- * 
+ *
  * @param size Number of complex numbers to generate
  * @param out Iterator to output array
  */
-void rand_complex(int size, std::vector<std::complex<long double>>::iterator out) {
+void rand_complex(int size, std::vector<std::complex<double>>::iterator out) {
 
     // Create a random number generator:
 
@@ -55,33 +55,39 @@ void rand_complex(int size, std::vector<std::complex<long double>>::iterator out
 
         // Create real value:
 
-        auto real = static_cast<long double>((static_cast<long double>(rand()) - (std::default_random_engine::max() / 4.0)) / std::default_random_engine::max());
+        auto real =
+            static_cast<double>((static_cast<double>(rand()) -
+                                 (std::default_random_engine::max() / 4.0)) /
+                                std::default_random_engine::max());
 
         // Create imaginary value:
 
-        auto nonreal = static_cast<long double>((static_cast<long double>(rand()) - (std::default_random_engine::max() / 4.0)) / std::default_random_engine::max());
-    
+        auto nonreal =
+            static_cast<double>((static_cast<double>(rand()) -
+                                 (std::default_random_engine::max() / 4.0)) /
+                                std::default_random_engine::max());
+
         // Set complex value to current iterator:
 
-        *(out + i) = std::complex<long double>(real, nonreal);
+        *(out + i) = std::complex<double>(real, nonreal);
     }
 }
 
 /**
  * @brief Compares two complex numbers.
- * 
+ *
  * We compare the real and imaginary
  * parts of the two given complex numbers.
- * 
+ *
  * @param first First complex number
  * @param second Second complex number
  * @return bool true if the same (or near), false if not
  */
-bool compare_complex(std::complex<long double> first, std::complex<long double> second) {
+bool compare_complex(std::complex<double> first, std::complex<double> second) {
 
     // Define epsilon:
 
-    long double epsilon = 0.0001;
+    double epsilon = 0.0001;
 
     // Compare real part:
 
@@ -97,11 +103,12 @@ bool compare_complex(std::complex<long double> first, std::complex<long double> 
 }
 
 /**
- * @brief Ensures the alternative function output matches output from known correct function
- * 
- * We generate a lot of random data and run it through the alternate FFT Radix2 function,
- * and ensures that it matches the output of the FFT Radix2 function.
- * 
+ * @brief Ensures the alternative function output matches output from known
+ * correct function
+ *
+ * We generate a lot of random data and run it through the alternate FFT Radix2
+ * function, and ensures that it matches the output of the FFT Radix2 function.
+ *
  * @return bool true if pass, false if not
  */
 bool check_accuracy() {
@@ -114,13 +121,13 @@ bool check_accuracy() {
 
     // Iterate a number of times:
 
-    for(int i = 0; i < repeat; ++i) {
+    for (int i = 0; i < repeat; ++i) {
 
         // First, create a vector of random complex data:
 
-        std::vector<std::complex<long double>> idata(num);
-        std::vector<std::complex<long double>> odata(num);
-        std::vector<std::complex<long double>> aodata(num);
+        std::vector<std::complex<double>> idata(num);
+        std::vector<std::complex<double>> odata(num);
+        std::vector<std::complex<double>> aodata(num);
 
         // Generate random complex data:
 
@@ -150,7 +157,8 @@ bool check_accuracy() {
 
             // Compare current values:
 
-            std::cout << "Iteration: [" << i << "] - Value: [" << j << "]" << std::endl;
+            std::cout << "Iteration: [" << i << "] - Value: [" << j << "]"
+                      << std::endl;
 
             bool val = compare_complex(odata.at(j), aodata.at(j));
 
@@ -189,7 +197,7 @@ bool check_accuracy() {
 
 /**
  * @brief Benchmarks the out-of-place FFT Radix2 algorithm
- * 
+ *
  * @return long double Average computation time
  */
 long double benchmark_radix2_out() {
@@ -202,10 +210,10 @@ long double benchmark_radix2_out() {
 
     if (!std::chrono::high_resolution_clock::is_steady) {
 
-        std::cout << "Warning: high_resolution_clock is not steady!" << std::endl;
+        std::cout << "Warning: high_resolution_clock is not steady!"
+                  << std::endl;
         std::cout << "This may cause inaccurate results." << std::endl;
         std::cout << "+=================================+" << std::endl;
-
     }
 
     // Define some values:
@@ -214,18 +222,18 @@ long double benchmark_radix2_out() {
 
     // Ok, iterate a number of times:
 
-    for(int i = 0; i < repeat; ++i) {
+    for (int i = 0; i < repeat; ++i) {
 
         // First, create a vector of random complex data:
 
-        std::vector<std::complex<long double>> idata(num);
+        std::vector<std::complex<double>> idata(num);
 
         // Generate random complex data:
 
         rand_complex(num, idata.begin());
 
         // Start the clock:
-    
+
         auto start = std::chrono::high_resolution_clock::now();
 
         // Compute the value:
@@ -241,22 +249,25 @@ long double benchmark_radix2_out() {
         auto stop = std::chrono::high_resolution_clock::now();
 
         // Calculate the time:
-    
+
         auto diff = stop - start;
 
         // Print the time:
-    
-        std::cout << "FFT Radix2-Out Time [" << i << "]: " << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
+
+        std::cout << "FFT Radix2-Out Time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diff).count()
+                  << " ms" << std::endl;
 
         // Add to the total:
 
-        total_time += std::chrono::duration <double, std::milli> (diff).count();
+        total_time += std::chrono::duration<double, std::milli>(diff).count();
     }
 
     // Output some stats:
 
     std::cout << "Total Radix2-Alt time: " << total_time << " ms" << std::endl;
-    std::cout << "Average Radix2-Alt time: " << total_time / repeat << " ms" << std::endl;
+    std::cout << "Average Radix2-Alt time: " << total_time / repeat << " ms"
+              << std::endl;
 
     // Finally, return average time:
 
@@ -265,7 +276,7 @@ long double benchmark_radix2_out() {
 
 /**
  * @brief Benchmarks the FFT Radix2 algorithm
- * 
+ *
  * @return long double Average computation time
  */
 long double benchmark_radix2() {
@@ -278,10 +289,10 @@ long double benchmark_radix2() {
 
     if (!std::chrono::high_resolution_clock::is_steady) {
 
-        std::cout << "Warning: high_resolution_clock is not steady!" << std::endl;
+        std::cout << "Warning: high_resolution_clock is not steady!"
+                  << std::endl;
         std::cout << "This may cause inaccurate results." << std::endl;
         std::cout << "+=================================+" << std::endl;
-
     }
 
     // Define some values:
@@ -290,12 +301,12 @@ long double benchmark_radix2() {
 
     // Ok, iterate a number of times:
 
-    for(int i = 0; i < repeat; ++i) {
+    for (int i = 0; i < repeat; ++i) {
 
         // First, create a vector of random complex data:
 
-        std::vector<std::complex<long double>> idata;
-        std::vector<std::complex<long double>> odata;
+        std::vector<std::complex<double>> idata;
+        std::vector<std::complex<double>> odata;
 
         // Reserve data:
 
@@ -307,7 +318,7 @@ long double benchmark_radix2() {
         rand_complex(num, idata.begin());
 
         // Start the clock:
-    
+
         auto start = std::chrono::high_resolution_clock::now();
 
         // Compute the value:
@@ -319,22 +330,25 @@ long double benchmark_radix2() {
         auto stop = std::chrono::high_resolution_clock::now();
 
         // Calculate the time:
-    
+
         auto diff = stop - start;
 
         // Print the time:
-    
-        std::cout << "FFT Radix2 Time [" << i << "]: " << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
+
+        std::cout << "FFT Radix2 Time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diff).count()
+                  << " ms" << std::endl;
 
         // Add to the total:
 
-        total_time += std::chrono::duration <double, std::milli> (diff).count();
+        total_time += std::chrono::duration<double, std::milli>(diff).count();
     }
 
     // Output some stats:
 
     std::cout << "Total Radix2-Alt time: " << total_time << " ms" << std::endl;
-    std::cout << "Average Radix2-Alt time: " << total_time / repeat << " ms" << std::endl;
+    std::cout << "Average Radix2-Alt time: " << total_time / repeat << " ms"
+              << std::endl;
 
     // Finally, return average time:
 
@@ -353,8 +367,7 @@ int main() {
 
         std::cout << "Not Accurate! See above" << std::endl;
 
-        //return 1;
-
+        // return 1;
     }
 
     // Run benchmark for Radix2-alt:

@@ -16,7 +16,7 @@
 
 #include <cmath>
 
-const long double TWO_PI = 2.0 * M_PI;
+const double TWO_PI = 2.0 * M_PI;
 
 void SineOscillator::process() {
 
@@ -122,7 +122,7 @@ void TriangleOscillator::process() {
 
         // Calculate the triangle wave:
 
-        long double temp =
+        double temp =
             modf(static_cast<double>(this->get_frequency() * this->get_phase() /
                                      this->buff.get_samplerate()),
                  &placeholder);
@@ -287,7 +287,7 @@ void ModTriangleOscillator::process() {
 
         // Calculate the triangle wave:
 
-        long double temp =
+        double temp =
             modf(static_cast<double>(this->get_phase()), &placeholder);
 
         if (temp < 0.25) {

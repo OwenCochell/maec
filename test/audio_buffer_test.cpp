@@ -4,9 +4,9 @@
  * @brief Various tests for AudioBuffer components
  * @version 0.1
  * @date 2024-05-26
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #include "audio_buffer.hpp"
@@ -20,7 +20,8 @@
 
 TEST_CASE("Create Functions", "[buffer]") {
 
-    SECTION("Create Buffer", "Ensures we can create buffers of a given size and channel count") {
+    SECTION("Create Buffer",
+            "Ensures we can create buffers of a given size and channel count") {
 
         // Create a buffer:
 
@@ -32,7 +33,9 @@ TEST_CASE("Create Functions", "[buffer]") {
         REQUIRE(buff->channels() == 5);
     }
 
-    SECTION("Create Buffer Samplerate", "Ensures we can create buffers of a given size, channel, and samplerate") {
+    SECTION("Create Buffer Samplerate",
+            "Ensures we can create buffers of a given size, channel, and "
+            "samplerate") {
 
         // Create a buffer:
 
@@ -50,11 +53,11 @@ TEST_CASE("Conversion", "[byte]") {
 
     // Values to test:
 
-    long double const min = -1.;
-    long double const hmin = -0.5;
-    long double const zero = 0;
-    long double const hmax = 0.5;
-    long double const max = 1.;
+    double const min = -1.;
+    double const hmin = -0.5;
+    double const zero = 0;
+    double const hmax = 0.5;
+    double const max = 1.;
 
     SECTION("Converts", "Conversion functions from mf to others") {
 
@@ -72,7 +75,8 @@ TEST_CASE("Conversion", "[byte]") {
             REQUIRE(mf_uchar(min) == 0);
             REQUIRE(mf_uchar(hmin) == 64);
             REQUIRE(mf_uchar(zero) == 128);
-            REQUIRE(mf_uchar(hmax) == 191);  // Floating point :( needs to be 191 instead of 192 
+            REQUIRE(mf_uchar(hmax) ==
+                    191);  // Floating point :( needs to be 191 instead of 192
             REQUIRE(mf_uchar(max) == 255);
         }
 
@@ -90,7 +94,8 @@ TEST_CASE("Conversion", "[byte]") {
             REQUIRE(mf_uint16(min) == 0);
             REQUIRE(mf_uint16(hmin) == 16384);
             REQUIRE(mf_uint16(zero) == 32768);
-            REQUIRE(mf_uint16(hmax) == 49151);  // More floating point :( can't be 49152
+            REQUIRE(mf_uint16(hmax) ==
+                    49151);  // More floating point :( can't be 49152
             REQUIRE(mf_uint16(max) == 65535);
         }
     }
@@ -117,20 +122,28 @@ TEST_CASE("Conversion", "[byte]") {
 
         SECTION("int16", "int16 to MF") {
 
-            REQUIRE_THAT(int16_mf(-32768), Catch::Matchers::WithinAbs(min, 0.001));
-            REQUIRE_THAT(int16_mf(-16384), Catch::Matchers::WithinAbs(hmin, 0.001));
+            REQUIRE_THAT(int16_mf(-32768),
+                         Catch::Matchers::WithinAbs(min, 0.001));
+            REQUIRE_THAT(int16_mf(-16384),
+                         Catch::Matchers::WithinAbs(hmin, 0.001));
             REQUIRE_THAT(int16_mf(0), Catch::Matchers::WithinAbs(zero, 0.001));
-            REQUIRE_THAT(int16_mf(16383), Catch::Matchers::WithinAbs(hmax, 0.001));
-            REQUIRE_THAT(int16_mf(32767), Catch::Matchers::WithinAbs(max, 0.001));
+            REQUIRE_THAT(int16_mf(16383),
+                         Catch::Matchers::WithinAbs(hmax, 0.001));
+            REQUIRE_THAT(int16_mf(32767),
+                         Catch::Matchers::WithinAbs(max, 0.001));
         }
 
         SECTION("uint16", "uint16 to MF") {
 
             REQUIRE_THAT(uint16_mf(0), Catch::Matchers::WithinAbs(min, 0.001));
-            REQUIRE_THAT(uint16_mf(16384), Catch::Matchers::WithinAbs(hmin, 0.001));
-            REQUIRE_THAT(uint16_mf(32768), Catch::Matchers::WithinAbs(zero, 0.001));
-            REQUIRE_THAT(uint16_mf(49152), Catch::Matchers::WithinAbs(hmax, 0.001));
-            REQUIRE_THAT(uint16_mf(65535), Catch::Matchers::WithinAbs(max, 0.001));
+            REQUIRE_THAT(uint16_mf(16384),
+                         Catch::Matchers::WithinAbs(hmin, 0.001));
+            REQUIRE_THAT(uint16_mf(32768),
+                         Catch::Matchers::WithinAbs(zero, 0.001));
+            REQUIRE_THAT(uint16_mf(49152),
+                         Catch::Matchers::WithinAbs(hmax, 0.001));
+            REQUIRE_THAT(uint16_mf(65535),
+                         Catch::Matchers::WithinAbs(max, 0.001));
         }
     }
 }
@@ -139,8 +152,8 @@ TEST_CASE("Squishers", "[buff][byte]") {
 
     // Define some buffers:
 
-    std::array<long double, 9> idata = {1, 4, 7, 2, 5, 8, 3, 6, 9};
-    std::array<long double, 9> sidata = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    std::array<double, 9> idata = {1, 4, 7, 2, 5, 8, 3, 6, 9};
+    std::array<double, 9> sidata = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     // Copy to AudioBuffer:
 
@@ -150,7 +163,7 @@ TEST_CASE("Squishers", "[buff][byte]") {
 
     // Define output buffer:
 
-    std::array<long double, 9> odata = {};
+    std::array<double, 9> odata = {};
 
     SECTION("Inter", "Ensures interleaved squishers work correctly") {
 
@@ -181,7 +194,8 @@ TEST_CASE("Squishers", "[buff][byte]") {
 
 TEST_CASE("Byte Conversion", "[byte]") {
 
-    std::array<unsigned char, 8> char_data = {196, 129, 78, 142, 112, 132, 33, 196};
+    std::array<unsigned char, 8> char_data = {196, 129, 78, 142,
+                                              112, 132, 33, 196};
     std::array<unsigned char, 8> odata = {};
 
     const int16_t int16 = 33220;

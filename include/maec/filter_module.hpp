@@ -94,7 +94,7 @@ public:
     /**
      * @brief Gets the start frequency
      *
-     * @return long double Start frequency
+     * @return double Start frequency
      */
     double get_start_freq() const { return this->start_freq; }
 
@@ -108,7 +108,7 @@ public:
     /**
      * @brief Gets the stop frequency
      *
-     * @return long double Stop frequency
+     * @return double Stop frequency
      */
     double get_stop_freq() const { return this->stop_freq; }
 

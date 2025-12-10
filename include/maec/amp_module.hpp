@@ -103,7 +103,7 @@ public:
         }
 
         // std::transform(this->buff.ibegin(), this->buff.iend(),
-        //                this->buff.ibegin(), [this](long double inv) {
+        //                this->buff.ibegin(), [this](double inv) {
         //                    // Scale the value:
 
         //                    return this->get_value() * inv;
@@ -143,7 +143,7 @@ public:
         }
 
         // std::transform(this->buff.ibegin(), this->buff.iend(),
-        //                this->buff.ibegin(), [this](long double inv) {
+        //                this->buff.ibegin(), [this](double inv) {
         //                    // Add to the value:
 
         //                    return this->get_value() + inv;

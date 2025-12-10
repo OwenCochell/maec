@@ -28,7 +28,7 @@ AudioBuffer&& ModuleParam::get() {
     return this->get_buffer();
 }
 
-void ModuleParam::set_constant(long double val) {
+void ModuleParam::set_constant(double val) {
 
     // Set the underlying value:
 

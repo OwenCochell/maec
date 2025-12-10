@@ -70,7 +70,7 @@ class ModuleParam : public SinkModule<> {
 
 private:
     /// A constant value to be returned
-    long double value = 0;
+    double value = 0;
 
     /// Pointer to ConstModule
     std::unique_ptr<ConstModule> const_mod = nullptr;
@@ -87,7 +87,7 @@ public:
      *
      * @param val Constant value to set
      */
-    ModuleParam(long double val) { this->set_constant(val); }
+    ModuleParam(double val) { this->set_constant(val); }
 
     /**
      * @brief Construct a parameter, and configures for constant values
@@ -117,7 +117,7 @@ public:
      *
      * @param val Value to set
      */
-    void set_constant(long double val);
+    void set_constant(double val);
 
     /**
      * @brief Configures this parameter using a given module

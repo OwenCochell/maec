@@ -4,43 +4,44 @@
  * @brief Some tests and experiments for static modules
  * @version 0.1
  * @date 2024-06-10
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #include <chrono>
-#include <type_traits>
 #include <iostream>
+#include <type_traits>
 
-#include "audio_module.hpp"
-#include "source_module.hpp"
-#include "sink_module.hpp"
-#include "meta_audio.hpp"
 #include "amp_module.hpp"
+#include "audio_module.hpp"
+#include "meta_audio.hpp"
+#include "sink_module.hpp"
+#include "source_module.hpp"
 
-template<typename T>
+template <typename T>
 concept MModule = std::is_base_of_v<AudioModule, T>;
 
 template <MModule B>
 class StaticModule : public AudioModule {
 
 private:
-
     /// Backward module
     B backward{};
 
 public:
-
-    StaticModule() =default;
+    StaticModule() = default;
 
     StaticModule(B& back) : backward(std::move(back)) {}
 
-    void bind(B mod) { backward = mod; this->backward.set_forward(this); }
+    void bind(B mod) {
+        backward = mod;
+        this->backward.set_forward(this);
+    }
 
     void set_backward(B back) { this->backward = std::move(back); }
 
-    B* get_backward() { return &(this->backward);}
+    B* get_backward() { return &(this->backward); }
 
     void meta_process() override {
 
@@ -60,7 +61,7 @@ template <MModule B>
 class StaticSink : public StaticModule<B> {
 
 public:
-    StaticSink() =default;
+    StaticSink() = default;
 
     StaticSink(B backw) : StaticModule<B>(nullptr, backw) {}
 
@@ -87,32 +88,28 @@ template <MModule B>
 class StaticMult : public StaticModule<B> {
 
 private:
-
     double add = 0.;
 
 public:
+    StaticMult() = default;
 
-    StaticMult() =default;
-
-    void set_value(double val) {add = val;}
+    void set_value(double val) { add = val; }
 
     double get_value() const { return this->add; }
 
     void process() override {
 
-        std::transform(this->buff->ibegin(), this->buff->iend(), this->buff->ibegin(), [this](long double inv) {
+        std::transform(this->buff->ibegin(), this->buff->iend(),
+                       this->buff->ibegin(), [this](double inv) {
+                           // Scale the value:
 
-            // Scale the value:
-
-            return this->get_value() * inv;
-        });
+                           return this->get_value() * inv;
+                       });
     }
 };
 
 template <typename T>
-class DynamicWrap : public StaticModule<T> {
-
-};
+class DynamicWrap : public StaticModule<T> {};
 
 int main() {
 
@@ -149,7 +146,9 @@ int main() {
 
         // Create static chain and configure:
 
-        StaticSink<StaticMult<StaticMult<StaticMult<StaticMult<StaticMult<StaticMult<StaticMult<StaticMult<StaticMult<SourceModule>>>>>>>>>> ssink;
+        StaticSink<StaticMult<StaticMult<StaticMult<StaticMult<StaticMult<
+            StaticMult<StaticMult<StaticMult<StaticMult<SourceModule>>>>>>>>>>
+            ssink;
 
         auto b1 = ssink.get_backward();
         auto b2 = b1->get_backward();
@@ -161,7 +160,6 @@ int main() {
         auto b8 = b7->get_backward();
         auto b9 = b8->get_backward();
         auto b10 = b9->get_backward();
-
 
         b1->set_value(1);
         b2->set_value(2);
@@ -185,7 +183,8 @@ int main() {
 
         auto ctime_ms = std::chrono::duration<double, std::milli>(diff).count();
 
-        std::cout << "Static creation time [" << i << "]: " << diff << " ms" << "\n"; 
+        std::cout << "Static creation time [" << i << "]: " << diff << " ms"
+                  << "\n";
 
         screate_time += ctime_ms;
 
@@ -205,7 +204,8 @@ int main() {
 
         diff = end - start;
 
-        std::cout << "Static process time [" << i << "]: " << diff << " ms" << "\n"; 
+        std::cout << "Static process time [" << i << "]: " << diff << " ms"
+                  << "\n";
 
         auto ptime_ms = std::chrono::duration<double, std::milli>(diff).count();
 
@@ -243,7 +243,16 @@ int main() {
 
         ConstModule source;
 
-        sink.bind(&a1)->bind(&a2)->bind(&a3)->bind(&a4)->bind(&a5)->bind(&a6)->bind(&a7)->bind(&a8)->bind(&a9)->bind(&source);
+        sink.bind(&a1)
+            ->bind(&a2)
+            ->bind(&a3)
+            ->bind(&a4)
+            ->bind(&a5)
+            ->bind(&a6)
+            ->bind(&a7)
+            ->bind(&a8)
+            ->bind(&a9)
+            ->bind(&source);
 
         // Stop the clock:
 
@@ -255,7 +264,8 @@ int main() {
 
         auto stime_ms = std::chrono::duration<double, std::milli>(diff).count();
 
-        std::cout << "Dynamic creation time [" << i << "]: " << diff << " ms" << "\n"; 
+        std::cout << "Dynamic creation time [" << i << "]: " << diff << " ms"
+                  << "\n";
 
         dcreate_time += stime_ms;
 
@@ -275,7 +285,8 @@ int main() {
 
         auto ptime_ms = std::chrono::duration<double, std::milli>(diff).count();
 
-        std::cout << "Dynamic process time [" << i << "]: " << diff << " ms" << "\n";
+        std::cout << "Dynamic process time [" << i << "]: " << diff << " ms"
+                  << "\n";
 
         dproc_time += ptime_ms;
     }
@@ -286,9 +297,11 @@ int main() {
     double asproc = sproc_time / iter;
     double adproc = dproc_time / iter;
 
-    std::cout << "Average Static Creation Time: " << screate_time / iter << "\n";
+    std::cout << "Average Static Creation Time: " << screate_time / iter
+              << "\n";
     std::cout << "Average Static Process Time: " << asproc << "\n";
-    std::cout << "Average Dynamic Creation Time: " << dcreate_time / iter << "\n";
+    std::cout << "Average Dynamic Creation Time: " << dcreate_time / iter
+              << "\n";
     std::cout << "Average Dynamic Process Time: " << adproc << "\n";
 
     // Determine the percent difference:

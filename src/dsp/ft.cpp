@@ -4,26 +4,25 @@
  * @brief Implementations of FT algorithms
  * @version 0.1
  * @date 2023-04-03
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
 #define _USE_MATH_DEFINES
 
-#include <cmath>
-
 #include "dsp/ft.hpp"
 
-long double cos_basis(int phase, int total, long double freq) {
+#include <cmath>
+
+double cos_basis(int phase, int total, double freq) {
 
     // Preform operation and return:
 
     return cos((2 * M_PI * freq * phase) / total);
-
 }
 
-long double sin_basis(int phase, int total, long double freq) {
+double sin_basis(int phase, int total, double freq) {
 
     // Preform operation and return:
 

@@ -4,12 +4,12 @@
  * @brief Testing different conversion types
  * @version 0.1
  * @date 2023-01-01
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  * We test to see which operation yields faster results.
  * We test the dual copy method, as well as the single copy method.
- * 
+ *
  * This is to answer some questions about these operations.
  * I suspect that the single copy operation will be much faster,
  * but we will see for sure here.
@@ -17,15 +17,15 @@
 
 #define _USE_MATH_DEFINES
 
-#include <vector>
-#include <iostream>
-#include <chrono>
 #include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <iostream>
+#include <vector>
 
-const long double TWO_PI = 2.0 * M_PI;
+const double TWO_PI = 2.0 * M_PI;
 
-float conv(long double val) { return int16_t(val * 32768.0); }
+float conv(double val) { return int16_t(val * 32768.0); }
 
 int main() {
 
@@ -34,10 +34,10 @@ int main() {
     const int num = 1000;
     const int iter = 1000;
 
-    std::vector<long double> vec(num);
+    std::vector<double> vec(num);
 
     std::vector<int> dest1(num);
-    std::vector<long double> dest2(num);
+    std::vector<double> dest2(num);
     std::vector<int> dest3(num);
 
     for (int i = 0; i < num; i++) {
@@ -55,13 +55,14 @@ int main() {
 
     if (!std::chrono::high_resolution_clock::is_steady) {
 
-        std::cout << "Warning: high_resolution_clock is not steady!" << std::endl;
+        std::cout << "Warning: high_resolution_clock is not steady!"
+                  << std::endl;
         std::cout << "This may cause inaccurate results." << std::endl;
         std::cout << "+====================================+" << std::endl;
-
     }
 
-    std::cout << " --== [ Testing single copy performance... ] ==--" << std::endl;
+    std::cout << " --== [ Testing single copy performance... ] ==--"
+              << std::endl;
 
     long double stotal = 0;
 
@@ -83,20 +84,21 @@ int main() {
 
         // Print the time:
 
-        std::cout << "Single copy time [" << i << "]: " << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
+        std::cout << "Single copy time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diff).count()
+                  << " ms" << std::endl;
 
-        stotal += std::chrono::duration <double, std::milli> (diff).count();
-
+        stotal += std::chrono::duration<double, std::milli>(diff).count();
     }
 
     std::cout << " --== [ Testing dual copy performance... ] ==--" << std::endl;
 
     long double dtotal = 0;
 
-    for(int i = 0; i < iter; ++i) {
+    for (int i = 0; i < iter; ++i) {
 
         // Start the clock:
-    
+
         auto startd = std::chrono::high_resolution_clock::now();
 
         std::copy(vec.begin(), vec.end(), dest2.begin());
@@ -107,15 +109,16 @@ int main() {
         auto endd = std::chrono::high_resolution_clock::now();
 
         // Calculate the time:
-        
+
         auto diffd = endd - startd;
 
         // Print the time:
-        
-        std::cout << "Dual copy time [" << i << "]: " << std::chrono::duration <double, std::milli> (diffd).count() << " ms" << std::endl;
 
-        dtotal += std::chrono::duration <double, std::milli> (diffd).count();
+        std::cout << "Dual copy time [" << i << "]: "
+                  << std::chrono::duration<double, std::milli>(diffd).count()
+                  << " ms" << std::endl;
 
+        dtotal += std::chrono::duration<double, std::milli>(diffd).count();
     }
 
     std::cout << "Average Single Time: " << stotal / iter << std::endl;

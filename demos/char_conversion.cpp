@@ -4,21 +4,22 @@
  * @brief Testing different char conversion types
  * @version 0.1
  * @date 2023-11-28
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  * This file will test many different methods for converting
  * an array of chars into something more complicated
  * (in this case, char->short->double).
- * This will be utilized to help determine the ideal framework for such operations.
+ * This will be utilized to help determine the ideal framework for such
+ * operations.
  */
 
-#include <array>
-#include <vector>
-#include <chrono>
-#include <random>
 #include <algorithm>
+#include <array>
+#include <chrono>
 #include <iostream>
+#include <random>
+#include <vector>
 
 using random_bytes_engine =
     std::independent_bits_engine<std::default_random_engine, 8, unsigned char>;
@@ -33,18 +34,18 @@ int main() {
     // The size is the number of output values there will be
 
     const int size = 400;
-    std::array<char, size*2> data = {};
+    std::array<char, size * 2> data = {};
 
     // Fill with random chars:
 
     const random_bytes_engine rbe;
-    std::generate_n(data.begin(), size*2, rbe);
-    std::generate_n(data.begin(), size*2, rbe);
+    std::generate_n(data.begin(), size * 2, rbe);
+    std::generate_n(data.begin(), size * 2, rbe);
 
     // From here, we need to test our methods.
     // We assume the vector we are copying to is optimal
 
-    std::vector<long double> odata(size);
+    std::vector<double> odata(size);
 
     std::cout << "+=========================================+" << std::endl;
     std::cout << " !Benchmarking char conversion performance!" << std::endl;
@@ -84,9 +85,10 @@ int main() {
 
         // First, convert into shorts:
 
-        std::copy_n(data.begin(), size*2, reinterpret_cast<char*>(idata.data()));
+        std::copy_n(data.begin(), size * 2,
+                    reinterpret_cast<char*>(idata.data()));
 
-        // Next, convert into long doubles:
+        // Next, convert into doubles:
 
         for (int i = 0; i < idata.size(); ++i) {
 
@@ -125,11 +127,11 @@ int main() {
 
             // Copy values over:
 
-            std::copy_n(data.begin() + i*2, 2, reinterpret_cast<char*>(&val));
+            std::copy_n(data.begin() + i * 2, 2, reinterpret_cast<char*>(&val));
 
             // Add value to final vector:
 
-            odata.at(i) = static_cast<long double>(val) / 32768.0;
+            odata.at(i) = static_cast<double>(val) / 32768.0;
         }
 
         end = std::chrono::high_resolution_clock::now();
@@ -162,11 +164,13 @@ int main() {
 
             // Copy values over:
 
-            val = static_cast<int16_t>((static_cast<int16_t>(data[i * 2+1]) << 8) | static_cast<unsigned char>(data[i*2]));
+            val = static_cast<int16_t>(
+                (static_cast<int16_t>(data[i * 2 + 1]) << 8) |
+                static_cast<unsigned char>(data[i * 2]));
 
             // Add value to final vector:
 
-            odata.at(i) = static_cast<long double>(val) / 32768.0;
+            odata.at(i) = static_cast<double>(val) / 32768.0;
         }
 
         end = std::chrono::high_resolution_clock::now();
@@ -189,7 +193,10 @@ int main() {
     std::cout << "+=======================================+" << std::endl;
     std::cout << " -== [ Results: ] ==--" << std::endl;
 
-    std::cout << "Average all in one copy time: " << acopy / iter << " ms" << std::endl;
-    std::cout << "Average single copy time: " << scopy / iter << " ms" << std::endl;
-    std::cout << "Average single safe copy time: " << sscopy / iter << " ms" << std::endl;
+    std::cout << "Average all in one copy time: " << acopy / iter << " ms"
+              << std::endl;
+    std::cout << "Average single copy time: " << scopy / iter << " ms"
+              << std::endl;
+    std::cout << "Average single safe copy time: " << sscopy / iter << " ms"
+              << std::endl;
 }

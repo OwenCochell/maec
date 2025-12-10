@@ -67,10 +67,10 @@ private:
     int64_t stop_time = 0;
 
     /// Value we are starting on
-    long double value_start = 0;
+    double value_start = 0;
 
     /// Value we are stopping on
-    long double value_stop = 0;
+    double value_stop = 0;
 
 public:
     BaseEnvelope() = default;
@@ -110,14 +110,14 @@ public:
      *
      * @param startv Value to start on
      */
-    void set_start_value(long double startv) { this->value_start = startv; }
+    void set_start_value(double startv) { this->value_start = startv; }
 
     /**
      * @brief Gets the start value of this envelope
      *
-     * @return long double Start value of this envelope
+     * @return double Start value of this envelope
      */
-    long double get_start_value() const { return this->value_start; }
+    double get_start_value() const { return this->value_start; }
 
     /**
      * @brief Sets the stop value of this envelope
@@ -126,14 +126,14 @@ public:
      *
      * @param stopv Value to stop on
      */
-    void set_stop_value(long double stopv) { this->value_stop = stopv; }
+    void set_stop_value(double stopv) { this->value_stop = stopv; }
 
     /**
      * @brief Gets the stop value of this envelope
      *
-     * @return long double Stop value of this envelope
+     * @return double Stop value of this envelope
      */
-    long double get_stop_value() const { return this->value_stop; }
+    double get_stop_value() const { return this->value_stop; }
 
     /**
      * @brief Sets the start time of this envelope
@@ -180,9 +180,9 @@ public:
      * We take into account the possibility that value_start may be zero.
      * If this is the case, we use a very low value.
      *
-     * @return long double Result of the divide operation
+     * @return double Result of the divide operation
      */
-    long double val_divide() const {
+    double val_divide() const {
         return this->value_stop /
                (this->value_start != 0 ? this->value_start : SMALL);
     }
@@ -194,11 +194,9 @@ public:
      * This is a convience function,
      * and aims to save some typing.
      *
-     * @return long double Stop value minus start value
+     * @return double Stop value minus start value
      */
-    long double val_diff() const {
-        return this->value_stop - this->value_start;
-    }
+    double val_diff() const { return this->value_stop - this->value_start; }
 
     /**
      * @brief Determines the number of remaining samples
@@ -567,7 +565,7 @@ private:
     int64_t decay = 0;
 
     /// Value to sustain at
-    long double sustain = 0;
+    double sustain = 0;
 
     /// Time it takes to ramp to zero after key is released
     int64_t release = 0;
@@ -578,7 +576,7 @@ private:
 public:
     ADSREnvelope() = default;
 
-    ADSREnvelope(int64_t att, int64_t dec, long double sus, int64_t rel)
+    ADSREnvelope(int64_t att, int64_t dec, double sus, int64_t rel)
         : attack(att), decay(dec), sustain(sus), release(rel) {}
 
     /**
@@ -620,14 +618,14 @@ public:
      *
      * @param sus Sustain to set
      */
-    void set_sustain(long double sus) { this->sustain = sus; }
+    void set_sustain(double sus) { this->sustain = sus; }
 
     /**
      * @brief Gets the sustain value
      *
-     * @return long double Current sustain value
+     * @return double Current sustain value
      */
-    long double get_sustain() const { return this->sustain; }
+    double get_sustain() const { return this->sustain; }
 
     /**
      * @brief Sets the release value

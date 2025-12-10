@@ -4,17 +4,17 @@
  * @brief Tests for kernel functions
  * @version 0.1
  * @date 2023-07-31
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
+
+#include "dsp/kernel.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-
 #include <vector>
 
-#include "dsp/kernel.hpp"
 #include "const.hpp"
 
 // Define some constants for testing:
@@ -24,7 +24,8 @@ const int size = 115;
 
 // Known test data:
 
-std::vector<long double> kern_data = {-7.73459746e-20, 7.49472265e-07,  -3.73641912e-06, -1.43871143e-05,
+std::vector<double> kern_data = {
+    -7.73459746e-20, 7.49472265e-07,  -3.73641912e-06, -1.43871143e-05,
     -6.64706090e-06, 3.31082595e-05,  5.77308258e-05,  -1.97809012e-19,
     -1.09794530e-04, -1.22727965e-04, 5.08024250e-05,  2.52598660e-04,
     1.87383024e-04,  -1.87971945e-04, -4.71447844e-04, -2.08556390e-04,
@@ -60,7 +61,7 @@ TEST_CASE("Kernel Test", "[kern]") {
 
         // Create vector to hold results:
 
-        std::vector<long double> out(size);
+        std::vector<double> out(size);
 
         // Call sinc function:
 
@@ -72,7 +73,8 @@ TEST_CASE("Kernel Test", "[kern]") {
 
             // Compare values:
 
-            REQUIRE_THAT(out.at(i), Catch::Matchers::WithinAbs(kern_data.at(i), 0.0001));
+            REQUIRE_THAT(out.at(i),
+                         Catch::Matchers::WithinAbs(kern_data.at(i), 0.0001));
         }
     }
 }

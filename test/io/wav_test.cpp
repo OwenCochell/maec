@@ -26,159 +26,164 @@
 
 /**
  * @brief Standard wave file - data is in one huge chunk at the end of the file
- * 
+ *
  * No surprises!
  * Just a standard wave file in a trivial format.
- * 
+ *
  * This data has the following properties:
  * Channels = 2
  * Sample Rate = 48000
  * Bits Per Sample = 16
  * Size = 56
  * Number of frames = 5
- * 
+ *
  */
 CharIStream wavs = {
-    0x52, 0x49, 0x46, 0x46, 0x38, 0, 0, 0, 0x57, 0x41, 0x56, 0x45,  // WAVE header
-    0x66, 0x6D, 0x74, 0x20, 0x10, 0, 0, 0, 0x01, 0, 0x02, 0, 0x80, 0xbb, 0, 0, 0, 0xee, 0x02, 0x00, 0x04, 0x00, 0x10, 0x00,  // FORMAT chunk
-    0x64, 0x61, 0x74, 0x61, 0x14, 0x00, 0x00, 0x00, // DATA header
-    0x85, 0xff, 0x9d, 0xff, // Data (till end of array)
-    0x42, 0xff, 0x9b, 0xff,
-    0x72, 0xff, 0x7d, 0xff,
-    0xe0, 0xff, 0x07, 0xff,
-    0x25, 0x00, 0xea, 0xfe,
+    0x52, 0x49, 0x46, 0x46, 0x38, 0,    0,    0,
+    0x57, 0x41, 0x56, 0x45,  // WAVE header
+    0x66, 0x6D, 0x74, 0x20, 0x10, 0,    0,    0,
+    0x01, 0,    0x02, 0,    0x80, 0xbb, 0,    0,
+    0,    0xee, 0x02, 0x00, 0x04, 0x00, 0x10, 0x00,  // FORMAT chunk
+    0x64, 0x61, 0x74, 0x61, 0x14, 0x00, 0x00, 0x00,  // DATA header
+    0x85, 0xff, 0x9d, 0xff,                          // Data (till end of array)
+    0x42, 0xff, 0x9b, 0xff, 0x72, 0xff, 0x7d, 0xff,
+    0xe0, 0xff, 0x07, 0xff, 0x25, 0x00, 0xea, 0xfe,
 };
 
 /**
  * @brief Wave file with different number of bits per sample
- * 
+ *
  * This wave file utilizes unsigned chars, and thus has 8 bits per sample.
  * This is to ensure we can read files with differing formats.
- * 
+ *
  * This data has the following properties:
  * Channels = 2
  * Sample Rate = 48000
  * Bits Per Sample = 8
  * Size = 56
  * Number of frames = 10
- * 
+ *
  */
 CharIStream wavb = {
-    0x52, 0x49, 0x46, 0x46, 0x38, 0, 0, 0, 0x57, 0x41, 0x56, 0x45,  // WAVE header
-    0x66, 0x6D, 0x74, 0x20, 0x10, 0, 0, 0, 0x01, 0, 0x02, 0, 0x80, 0xbb, 0, 0, 0, 0x77, 0x01, 0x00, 0x02, 0x00, 0x08, 0x00,  // FORMAT chunk
-    0x64, 0x61, 0x74, 0x61, 0x14, 0x00, 0x00, 0x00, // DATA header
-    0x85, 0xff, 0x9d, 0xff, // Data (till end of array) FAILS AT FIRST VALUE IN LINE!
-    0x42, 0xff, 0x9b, 0xff,
-    0x72, 0xff, 0x7d, 0xff,
-    0xe0, 0xff, 0x07, 0xff,
-    0x25, 0x00, 0xea, 0xfe,
+    0x52, 0x49, 0x46, 0x46, 0x38, 0,    0,    0,
+    0x57, 0x41, 0x56, 0x45,  // WAVE header
+    0x66, 0x6D, 0x74, 0x20, 0x10, 0,    0,    0,
+    0x01, 0,    0x02, 0,    0x80, 0xbb, 0,    0,
+    0,    0x77, 0x01, 0x00, 0x02, 0x00, 0x08, 0x00,  // FORMAT chunk
+    0x64, 0x61, 0x74, 0x61, 0x14, 0x00, 0x00, 0x00,  // DATA header
+    0x85, 0xff, 0x9d, 0xff,  // Data (till end of array) FAILS AT FIRST VALUE IN
+                             // LINE!
+    0x42, 0xff, 0x9b, 0xff, 0x72, 0xff, 0x7d, 0xff,
+    0xe0, 0xff, 0x07, 0xff, 0x25, 0x00, 0xea, 0xfe,
 };
 
 /**
  * @brief Wave file with bad size reporting
- * 
+ *
  * This file reports that the data chunk is VERY LARGE!
  * This is to ensure we can gracefully quit when we reach the end of the file.
- * 
+ *
  * This data has the following properties:
  * Channels = 2
  * Sample Rate = 48000
  * Bits Per Sample = 16
  * Size = 283
- * 
+ *
  */
 CharIStream wavbs = {
-    0x52, 0x49, 0x46, 0x46, 0x38, 0, 0, 0, 0x57, 0x41, 0x56, 0x45,  // WAVE header
-    0x66, 0x6D, 0x74, 0x20, 0x10, 0, 0, 0, 0x01, 0, 0x02, 0, 0x80, 0xbb, 0, 0, 0, 0xee, 0x02, 0x00, 0x04, 0x00, 0x10, 0x00,  // FORMAT chunk
-    0x64, 0x61, 0x74, 0x61, 0xff, 0xff, 0x00, 0x00, // DATA header
-    0x85, 0xff, 0x9d, 0xff, // Data (till end of array)
-    0x42, 0xff, 0x9b, 0xff,
-    0x72, 0xff, 0x7d, 0xff,
-    0xe0, 0xff, 0x07, 0xff,
-    0x25, 0x00, 0xea, 0xfe,
+    0x52, 0x49, 0x46, 0x46, 0x38, 0,    0,    0,
+    0x57, 0x41, 0x56, 0x45,  // WAVE header
+    0x66, 0x6D, 0x74, 0x20, 0x10, 0,    0,    0,
+    0x01, 0,    0x02, 0,    0x80, 0xbb, 0,    0,
+    0,    0xee, 0x02, 0x00, 0x04, 0x00, 0x10, 0x00,  // FORMAT chunk
+    0x64, 0x61, 0x74, 0x61, 0xff, 0xff, 0x00, 0x00,  // DATA header
+    0x85, 0xff, 0x9d, 0xff,                          // Data (till end of array)
+    0x42, 0xff, 0x9b, 0xff, 0x72, 0xff, 0x7d, 0xff,
+    0xe0, 0xff, 0x07, 0xff, 0x25, 0x00, 0xea, 0xfe,
 };
 
 /**
  * @brief Junk wave file - junk chunks present at end of file
- * 
+ *
  * This file has some chunks at the end that are not data chunks,
  * so we are not interested in them!
  * Ideally, we should encounter these chunks and then do nothing.
- * This wave reader should return a buffer of zeros and configure itself accordingly.
- * 
+ * This wave reader should return a buffer of zeros and configure itself
+ * accordingly.
+ *
  * The data has the following properties:
  * Channels = 2
  * Sample Rate = 48000
  * Bits Per Sample = 16
  * Size = 84
  * Number of frames = 5
- * 
+ *
  */
 CharIStream jwavs = {
-    0x52, 0x49, 0x46, 0x46, 0x54, 0, 0, 0, 0x57, 0x41, 0x56, 0x45,  // WAVE header
-    0x66, 0x6D, 0x74, 0x20, 0x10, 0, 0, 0, 0x01, 0, 0x02, 0, 0x80, 0xbb, 0, 0, 0, 0xee, 0x02, 0x00, 0x04, 0x00, 0x10, 0x00,  // FORMAT chunk
-    0x64, 0x61, 0x74, 0x61, 0x14, 0x00, 0x00, 0x00, // DATA header
-    0x85, 0xff, 0x9d, 0xff, // Data
-    0x42, 0xff, 0x9b, 0xff,
-    0x72, 0xff, 0x7d, 0xff,
-    0xe0, 0xff, 0x07, 0xff,
-    0x25, 0x00, 0xea, 0xfe,
-    'J', 'U', 'N', 'K', 0x14, 0x00, 0x00, 0x00, // JUNK header
-    0x85, 0xff, 0x9d, 0xff, // Junk Data (till end of array)
-    0x42, 0xff, 0x9b, 0xff,
-    0x72, 0xff, 0x7d, 0xff,
-    0xe0, 0xff, 0x07, 0xff,
-    0x25, 0x00, 0xea, 0xfe,
+    0x52, 0x49, 0x46, 0x46, 0x54, 0,    0,    0,
+    0x57, 0x41, 0x56, 0x45,  // WAVE header
+    0x66, 0x6D, 0x74, 0x20, 0x10, 0,    0,    0,
+    0x01, 0,    0x02, 0,    0x80, 0xbb, 0,    0,
+    0,    0xee, 0x02, 0x00, 0x04, 0x00, 0x10, 0x00,  // FORMAT chunk
+    0x64, 0x61, 0x74, 0x61, 0x14, 0x00, 0x00, 0x00,  // DATA header
+    0x85, 0xff, 0x9d, 0xff,                          // Data
+    0x42, 0xff, 0x9b, 0xff, 0x72, 0xff, 0x7d, 0xff,
+    0xe0, 0xff, 0x07, 0xff, 0x25, 0x00, 0xea, 0xfe,
+    'J',  'U',  'N',  'K',  0x14, 0x00, 0x00, 0x00,  // JUNK header
+    0x85, 0xff, 0x9d, 0xff,  // Junk Data (till end of array)
+    0x42, 0xff, 0x9b, 0xff, 0x72, 0xff, 0x7d, 0xff,
+    0xe0, 0xff, 0x07, 0xff, 0x25, 0x00, 0xea, 0xfe,
 };
 
 /**
  * @brief Interrupting junk file - junk chunks interrupt data chunks!
- * 
+ *
  * This file has multiple data chunks
  * that are interrupted by junk chunks.
- * This is to ensure we can properly ignore junk data that lies between data chunks.
- * 
- * This data can also be used to test if we can properly read multiple chunks if necessary.
- * 
+ * This is to ensure we can properly ignore junk data that lies between data
+ * chunks.
+ *
+ * This data can also be used to test if we can properly read multiple chunks if
+ * necessary.
+ *
  * The data has the following properties:
  * Channels = 2
  * Sample Rate = 48000
  * Bits Per Sample = 16
  * Size = 120
  * Number of Frames = 10
- * 
+ *
  */
 CharIStream jiwavs = {
-    0x52, 0x49, 0x46, 0x46, 0x70, 0, 0, 0, 0x57, 0x41, 0x56, 0x45,  // WAVE header
-    0x66, 0x6D, 0x74, 0x20, 0x10, 0, 0, 0, 0x01, 0, 0x02, 0, 0x80, 0xbb, 0, 0, 0, 0xee, 0x02, 0x00, 0x04, 0x00, 0x10, 0x00,  // FORMAT chunk
-    0x64, 0x61, 0x74, 0x61, 0x14, 0x00, 0x00, 0x00, // DATA header
-    0x85, 0xff, 0x9d, 0xff, // Data
-    0x42, 0xff, 0x9b, 0xff,
-    0x72, 0xff, 0x7d, 0xff,
-    0xe0, 0xff, 0x07, 0xff,
-    0x25, 0x00, 0xea, 0xfe,
-    'J', 'U', 'N', 'K', 0x14, 0x00, 0x00, 0x00, // JUNK header
-    0x85, 0xff, 0x9d, 0xff, // Junk Data (till end of array)
-    0x42, 0xff, 0x9b, 0xff,
-    0x72, 0xff, 0x7d, 0xff,
-    0xe0, 0xff, 0x07, 0xff,
-    0x25, 0x00, 0xea, 0xfe,
-    0x64, 0x61, 0x74, 0x61, 0x14, 0x00, 0x00, 0x00, // 2nd DATA header
-    0x35, 0xff, 0x5c, 0xff, // Data 2nd data chunk
-    0x8a, 0xff, 0x2d, 0xff,
-    0x77, 0xff, 0x7a, 0xff,
-    0xe3, 0xff, 0xf7, 0xff,
-    0x25, 0x00, 0xeb, 0xfe,
+    0x52, 0x49, 0x46, 0x46, 0x70, 0,    0,    0,
+    0x57, 0x41, 0x56, 0x45,  // WAVE header
+    0x66, 0x6D, 0x74, 0x20, 0x10, 0,    0,    0,
+    0x01, 0,    0x02, 0,    0x80, 0xbb, 0,    0,
+    0,    0xee, 0x02, 0x00, 0x04, 0x00, 0x10, 0x00,  // FORMAT chunk
+    0x64, 0x61, 0x74, 0x61, 0x14, 0x00, 0x00, 0x00,  // DATA header
+    0x85, 0xff, 0x9d, 0xff,                          // Data
+    0x42, 0xff, 0x9b, 0xff, 0x72, 0xff, 0x7d, 0xff,
+    0xe0, 0xff, 0x07, 0xff, 0x25, 0x00, 0xea, 0xfe,
+    'J',  'U',  'N',  'K',  0x14, 0x00, 0x00, 0x00,  // JUNK header
+    0x85, 0xff, 0x9d, 0xff,  // Junk Data (till end of array)
+    0x42, 0xff, 0x9b, 0xff, 0x72, 0xff, 0x7d, 0xff,
+    0xe0, 0xff, 0x07, 0xff, 0x25, 0x00, 0xea, 0xfe,
+    0x64, 0x61, 0x74, 0x61, 0x14, 0x00, 0x00, 0x00,  // 2nd DATA header
+    0x35, 0xff, 0x5c, 0xff,                          // Data 2nd data chunk
+    0x8a, 0xff, 0x2d, 0xff, 0x77, 0xff, 0x7a, 0xff,
+    0xe3, 0xff, 0xf7, 0xff, 0x25, 0x00, 0xeb, 0xfe,
 };
 
-std::array<int16_t, 10> data_wavs = {-123, -99, -190, -101, -142, -131, -32, -249, 37, -278};
+std::array<int16_t, 10> data_wavs = {-123, -99, -190, -101, -142,
+                                     -131, -32, -249, 37,   -278};
 
-std::array<unsigned char, 20> data_wavb = {0x85, 0xff, 0x9d, 0xff, 0x42, 0xff, 0x9b,
-                                 0xff, 0x72, 0xff, 0x7d, 0xff, 0xe0, 0xff,
-                                 0x07, 0xff, 0x25, 0x00, 0xea, 0xfe};
+std::array<unsigned char, 20> data_wavb = {
+    0x85, 0xff, 0x9d, 0xff, 0x42, 0xff, 0x9b, 0xff, 0x72, 0xff,
+    0x7d, 0xff, 0xe0, 0xff, 0x07, 0xff, 0x25, 0x00, 0xea, 0xfe};
 
-std::array<int16_t, 20> data_wavji = {-123, -99, -190, -101, -142, -131, -32, -249, 37, -278,
-                                      -203, -164, -118, -211, -137, -134, -29, -9, 37, -277};
+std::array<int16_t, 20> data_wavji = {-123, -99,  -190, -101, -142, -131, -32,
+                                      -249, 37,   -278, -203, -164, -118, -211,
+                                      -137, -134, -29,  -9,   37,   -277};
 
 TEST_CASE("Base Wave", "[io][wav]") {
 
@@ -322,7 +327,9 @@ TEST_CASE("Wave Reader", "[io][wav]") {
         }
     }
 
-    SECTION("Standard Wave", "Ensures wave files with data in one chunk at the end can be read") {
+    SECTION(
+        "Standard Wave",
+        "Ensures wave files with data in one chunk at the end can be read") {
 
         // Create copy of standard wave:
 
@@ -336,7 +343,8 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
         wav.start();
 
-        SECTION("Format Decoding", "Ensures the format data has been properly decoded") {
+        SECTION("Format Decoding",
+                "Ensures the format data has been properly decoded") {
 
             REQUIRE(wav.get_bits_per_sample() == 16);
             REQUIRE(wav.get_blockalign() == 4);
@@ -345,7 +353,7 @@ TEST_CASE("Wave Reader", "[io][wav]") {
             REQUIRE(wav.get_channels() == 2);
             REQUIRE(wav.get_format() == 1);
             REQUIRE(wav.get_samplerate() == 48000);
-            REQUIRE(wav.get_size() == 56+8);
+            REQUIRE(wav.get_size() == 56 + 8);
         }
 
         SECTION("Data Extraction", "Ensures we can extract audio data") {
@@ -368,8 +376,9 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
                 // Ensure contents are as we expect:
 
-                REQUIRE(int16_mf(data_wavs.at(static_cast<size_t>(i)*2)) == data->at(0));
-                REQUIRE(int16_mf(data_wavs.at(i*2+1)) == data->at(1));
+                REQUIRE(int16_mf(data_wavs.at(static_cast<size_t>(i) * 2)) ==
+                        data->at(0));
+                REQUIRE(int16_mf(data_wavs.at(i * 2 + 1)) == data->at(1));
             }
 
             // We should be done with the file:
@@ -387,7 +396,8 @@ TEST_CASE("Wave Reader", "[io][wav]") {
         }
     }
 
-    SECTION("Bad Wave Size", "Ensures wave files with bad size reporting can be read") {
+    SECTION("Bad Wave Size",
+            "Ensures wave files with bad size reporting can be read") {
 
         // Create copy of standard wave:
 
@@ -436,7 +446,8 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
                 // Ensure contents are as we expect:
 
-                REQUIRE(int16_mf(data_wavs.at(static_cast<size_t>(index) * 2)) == data->at(0));
+                REQUIRE(int16_mf(data_wavs.at(static_cast<size_t>(index) *
+                                              2)) == data->at(0));
                 REQUIRE(int16_mf(data_wavs.at(index * 2 + 1)) == data->at(1));
 
                 // Increment index:
@@ -450,7 +461,8 @@ TEST_CASE("Wave Reader", "[io][wav]") {
         }
     }
 
-    SECTION("8bit Wave Data", "Ensures wave files with 8 bits per sample can be read") {
+    SECTION("8bit Wave Data",
+            "Ensures wave files with 8 bits per sample can be read") {
 
         // Create copy of standard wave:
 
@@ -464,7 +476,8 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
         wav.start();
 
-        SECTION("Format Decoding", "Ensures the format data has been properly decoded") {
+        SECTION("Format Decoding",
+                "Ensures the format data has been properly decoded") {
 
             REQUIRE(wav.get_bits_per_sample() == 8);
             REQUIRE(wav.get_blockalign() == 2);
@@ -473,7 +486,7 @@ TEST_CASE("Wave Reader", "[io][wav]") {
             REQUIRE(wav.get_channels() == 2);
             REQUIRE(wav.get_format() == 1);
             REQUIRE(wav.get_samplerate() == 48000);
-            REQUIRE(wav.get_size() == 56+8);
+            REQUIRE(wav.get_size() == 56 + 8);
         }
 
         SECTION("Data Extraction", "Ensures we can extract audio data") {
@@ -496,8 +509,9 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
                 // Ensure contents are as we expect:
 
-                REQUIRE(uchar_mf(data_wavb.at(static_cast<size_t>(i)*2)) == data->at(0));
-                REQUIRE(uchar_mf(data_wavb.at(i*2+1)) == data->at(1));
+                REQUIRE(uchar_mf(data_wavb.at(static_cast<size_t>(i) * 2)) ==
+                        data->at(0));
+                REQUIRE(uchar_mf(data_wavb.at(i * 2 + 1)) == data->at(1));
             }
 
             // We should be done with the file:
@@ -538,7 +552,7 @@ TEST_CASE("Wave Reader", "[io][wav]") {
             REQUIRE(wav.get_channels() == 2);
             REQUIRE(wav.get_format() == 1);
             REQUIRE(wav.get_samplerate() == 48000);
-            REQUIRE(wav.get_size() == 84+8);
+            REQUIRE(wav.get_size() == 84 + 8);
         }
 
         SECTION("Data Extraction", "Ensures we can extract audio data") {
@@ -561,7 +575,8 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
                 // Ensure contents are as we expect:
 
-                REQUIRE(int16_mf(data_wavs.at(static_cast<size_t>(i) * 2)) == data->at(0));
+                REQUIRE(int16_mf(data_wavs.at(static_cast<size_t>(i) * 2)) ==
+                        data->at(0));
                 REQUIRE(int16_mf(data_wavs.at(i * 2 + 1)) == data->at(1));
             }
 
@@ -581,7 +596,8 @@ TEST_CASE("Wave Reader", "[io][wav]") {
         }
     }
 
-    SECTION("Interrupting Junk", "Ensures we can ignore and correctly chunk multi-data files") {
+    SECTION("Interrupting Junk",
+            "Ensures we can ignore and correctly chunk multi-data files") {
 
         // Create copy of junk wave:
 
@@ -627,7 +643,8 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
                 // Ensure contents are as we expect:
 
-                REQUIRE(int16_mf(data_wavji.at(static_cast<size_t>(i) * 2)) == data->at(0));
+                REQUIRE(int16_mf(data_wavji.at(static_cast<size_t>(i) * 2)) ==
+                        data->at(0));
                 REQUIRE(int16_mf(data_wavji.at(i * 2 + 1)) == data->at(1));
             }
 
@@ -645,7 +662,8 @@ TEST_CASE("Wave Reader", "[io][wav]") {
             REQUIRE(data->at(1) == 0);
         }
 
-        SECTION("Multi-Data Extraction", "Ensures we can read interrupted data in large chunks") {
+        SECTION("Multi-Data Extraction",
+                "Ensures we can read interrupted data in large chunks") {
 
             // Set buffer size to something WEIRD!
 
@@ -669,7 +687,7 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
                     // Determine if we don't have data for this:
 
-                    if (i*8 + j >= data_wavji.size()) {
+                    if (i * 8 + j >= data_wavji.size()) {
 
                         // Should just be zero...
                         REQUIRE(0 == data->at(j));
@@ -712,7 +730,8 @@ TEST_CASE("Wave Writer", "[io][wav]") {
         }
     }
 
-    SECTION("16bit Write", "Ensures we can create wave files of 16bit integers") {
+    SECTION("16bit Write",
+            "Ensures we can create wave files of 16bit integers") {
 
         // We use the wave file examples for this test!
         // Create a stream we can write to:
@@ -818,7 +837,8 @@ TEST_CASE("Wave Writer", "[io][wav]") {
         }
     }
 
-    SECTION("8bit Wave Multi", "Ensures we can write multiple buffers correctly") {
+    SECTION("8bit Wave Multi",
+            "Ensures we can write multiple buffers correctly") {
 
         // We use the wave file examples for this test!
         // Create a stream we can write to:
@@ -841,8 +861,10 @@ TEST_CASE("Wave Writer", "[io][wav]") {
 
         // Create a buffer with audio data to write:
 
-        BufferPointer buff1 = std::make_unique<AudioBuffer>(data_wavb.size() / 2);
-        BufferPointer buff2 = std::make_unique<AudioBuffer>(data_wavb.size() / 2);
+        BufferPointer buff1 =
+            std::make_unique<AudioBuffer>(data_wavb.size() / 2);
+        BufferPointer buff2 =
+            std::make_unique<AudioBuffer>(data_wavb.size() / 2);
 
         // Convert values:
 
@@ -923,7 +945,8 @@ TEST_CASE("Random Wave", "[io][wav]") {
 
     // Generate the number of frames:
 
-    BufferPointer inb = std::make_unique<AudioBuffer>(num_frames / channels, channels);
+    BufferPointer inb =
+        std::make_unique<AudioBuffer>(num_frames / channels, channels);
     AudioBuffer backup(num_frames / channels, channels);
 
     std::uniform_int_distribution gdist(0, 255);
@@ -932,7 +955,7 @@ TEST_CASE("Random Wave", "[io][wav]") {
 
         // Create the frame:
 
-        const long double frame = uchar_mf(gdist(gen));
+        const double frame = uchar_mf(gdist(gen));
 
         *iter = frame;
         backup.at(iter.get_index()) = frame;
@@ -999,6 +1022,7 @@ TEST_CASE("Random Wave", "[io][wav]") {
 
         // Ensure samples are the same:
 
-        REQUIRE_THAT(outb->at(i), Catch::Matchers::WithinAbs(backup.at(i), 0.0001));
+        REQUIRE_THAT(outb->at(i),
+                     Catch::Matchers::WithinAbs(backup.at(i), 0.0001));
     }
 }

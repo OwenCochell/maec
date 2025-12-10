@@ -13,8 +13,9 @@
  *
  * Key takeaways:
  *
- * std::array is the fastest container type (in scenarios similar to this benchmark) 
- * by a large amount, around 100% (!) faster for writing and 5-10% faster for reading
+ * std::array is the fastest container type (in scenarios similar to this
+ * benchmark) by a large amount, around 100% (!) faster for writing and 5-10%
+ * faster for reading
  *
  * In a perfect world, we would use std::array, but we can't
  * as our buffer sizes are variable and we can't guarantee the size to the
@@ -27,13 +28,13 @@
  * preallocated vector.
  */
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cmath>
 #include <iostream>
 #include <ratio>
 #include <vector>
-#include <algorithm>
 
 #include "dsp/buffer.hpp"
 
@@ -46,7 +47,8 @@ long double percent_diff(long double first, long double second) {
     // Determine the percent difference:
 
     return diff / ((first + second) / 2) *
-           100;  // NOLINT(*-magic-numbers): Considering removing this check anyways...
+           100;  // NOLINT(*-magic-numbers): Considering removing this check
+                 // anyways...
 }
 
 int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
@@ -65,23 +67,23 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
     // Create a normal vector:
 
-    std::vector<long double> vec;
+    std::vector<double> vec;
 
     // Create vector pre-allocated:
 
-    std::vector<long double> vec2(num);
+    std::vector<double> vec2(num);
 
     // Create array:
 
-    std::array<long double, num> vec4 = {};
+    std::array<double, num> vec4 = {};
 
     // Create dynamic array:
 
-    auto* vec5 = new long double[num];  // NOLINT(*-owning-memory)
+    auto* vec5 = new double[num];  // NOLINT(*-owning-memory)
 
     // Create reserved vector:
 
-    std::vector<long double> vec6;
+    std::vector<double> vec6;
 
     std::cout << "+====================================+" << '\n';
     std::cout << " !Benchmarking container performance!" << '\n';
@@ -118,7 +120,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            vec.push_back(static_cast<long double>(j));
+            vec.push_back(static_cast<double>(j));
         }
 
         // Stop the clock:
@@ -155,7 +157,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            const volatile long double val = vec[j];
+            const volatile double val = vec[j];
         }
 
         // Stop the clock:
@@ -204,7 +206,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            vec6.push_back(static_cast<long double>(j));
+            vec6.push_back(static_cast<double>(j));
         }
 
         // Stop the clock:
@@ -242,7 +244,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            const volatile long double val = vec6[j];
+            const volatile double val = vec6[j];
         }
 
         // Stop the clock:
@@ -284,12 +286,13 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            vec2[j] = static_cast<long double>(j); // SLOWEST!
+            vec2[j] = static_cast<double>(j);  // SLOWEST!
         }
 
-        //std::fill_n(tvec.begin(), num, 0);  FASTEST!
+        // std::fill_n(tvec.begin(), num, 0);  FASTEST!
 
-        // for (auto iter = tvec.begin(); iter < tvec.end(); ++iter) {  // SECOND-SLOWEST!
+        // for (auto iter = tvec.begin(); iter < tvec.end(); ++iter) {  //
+        // SECOND-SLOWEST!
 
         //     *iter = 0;
         // }
@@ -409,7 +412,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            const volatile long double val = vec2[j];
+            const volatile double val = vec2[j];
         }
 
         // Stop the clock:
@@ -449,7 +452,8 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < vec4.size(); j++) {
 
-            vec4[j] = static_cast<long double>(j);  // NOLINT: Not super worried about safe memory usage
+            vec4[j] = static_cast<double>(
+                j);  // NOLINT: Not super worried about safe memory usage
         }
 
         // Stop the clock:
@@ -484,7 +488,8 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            volatile long double val = vec4[j];  // NOLINT: Not sure worried about safe memory usage
+            volatile double val =
+                vec4[j];  // NOLINT: Not sure worried about safe memory usage
         }
 
         // Stop the clock:
@@ -525,7 +530,8 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            vec5[j] = static_cast<long double>(j);  // NOLINT: Pointer arithmetic is necessary here
+            vec5[j] = static_cast<double>(
+                j);  // NOLINT: Pointer arithmetic is necessary here
         }
 
         // Stop the clock:
@@ -561,7 +567,8 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (int j = 0; j < num; j++) {
 
-            volatile long double val = vec5[j];  // NOLINT: Pointer arithmetic is necessary here
+            volatile double val =
+                vec5[j];  // NOLINT: Pointer arithmetic is necessary here
         }
 
         // Stop the clock:
@@ -594,7 +601,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     // Create the buffer to utilize
     // (pre-allocated)
 
-    Buffer<long double> buffer(num / chans, chans);
+    Buffer<double> buffer(num / chans, chans);
 
     std::cout << "+====================================+" << '\n';
     std::cout
@@ -648,7 +655,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (auto iter = buffer.begin(); iter < buffer.end(); ++iter) {
 
-            const volatile long double val = *iter;
+            const volatile double val = *iter;
         }
 
         // Stop the clock:
@@ -722,7 +729,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (auto iter = buffer.sbegin(); iter < buffer.send(); ++iter) {
 
-            const volatile long double val = *iter;
+            const volatile double val = *iter;
         }
 
         // Stop the clock:
@@ -755,12 +762,12 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     // Create the buffer to utilize
     // (pre-allocated)
 
-    StaticBuffer<long double, num> sbuffer;
+    StaticBuffer<double, num> sbuffer;
 
     std::cout << "+====================================+" << '\n';
-    std::cout
-        << " --== [ testing maec static buffer interleaved write performance... ] ==--"
-        << '\n';
+    std::cout << " --== [ testing maec static buffer interleaved write "
+                 "performance... ] ==--"
+              << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
@@ -795,9 +802,9 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     }
 
     std::cout << "+====================================+" << '\n';
-    std::cout
-        << " --== [ Testing maec static buffer interleaved read performance... ] ==--"
-        << '\n';
+    std::cout << " --== [ Testing maec static buffer interleaved read "
+                 "performance... ] ==--"
+              << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
@@ -809,7 +816,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (auto iter = sbuffer.begin(); iter < sbuffer.end(); ++iter) {
 
-            const volatile long double val = *iter;
+            const volatile double val = *iter;
         }
 
         // Stop the clock:
@@ -832,9 +839,9 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     }
 
     std::cout << "+====================================+" << '\n';
-    std::cout
-        << " --== [ testing maec static buffer sequential write performance... ] ==--"
-        << '\n';
+    std::cout << " --== [ testing maec static buffer sequential write "
+                 "performance... ] ==--"
+              << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
@@ -869,9 +876,9 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     }
 
     std::cout << "+====================================+" << '\n';
-    std::cout
-        << " --== [ Testing maec static buffer sequential read performance... ] ==--"
-        << '\n';
+    std::cout << " --== [ Testing maec static buffer sequential read "
+                 "performance... ] ==--"
+              << '\n';
 
     for (int i = 0; i < iterations; i++) {
 
@@ -883,7 +890,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
 
         for (auto iter = sbuffer.sbegin(); iter < sbuffer.send(); ++iter) {
 
-            const volatile long double val = *iter;
+            const volatile double val = *iter;
         }
 
         // Stop the clock:
@@ -925,15 +932,17 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     std::cout << "Dynamic array average write time: "
               << vect5_write / iterations << " ms" << '\n';
 
-    std::cout << "MAEC buffer interleaved write: " << maec_writei / iterations << " ms"
-              << "\n";
-    std::cout << "MAEC buffer sequential write: " << maec_writes / iterations << " ms"
-              << "\n";
-    std::cout << "MAEC static buffer interleaved write: " << smaec_writei / iterations
+    std::cout << "MAEC buffer interleaved write: " << maec_writei / iterations
               << " ms"
               << "\n";
-    std::cout << "MAEC static buffer sequential write: " << smaec_writes / iterations
+    std::cout << "MAEC buffer sequential write: " << maec_writes / iterations
               << " ms"
+              << "\n";
+    std::cout << "MAEC static buffer interleaved write: "
+              << smaec_writei / iterations << " ms"
+              << "\n";
+    std::cout << "MAEC static buffer sequential write: "
+              << smaec_writes / iterations << " ms"
               << "\n";
 
     std::cout << "  --== [ Vector Read Times: ] ==--" << '\n';
@@ -948,16 +957,17 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
               << '\n';
     std::cout << "Dynamic array average read time: " << vect5_read / iterations
               << " ms" << '\n';
-    std::cout << "MAEC buffer interleaved read time: " << maec_readi / iterations << " ms"
+    std::cout << "MAEC buffer interleaved read time: "
+              << maec_readi / iterations << " ms"
               << "\n";
-    std::cout << "MAEC buffer sequential read time: "
-              << maec_reads / iterations << " ms"
+    std::cout << "MAEC buffer sequential read time: " << maec_reads / iterations
+              << " ms"
               << "\n";
     std::cout << "MAEC static buffer interleaved read time: "
               << smaec_readi / iterations << " ms"
               << "\n";
-    std::cout << "MAEC static buffer sequential read time: " << smaec_reads / iterations
-              << " ms"
+    std::cout << "MAEC static buffer sequential read time: "
+              << smaec_reads / iterations << " ms"
               << "\n";
 
     std::cout << "+================================================+" << '\n';

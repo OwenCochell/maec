@@ -13,28 +13,28 @@
 
 #include <cmath>
 
-long double window_rectangle(int, int) {  //NOLINT: Parameters not used in function
+double window_rectangle(int, int) {  // NOLINT: Parameters not used in function
 
     // Just return 1!
 
     return 1.;
 }
 
-long double window_hann(int num, int size, double a0) {
+double window_hann(int num, int size, double a0) {
 
     // Calculate and return:
 
     return a0 - (1 - a0) * std::cos(2 * M_PI * num / (size - 1));
 }
 
-long double window_hamming(int num, int size, double a0) {
+double window_hamming(int num, int size, double a0) {
 
     // Just run through Hann window with new a0 value:
 
     return window_hann(num, size, a0);
 }
 
-long double window_blackmanc(int num, int size, double alpha) {
+double window_blackmanc(int num, int size, double alpha) {
 
     // Calculate and return:
 
@@ -42,7 +42,7 @@ long double window_blackmanc(int num, int size, double alpha) {
            (alpha / 2) * std::cos(4 * M_PI * num / (size - 1));
 }
 
-long double window_blackman(int num, int size) {
+double window_blackman(int num, int size) {
 
     // Just call function and return:
 

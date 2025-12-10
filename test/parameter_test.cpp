@@ -95,7 +95,7 @@ TEST_CASE("Module Parameter Tests", "[param]") {
 
         // Dummy data to utilize
 
-        std::vector<long double> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        std::vector<double> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
         // Create a module to use:
 

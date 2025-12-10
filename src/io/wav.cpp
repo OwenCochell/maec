@@ -414,7 +414,7 @@ BufferPointer WaveReader::get_data() {
 
                 // Convert into mf:
 
-                const long double val = uchar_mf(i);
+                const double val = uchar_mf(i);
 
                 // Add to buffer:
 

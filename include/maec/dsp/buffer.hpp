@@ -1354,7 +1354,7 @@ public:
      * This iterator is useful for iterating over the raw signal,
      * without regard to the underlying channels.
      *
-     * @return Buffer::SeqIterator<long double>
+     * @return Buffer::SeqIterator<double>
      */
     constexpr BaseBuffer::SeqIterator<> sbegin() {
         return BaseBuffer::SeqIterator<>(this);
@@ -1366,7 +1366,7 @@ public:
      * Returns the end iterator for sequential iteration.
      * This is useful for determining when to stop iterating over samples.
      *
-     * @return Buffer::SeqIterator<long double>
+     * @return Buffer::SeqIterator<double>
      */
     constexpr BaseBuffer::SeqIterator<> send() {
         return BaseBuffer::SeqIterator<>(this, this->buff.size());
@@ -1380,7 +1380,7 @@ public:
      * meaning that this start iterator will initially point to the last value
      * in this buffer.
      *
-     * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
+     * @return std::reverse_iterator<Buffer::SeqIterator<double>>
      */
     constexpr std::reverse_iterator<BaseBuffer::SeqIterator<>> srbegin() {
         return std::reverse_iterator<BaseBuffer::SeqIterator<>>(
@@ -1393,7 +1393,7 @@ public:
      * Returns the reverse sequential end iterator for this buffer.
      * Useful for determining when to stop iterating over samples in reverse.
      *
-     * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
+     * @return std::reverse_iterator<Buffer::SeqIterator<double>>
      */
     constexpr std::reverse_iterator<BaseBuffer::SeqIterator<>> srend() {
         return std::reverse_iterator<BaseBuffer::SeqIterator<>>(
@@ -1408,7 +1408,7 @@ public:
      * marked as constant, so the contents of the buffer can't be altered using
      * this iterator.
      *
-     * @return Buffer::SeqIterator<const long double>
+     * @return Buffer::SeqIterator<const double>
      */
     constexpr BaseBuffer::SeqIterator<true> scbegin() const {
         return BaseBuffer::SeqIterator<true>(this);
@@ -1467,7 +1467,7 @@ public:
      * meaning that this iterator will initially point to the last value in the
      * buffer.
      *
-     * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
+     * @return std::reverse_iterator<Buffer::SeqIterator<double>>
      */
     constexpr std::reverse_iterator<BaseBuffer::InterIterator<>> irbegin() {
         return std::reverse_iterator(
@@ -1480,7 +1480,7 @@ public:
      * Returns the end reversed interleaved iterator for this buffer.
      * Useful for determining when to stop iterating.
      *
-     * @return std::reverse_iterator<Buffer::SeqIterator<long double>>
+     * @return std::reverse_iterator<Buffer::SeqIterator<double>>
      */
     constexpr std::reverse_iterator<BaseBuffer::InterIterator<>> irend() {
         return std::reverse_iterator(BaseBuffer::InterIterator<>(this));
@@ -1494,7 +1494,7 @@ public:
      * but we are marked as constant, so the contents of the buffer can't be
      * altered using this iterator.
      *
-     * @return Buffer::InterIterator<const long double>
+     * @return Buffer::InterIterator<const double>
      */
     constexpr BaseBuffer::InterIterator<true> icbegin() const {
         return BaseBuffer::InterIterator<true>(this);
@@ -1508,7 +1508,7 @@ public:
      *
      * Again, we are constant, so values can't be edited using this iterator.
      *
-     * @return Buffer::InterIterator<const long double>
+     * @return Buffer::InterIterator<const double>
      */
     constexpr BaseBuffer::InterIterator<true> icend() const {
         return InterIterator<true>(this, this->size());

@@ -50,11 +50,11 @@ int main() {
     }
 
     // Time to create each time
-    std::chrono::duration<long, std::ratio<1, 1000000000>> create{};
+    std::chrono::duration<int64_t, std::ratio<1, 1000000000>> create{};
     bool cset = false;
 
     // Process time of each chain
-    std::chrono::duration<long, std::ratio<1, 1000000000>> process{};
+    std::chrono::duration<int64_t, std::ratio<1, 1000000000>> process{};
     bool pset = false;
 
     for (std::size_t i = 0; i < iter; ++i) {
