@@ -26,6 +26,8 @@ set(MISC_FILES
     parallel_bench.cpp
 )
 
+include(Optimize)
+
 # Finally, build and link all misc. demo files:
 
 foreach( demosourcefile ${MISC_FILES} )
@@ -40,7 +42,6 @@ foreach( demosourcefile ${MISC_FILES} )
 
     # Preform optimizations, if any
 
-    include(Optimize)
     optimize(${demoname})
 
     # Link MAEC
