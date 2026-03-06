@@ -22,6 +22,8 @@
 
 #include "dsp/util.hpp"
 
+namespace {
+
 /// Known data to compute
 std::vector<double> ft_data = {
     -81.0611399999996160709, -32.4312400000002611124, -38.8382199999997827569,
@@ -303,6 +305,8 @@ void rand_real(int size, std::vector<double>::iterator out) {
                      std::default_random_engine::max();
     }
 }
+
+}  // namespace
 
 TEST_CASE("DFT", "[ft][dsp]") {
 

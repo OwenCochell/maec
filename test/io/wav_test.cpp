@@ -24,6 +24,8 @@
 #include "audio_buffer.hpp"
 #include "io/mstream.hpp"
 
+namespace {
+
 /**
  * @brief Standard wave file - data is in one huge chunk at the end of the file
  *
@@ -65,16 +67,71 @@ CharIStream wavs = {
  *
  */
 CharIStream wavb = {
-    0x52, 0x49, 0x46, 0x46, 0x38, 0,    0,    0,
-    0x57, 0x41, 0x56, 0x45,  // WAVE header
-    0x66, 0x6D, 0x74, 0x20, 0x10, 0,    0,    0,
-    0x01, 0,    0x02, 0,    0x80, 0xbb, 0,    0,
-    0,    0x77, 0x01, 0x00, 0x02, 0x00, 0x08, 0x00,  // FORMAT chunk
-    0x64, 0x61, 0x74, 0x61, 0x14, 0x00, 0x00, 0x00,  // DATA header
-    0x85, 0xff, 0x9d, 0xff,  // Data (till end of array) FAILS AT FIRST VALUE IN
-                             // LINE!
-    0x42, 0xff, 0x9b, 0xff, 0x72, 0xff, 0x7d, 0xff,
-    0xe0, 0xff, 0x07, 0xff, 0x25, 0x00, 0xea, 0xfe,
+    0x52,
+    0x49,
+    0x46,
+    0x46,
+    0x38,
+    0,
+    0,
+    0,
+    0x57,
+    0x41,
+    0x56,
+    0x45,  // WAVE header
+    0x66,
+    0x6D,
+    0x74,
+    0x20,
+    0x10,
+    0,
+    0,
+    0,
+    0x01,
+    0,
+    0x02,
+    0,
+    0x80,
+    0xbb,
+    0,
+    0,
+    0,
+    0x77,
+    0x01,
+    0x00,
+    0x02,
+    0x00,
+    0x08,
+    0x00,  // FORMAT chunk
+    0x64,
+    0x61,
+    0x74,
+    0x61,
+    0x14,
+    0x00,
+    0x00,
+    0x00,  // DATA header
+    0x85,
+    0xff,
+    0x9d,
+    0xff,  // Data (till end of array) FAILS AT FIRST VALUE IN
+           // LINE!
+    0x42,
+    0xff,
+    0x9b,
+    0xff,
+    0x72,
+    0xff,
+    0x7d,
+    0xff,
+    0xe0,
+    0xff,
+    0x07,
+    0xff,
+    0x25,
+    0x00,
+    0xea,
+    0xfe,
 };
 
 /**
@@ -184,6 +241,7 @@ std::array<unsigned char, 20> data_wavb = {
 std::array<int16_t, 20> data_wavji = {-123, -99,  -190, -101, -142, -131, -32,
                                       -249, 37,   -278, -203, -164, -118, -211,
                                       -137, -134, -29,  -9,   37,   -277};
+}  // namespace
 
 TEST_CASE("Base Wave", "[io][wav]") {
 
@@ -378,7 +436,7 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
                 REQUIRE(int16_mf(data_wavs.at(static_cast<size_t>(i) * 2)) ==
                         data->at(0));
-                REQUIRE(int16_mf(data_wavs.at(i * 2 + 1)) == data->at(1));
+                REQUIRE(int16_mf(data_wavs.at((i * 2) + 1)) == data->at(1));
             }
 
             // We should be done with the file:
@@ -448,7 +506,7 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
                 REQUIRE(int16_mf(data_wavs.at(static_cast<size_t>(index) *
                                               2)) == data->at(0));
-                REQUIRE(int16_mf(data_wavs.at(index * 2 + 1)) == data->at(1));
+                REQUIRE(int16_mf(data_wavs.at((index * 2) + 1)) == data->at(1));
 
                 // Increment index:
 
@@ -511,7 +569,7 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
                 REQUIRE(uchar_mf(data_wavb.at(static_cast<size_t>(i) * 2)) ==
                         data->at(0));
-                REQUIRE(uchar_mf(data_wavb.at(i * 2 + 1)) == data->at(1));
+                REQUIRE(uchar_mf(data_wavb.at((i * 2) + 1)) == data->at(1));
             }
 
             // We should be done with the file:
@@ -577,7 +635,7 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
                 REQUIRE(int16_mf(data_wavs.at(static_cast<size_t>(i) * 2)) ==
                         data->at(0));
-                REQUIRE(int16_mf(data_wavs.at(i * 2 + 1)) == data->at(1));
+                REQUIRE(int16_mf(data_wavs.at((i * 2) + 1)) == data->at(1));
             }
 
             // We are not necessarily done with the wave file,
@@ -645,7 +703,7 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
                 REQUIRE(int16_mf(data_wavji.at(static_cast<size_t>(i) * 2)) ==
                         data->at(0));
-                REQUIRE(int16_mf(data_wavji.at(i * 2 + 1)) == data->at(1));
+                REQUIRE(int16_mf(data_wavji.at((i * 2) + 1)) == data->at(1));
             }
 
             // We should be done with wave file:
@@ -687,7 +745,7 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
                     // Determine if we don't have data for this:
 
-                    if (i * 8 + j >= data_wavji.size()) {
+                    if ((i * 8) + j >= data_wavji.size()) {
 
                         // Should just be zero...
                         REQUIRE(0 == data->at(j));
@@ -697,7 +755,8 @@ TEST_CASE("Wave Reader", "[io][wav]") {
 
                     // Ensure data is accurate:
 
-                    REQUIRE(int16_mf(data_wavji.at(i * 8 + j)) == data->at(j));
+                    REQUIRE(int16_mf(data_wavji.at((i * 8) + j)) ==
+                            data->at(j));
                 }
             }
 
@@ -873,7 +932,7 @@ TEST_CASE("Wave Writer", "[io][wav]") {
             // Convert into mf:
 
             buff1->at(i) = uchar_mf(data_wavb.at(i));
-            buff2->at(i) = uchar_mf(data_wavb.at(i + data_wavb.size() / 2));
+            buff2->at(i) = uchar_mf(data_wavb.at(i + (data_wavb.size() / 2)));
         }
 
         // Write to writer:
