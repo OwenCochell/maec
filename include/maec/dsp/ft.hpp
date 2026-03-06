@@ -25,6 +25,36 @@
 #include <numbers>
 
 /**
+ * @brief Determines the frequency for a given FT index
+ *
+ * Digital Fourier transforms output amplitudes
+ * for a given frequency of the basis waveforms.
+ * FT data stored in an indexed array has this frequency
+ * information encoded in the position of each amplitude.
+ * You can think of this as a sequence of 'bins'
+ * that correspond to a specific frequency.
+ * This works very well for computer processing,
+ * but not so much for humans that wish to understand the frequency
+ * that each amplitude corresponds to.
+ *
+ * Given the FT parameters, this function converts the index
+ * of an amplitude into a frequency value.
+ * For example, if you wanted to plot how the amplitude changes for each
+ * frequency, you could plug each index into this function to get a independent
+ * variable representing the frequency instead of array indices.
+ * The unit of this value will be whatever sample rate unit is,
+ * which is usually in hertz.
+ *
+ * TODO: Test
+ *
+ * @param index Index of the amplitude to convert
+ * @param size Size of the signal data
+ * @param sample_rate Sample rate of the transformed signal
+ * @return double Frequency of amplitude component
+ */
+double index_freq(std::size_t index, std::size_t size, double sample_rate);
+
+/**
  * @brief Cosine basis function
  *
  * This function will be utilized to represent
@@ -266,7 +296,7 @@ void fft_process_real(T complex, int size, bool invert) {
  * @param size Size of input signal
  * @return int Size of the real and non-real parts
  */
-int length_ft(std::size_t size);
+std::size_t length_ft(std::size_t size);
 
 /**
  * @brief Determines the length of the output signal result from an inverse DFT
@@ -280,7 +310,7 @@ int length_ft(std::size_t size);
  * @param size Size of real and non-real parts
  * @return int Size of output signal
  */
-int length_ift(std::size_t size);
+std::size_t length_ift(std::size_t size);
 
 /**
  * This section defines functions for calculating
@@ -384,11 +414,11 @@ void dft(I input, int size, R real, U nonreal) {
 
     // Determine size of output buffers:
 
-    int output_size = length_ft(size);
+    std::size_t output_size = length_ft(size);
 
     // Iterate over output size:
 
-    for (int k = 0; k < output_size; ++k) {
+    for (std::size_t k = 0; k < output_size; ++k) {
 
         // Iterate over total size:
 

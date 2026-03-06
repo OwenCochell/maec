@@ -9,12 +9,16 @@
  *
  */
 
-#include <numbers>
-#define _USE_MATH_DEFINES
+#include "dsp/ft.hpp"
 
 #include <cmath>
+#include <numbers>
 
-#include "dsp/ft.hpp"
+double index_freq(std::size_t index, std::size_t size, double sample_rate) {
+
+    return static_cast<double>(index) *
+           (sample_rate / static_cast<double>(size));
+}
 
 double cos_basis(int phase, int total, double freq) {
 
@@ -30,16 +34,16 @@ double sin_basis(int phase, int total, double freq) {
     return sin((2 * std::numbers::pi_v<double> * freq * phase) / total);
 }
 
-int length_ft(std::size_t size) {
+std::size_t length_ft(std::size_t size) {
 
     // Simply calculate and return:
 
-    return (static_cast<int>(size) / 2) + 1;
+    return (size / 2) + 1;
 }
 
-int length_ift(std::size_t size) {
+std::size_t length_ift(std::size_t size) {
 
     // Simply calculate and return:
 
-    return (static_cast<int>(size) - 1) * 2;
+    return (size - 1) * 2;
 }
