@@ -7,6 +7,7 @@ set(CMAKE_FOLDER demos)
 # Include demo subdirectories tha might have custom CMake requirements:
 
 add_subdirectory( parallel_plot )
+add_subdirectory( freq_plot )
 
 # Demo files to be ran
 
