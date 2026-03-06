@@ -18,6 +18,9 @@
 
 #pragma once
 
+#include <algorithm>
+#include <vector>
+
 #include "audio_module.hpp"
 #include "dsp/const.hpp"
 #include "dsp/conv.hpp"
@@ -137,7 +140,12 @@ private:
     BufferPointer kernel = nullptr;
 
     /// Size of the filter kernel
-    int size = 50;
+    int size = 51;
+
+    /// Overlap-add tail buffer: holds the last (kernel_size - 1) samples
+    /// from the previous block's convolution output that must be added
+    /// to the beginning of the next block's output.
+    std::vector<double> overlap_tail;
 
 public:
     /**
@@ -184,41 +192,71 @@ public:
      * We call the 'generate_kernel()' method at startup,
      * allowing for proper filtering to take place
      * once audio data is provided.
+     * We also clear the overlap tail so previous state does
+     * not bleed into the new session.
      *
      */
-    void start() override { this->generate_kernel(); }
+    void start() override {
+        this->generate_kernel();
+        this->overlap_tail.clear();
+    }
 
     /**
      * @brief Processes incoming audio data
      *
-     * We Just convolve the incoming audio data
-     * with the generated filter kernel.
+     * We convolve the incoming audio data with the generated filter kernel
+     * using the overlap-add method so block boundaries are seamless.
+     *
+     * Each linear convolution of an N-sample block with an M-tap kernel
+     * produces N + M - 1 output samples.  The final M - 1 samples (the
+     * "tail") represent the impulse-response energy that extends past the
+     * end of the current block and should be summed into the beginning of
+     * the next block's output.  Without this accumulation the tail is
+     * silently discarded every block, creating a periodic click at the
+     * block rate (~100 Hz at the default 440-sample block size) which is
+     * audible as an oscillating buzz under the wanted signal.
      *
      */
     void process() override {
-        // Do convolution operation:
 
-        // THIS LINE CAUSES SEG FAULT!
-        // We must find a better way to share the kernel with the DSP functions.
-        // After the first process, the kernel is destroyed,
-        // as it was owned by the convolution function.
-        // I'm thinking maybe we finally hash out the AudioInfo issues?
-
-        // Grab the buffer:
+        // Grab the input block:
 
         auto ibuff = this->get_buffer();
+        const std::size_t input_size = ibuff.size();
+        const std::size_t kernel_size = this->kernel->size();
 
-        // Allocate buffer for holding output:
+        // Allocate a full convolution output buffer (N + M - 1 samples)
+        // zero-initialised so the overlap-add accumulation is correct:
 
-        auto nbuff =
-            AudioBuffer(length_conv(ibuff.size(), this->kernel->size()), 1);
+        std::vector<double> conv_out(length_conv(input_size, kernel_size), 0.0);
 
-        // Run though convolution function:
+        // Run the convolution:
 
-        input_conv(ibuff.ibegin(), ibuff.size(), this->kernel->ibegin(),
-                   this->kernel->size(), nbuff.ibegin());
+        input_conv(ibuff.ibegin(), input_size, this->kernel->ibegin(),
+                   kernel_size, conv_out.begin());
 
-        // Finally, set the buffer:
+        // Overlap-add: fold the saved tail from the previous block
+        // The tail holds the last (M - 1) samples from the previous full
+        // convolution.  They overlap with the first (M - 1) samples of the
+        // current convolution output, so we add them in place:
+
+        const std::size_t prev_tail = this->overlap_tail.size();
+        for (std::size_t i = 0; i < prev_tail; ++i) {
+            conv_out[i] += this->overlap_tail[i];
+        }
+
+        // Save new tail for the next block
+
+        this->overlap_tail.assign(conv_out.begin() + input_size,
+                                  conv_out.end());
+
+        // Trim output to exactly N samples and set on the buffer
+        // Only the first input_size samples are forwarded downstream;
+        // the tail will be contributed to the next block via overlap_tail.
+
+        auto nbuff = AudioBuffer(input_size, 1);
+        std::copy(conv_out.begin(), conv_out.begin() + input_size,
+                  nbuff.ibegin());
 
         this->set_buffer(std::move(nbuff));
     }
@@ -278,7 +316,7 @@ public:
 
             // Create high pass filter from this kernel:
 
-            spectral_inversion(kern->ibegin(), final_size);
+            spectral_inversion(hkern.ibegin(), final_size);
 
             // Add kernels together to create band-reject:
 
