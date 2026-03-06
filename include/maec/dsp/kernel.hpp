@@ -85,7 +85,7 @@ void spectral_inversion(I input, int size) {
 
     // Add one to the center sample:
 
-    *(input + ((size / 2) + 1)) += 1;
+    *(input + (size / 2)) += 1;
 }
 
 template <typename I>
@@ -136,7 +136,7 @@ void sinc_kernel(double freq, int size, O output,
 
     // Calculate center value:
 
-    *(output + size2) = 1.;
+    *(output + size2) = 1. * window(size2, size);
 
     // Normalize all values:
 

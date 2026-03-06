@@ -347,7 +347,7 @@ class BaseIIRImplementation : public IIRFilter<T> {
 
 private:
     /// Sample rate
-    int sample_rate;
+    int sample_rate = 0;
 
     /// Lower frequency cutoff
     double freq_high = 0.;

@@ -58,9 +58,8 @@ void SquareOscillator::process() {
 
         // Calculate the square wave:
 
-        *iter = (modf(static_cast<double>(this->get_frequency() *
-                                          this->get_phase() /
-                                          this->buff.get_samplerate()),
+        *iter = (modf((this->get_frequency() * this->get_phase() /
+                       this->buff.get_samplerate()),
                       &placeholder) < 0.5)
                     ? 1.0
                     : -1.0;
@@ -89,10 +88,9 @@ void SawtoothOscillator::process() {
 
         // Calculate the sawtooth wave:
 
-        *iter = (2.0 * modf(static_cast<double>(
-                                this->get_frequency() * this->get_phase() /
-                                    this->buff.get_samplerate() +
-                                0.5),
+        *iter = (2.0 * modf(((this->get_frequency() * this->get_phase() /
+                              this->buff.get_samplerate()) +
+                             0.5),
                             &placeholder)) -
                 1.0;
 
@@ -120,10 +118,9 @@ void TriangleOscillator::process() {
 
         // Calculate the triangle wave:
 
-        double temp =
-            modf(static_cast<double>(this->get_frequency() * this->get_phase() /
-                                     this->buff.get_samplerate()),
-                 &placeholder);
+        double temp = modf((this->get_frequency() * this->get_phase() /
+                            this->buff.get_samplerate()),
+                           &placeholder);
 
         if (temp < 0.25) {
             temp *= 4.0;
@@ -200,14 +197,12 @@ void ModSquareOscillator::process() {
     // Fill the buffer with the square wave:
 
     for (auto iter = this->buff.ibegin();
-         (unsigned int)iter.get_index() < this->buff.size(); ++iter) {
+         static_cast<unsigned int>(iter.get_index()) < this->buff.size();
+         ++iter) {
 
         // Calculate the square wave:
 
-        *iter =
-            (modf(static_cast<double>(this->get_phase()), &placeholder) < 0.5)
-                ? 1.0
-                : -1.0;
+        *iter = (modf(this->get_phase(), &placeholder) < 0.5) ? 1.0 : -1.0;
 
         // Get frequency value:
 
@@ -245,9 +240,7 @@ void ModSawtoothOscillator::process() {
 
         // Calculate the sawtooth wave:
 
-        *iter = (2.0 * modf(static_cast<double>(this->get_phase() + 0.5),
-                            &placeholder)) -
-                1.0;
+        *iter = (2.0 * modf((this->get_phase() + 0.5), &placeholder)) - 1.0;
 
         // Get the frequency value:
 
@@ -285,8 +278,7 @@ void ModTriangleOscillator::process() {
 
         // Calculate the triangle wave:
 
-        double temp =
-            modf(static_cast<double>(this->get_phase()), &placeholder);
+        double temp = modf(this->get_phase(), &placeholder);
 
         if (temp < 0.25) {
             temp *= 4.0;

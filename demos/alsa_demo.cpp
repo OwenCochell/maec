@@ -24,21 +24,24 @@ int main() {
 
     // Create the ALSASink
 
-    std::cout << "Creating sink ..." << std::endl;
+    std::cout << "Creating sink ..." << '\n';
 
     ALSASink sink;
 
     // Create a test module:
 
-    std::cout << "Creating saw oscillator ..." << std::endl;
+    std::cout << "Creating saw oscillator ..." << '\n';
 
-    ModSineOscillator saw(440.0);
+    SawtoothOscillator saw(440.0);
 
     // Bind the modules:
 
-    std::cout << "Binding the modules ..." << std::endl;
+    std::cout << "Binding the modules ..." << '\n';
 
-    sink.link(&saw);
+    SincFilter sinc;
+    sinc.set_start_freq(50);
+
+    sink.link(&sinc)->link(&saw);
 
     // Meta sync and start the chain:
 
@@ -59,7 +62,7 @@ int main() {
 
     // for(int i = 0; i < 5; i++) {
     while (true) {
-        std::cout << "Processing ..." << std::endl;
+        std::cout << "Processing ..." << '\n';
 
         sink.meta_process();
     }
