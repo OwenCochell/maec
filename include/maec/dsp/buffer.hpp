@@ -18,12 +18,40 @@
 
 #include <array>
 #include <concepts>
+#include <cstddef>
 #include <initializer_list>
 #include <iterator>
 #include <vector>
 
 #include "const.hpp"
+#include "meta.hpp"
 #include "util.hpp"
+
+/**
+ * @brief A concepts that defines valid container to be used
+ *
+ * We require the following features for any containers used
+ * in maec buffers.
+ *
+ * @tparam T Type to check
+ */
+template <typename T>
+concept BufferContainer = requires(T typ) {
+    // Values can be accessed through subscripting
+    typ[0];
+
+    // Has a size function
+    { typ.size() } -> is_numerical;
+
+    // Can start iteration
+    typ.begin();
+
+    // Can stop iteration
+    typ.end();
+
+    // Access underlying data
+    typ.data();
+};
 
 /**
  * @brief Base class for maec Iterators
@@ -469,23 +497,6 @@ private:
 
     /// The current sample we are on
     int index = 0;
-};
-
-/**
- * @brief A concepts that defines valid container to be used
- *
- * We require the following features for any containers used
- * in maec buffers.
- *
- * @tparam T Type to check
- */
-template <typename T>
-concept BufferContainer = requires(T typ) {
-    typ[0];       // Values can be accessed through subscripting
-    typ.size();   // Has a size function
-    typ.begin();  // Can start iteration
-    typ.end();    // Can stop iteration
-    typ.data();   // Access underlying data
 };
 
 /**
@@ -1959,7 +1970,7 @@ public:
      *
      * @param nsize Size to use for this buffer
      */
-    explicit RingBuffer(int nsize) { this->reserve(nsize); }
+    explicit RingBuffer(std::size_t nsize) : buff(nsize) {}
 
     /**
      * @brief Constructs a new RingBuffer object using existing data
@@ -1970,15 +1981,14 @@ public:
      *
      * @param other Data to use for this buffer
      */
-    explicit RingBuffer(const std::vector<T>& other)
-        : buff(other), bsize(other.size()) {}
+    explicit RingBuffer(const std::vector<T>& other) : buff(other) {}
 
     /**
      * @brief Retrieves the size of this buffer
      *
-     * @return int Size of this buffer
+     * @return std::size_t Size of this buffer
      */
-    int size() const { return this->bsize; }
+    std::size_t size() const { return this->buff.size(); }
 
     /**
      * @brief Reserves the given size for this buffer
@@ -1988,10 +1998,17 @@ public:
      *
      * @param nsize New size of circular buffer
      */
-    void reserve(int nsize) {
-        this->buff.reserve(nsize);
-        this->bsize = nsize;
-    }
+    void reserve(std::size_t nsize) { this->buff.reserve(nsize); }
+
+    /**
+     * @brief Resizes the buffer to the given size
+     *
+     * This resizes the underlying vector to the given size, and also updates
+     * the size of the buffer for determining indexes.
+     *
+     * @param nsize Size to resize buffer to
+     */
+    void resize(std::size_t nsize) { this->buff.resize(nsize); }
 
     /**
      * @brief Gets the start iterator for the ring buffer
@@ -2028,9 +2045,6 @@ public:
     }
 
 private:
-    /// Size of this ring buffer
-    int bsize = 0;
-
     /// The underlying buffer
     std::vector<T> buff;
 
