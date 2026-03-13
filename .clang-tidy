@@ -1,5 +1,5 @@
 ---
-Checks: 'bugprone-*,clang-diagnostic-*,clang-analyzer-*,modernize-*,performance-*,readability-*,google-*,cppcoreguidelines-*,misc-*,performance-*,portability-*, -modernize-use-trailing-return-type,-modernize-use-nodiscard'
+Checks: 'bugprone-*,clang-diagnostic-*,clang-analyzer-*,modernize-*,performance-*,readability-*,google-*,cppcoreguidelines-*,misc-*,performance-*,portability-*, -modernize-use-trailing-return-type,-modernize-use-nodiscard,-bugprone-easily-swappable-parameters'
 FormatStyle: 'file'
 HeaderFilterRegex: '.*'
 CheckOptions:
