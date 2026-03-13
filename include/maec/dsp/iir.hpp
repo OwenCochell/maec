@@ -16,10 +16,10 @@
 #pragma once
 
 #include <cmath>
-#include <deque>
 #include <numbers>
 #include <vector>
 
+#include "dsp/buffer.hpp"
 #include "dsp/const.hpp"
 
 /**
@@ -107,13 +107,12 @@ T iir_recursive_single(T input, C& input_container, C& output_container, D aco,
  */
 template <typename T>
 class IIRFilter {
-
 private:
     /// Previous input data
-    std::deque<T> input;
+    RingBuffer<T> inputs;
 
     /// Previous output data
-    std::deque<T> output;
+    RingBuffer<T> outputs;
 
     /// Vector of A coefficients
     std::vector<T> acoes;
@@ -121,16 +120,52 @@ private:
     /// Vector of B coefficients
     std::vector<T> bcoes;
 
-    /// Number of A coefficients
-    int asize = 0;
+    /// Current index for the input and output containers
+    std::size_t index = 0;
 
-    /// Number of B coefficients
-    int bsize = 0;
+    T proc_single(T input) {
+
+        // First, we push the new input value to the front of the input
+        // container:
+
+        inputs[index] = input;
+
+        // Iterate over all A poles:
+
+        T final_value = 0;
+
+        for (int i = 0; i < acoes.size(); ++i) {
+
+            // We then multiply the input value by the A coefficient,
+            // and add it to the final value:
+
+            final_value += inputs[index - i] * acoes[i];
+        }
+
+        // Iterate over all B poles:
+
+        for (int i = 0; i < bcoes.size(); ++i) {
+
+            // We then multiply the output value by the B coefficient,
+            // and add it to the final value:
+
+            final_value += outputs[index - i] * bcoes[i];
+        }
+
+        // Add final value to container
+        // and increment the index
+
+        outputs[index++] = final_value;
+
+        // Finally, return final value:
+
+        return final_value;
+    }
 
 public:
     IIRFilter() = default;
 
-    IIRFilter(int asize, int bsize) : asize(asize), bsize(bsize) {
+    IIRFilter(int asize, int bsize) : acoes(asize), bcoes(bsize) {
         this->reserve();
     }
 
@@ -144,26 +179,15 @@ public:
      */
     void reserve() {
 
-        // First, reserve A and B vectors:
+        // Resize the input and output buffers to the size of the number of
+        // poles:
 
-        this->acoes.reserve(this->asize);
-        this->bcoes.reserve(this->bcoes);
+        this->inputs.resize(this->acoes.size());
+        this->outputs.resize(this->bcoes.size());
 
-        // Next, fill input and output deques:
+        // The index should be the max of the number of A and B poles:
 
-        for (int i = 0; i < this->asize; ++i) {
-
-            // Fill input with 0:
-
-            this->input.push_front(0);
-        }
-
-        for (int i = 0; i < this->bsize; ++i) {
-
-            // Fill output with 0:
-
-            this->input.push_front(0);
-        }
+        this->index = std::max(this->acoes.size(), this->bcoes.size());
     }
 
     /**
@@ -171,28 +195,28 @@ public:
      *
      * @return Number of A coefficients
      */
-    int get_asize() const { return this->asize; }
+    int get_asize() const { return acoes.size(); }
 
     /**
      * @brief Sets the number of A coefficients
      *
      * @param size New number of A coefficients
      */
-    void set_asize(int size) { this->asize = size; }
+    void set_asize(int size) { this->acoes.resize(size); }
 
     /**
      * @brief Gets the number of B coefficients
      *
      * @return Number of B coefficients
      */
-    int get_bsize() const { return this->bsize; }
+    int get_bsize() const { return bcoes.size(); }
 
     /**
      * @brief Sets the number of B coefficients
      *
      * @param size New number of B coefficients
      */
-    void set_bsize(int size) { this->bsize = size; }
+    void set_bsize(int size) { this->bcoes.resize(size); }
 
     /**
      * @brief Retrieves a start iterator for the A coefficient vector
@@ -284,10 +308,9 @@ public:
 
         for (int i = 0; i < size; ++i) {
 
-            // Run the signal through the IIR filter:
-            *(input + i) = iir_recursive_single(
-                *(input + i), this->input, this->output, this->abegin(),
-                this->bbegin(), this->asize, this->bsize);
+            // Run signal through IIR filter:
+
+            *(input + i) = proc_single(*(input + i));
         }
     }
 
@@ -313,9 +336,7 @@ public:
 
             // Run signal through IIR filter:
 
-            *(output + i) = iir_recursive_single(
-                *(input + i), this->input, this->output, this->abegin(),
-                this->bbegin(), this->asize, this->bsize);
+            *(output + i) = proc_single(*(input + i));
         }
     }
 };
