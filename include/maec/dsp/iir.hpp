@@ -16,11 +16,48 @@
 #pragma once
 
 #include <cmath>
+#include <complex>
+#include <cstddef>
 #include <numbers>
 #include <vector>
 
 #include "dsp/buffer.hpp"
 #include "dsp/const.hpp"
+
+namespace dsp::iir {
+
+double iir_fr_map(double freq, double sra) {
+
+    return dsp::consts::pi_2 * (freq / sra);
+}
+
+template <typename A, typename B>
+std::complex<double> iir_fr_single(double rad, const A& acoes, const B& bcoes) {
+
+    using namespace std::complex_literals;
+
+    // First, compute the numerator
+
+    std::complex<double> num = 0;
+
+    for (std::size_t j = 0; j < bcoes.size(); ++j) {
+
+        num += bcoes[j] * std::exp(j * rad * 1i);
+    }
+
+    // Next compute the denominator
+
+    std::complex<double> denom;
+
+    for (std::size_t j = 0; j < acoes.size(); ++j) {
+
+        denom += acoes[j] * std::exp(j * rad * 1i);
+    }
+
+    // The result will be the division between the two
+
+    return num / denom;
+}
 
 /**
  * @brief Preforms a recursive IIR filter on a single input
@@ -80,7 +117,7 @@ T iir_recursive_single(T input, C& input_container, C& output_container, D aco,
     }
 
     // Add final value to container:
-
+identifier
     output_container.push_front(final_value);
 
     // Pop the backs of the containers:
@@ -592,3 +629,5 @@ public:
         }
     }
 };
+
+}  // namespace dsp::iir
