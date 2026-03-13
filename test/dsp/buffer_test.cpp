@@ -2465,6 +2465,21 @@ TEST_CASE("Ring Buffer Test", "[buff][ring]") {
 
         // Ensure size is accurate:
 
+        REQUIRE(ring.size() == 0);
+    }
+
+    SECTION("Resize", "Ensures we can resize a RingBuffer") {
+
+        // Create a RingBuffer:
+
+        RingBuffer<double> ring;
+
+        // Resize it:
+
+        ring.resize(10);
+
+        // Ensure size is accurate:
+
         REQUIRE(ring.size() == 10);
     }
 
@@ -2532,13 +2547,12 @@ TEST_CASE("Ring Buffer Test", "[buff][ring]") {
 
             // Now, use an algorithm method:
 
-            std::fill(ring.begin(), ring.end(), 454);
+            std::ranges::fill(ring, 454);
 
             // Finally, ensure that all values are 454
 
-            bool const res =
-                std::all_of(ring.begin(), ring.end(),
-                            [](double num) { return num == 454.0; });
+            bool const res = std::ranges::all_of(
+                ring, [](double num) { return num == 454.0; });
 
             REQUIRE(res);
         }
