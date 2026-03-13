@@ -28,6 +28,14 @@ concept has_invocable_member_function =
     std::invocable<F, T&, Args...>;  // Ensure function is invocable with
                                      // provided arguments
 
+/// Concept that checks that the provided type is numerical.
+/// Integer and floating point types will satisfy this concept
+/// TODO: This can be replaced with std::arithmetic?
+template <typename T>
+concept is_numerical =
+    std::floating_point<T> ||  // Check if function is floating point or,
+    std::integral<T>;          // Check if function is integral type
+
 ///
 // Custom Types
 ///
