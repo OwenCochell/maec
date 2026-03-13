@@ -26,6 +26,23 @@
 
 namespace dsp::iir {
 
+/**
+ * @brief Maps a physical frequency to a normalized digital radian
+ *
+ * Given a frequency in hertz and a sampling rate in hertz,
+ * we convert this frequency into a normalized radian that can be used
+ * directly in frequency response operations.
+ *
+ * This translates a frequency into a rotation on the unit circle (z-domain).
+ * Since the vertical half is mirrored (mirrored over Y axis),
+ * we only consider positions from -pi to pi.
+ * You can think of the mapped frequency as the radians per sample,
+ * and is the native coordinate system of the filter.
+ * 
+ * @param freq Frequency to map in hertz
+ * @param sra Sample rate in hertz
+ * @return double Mapped frequency in radians from -pi to pi
+ */
 double freq_map(double freq, double sra) {
 
     return dsp::consts::pi_2 * (freq / sra);
