@@ -14,34 +14,34 @@
 #include <cmath>
 #include <numbers>
 
-double index_freq(std::size_t index, std::size_t size, double sample_rate) {
+double dsp::ft::index_freq(std::size_t index, std::size_t size, double sample_rate) {
 
     return static_cast<double>(index) *
            (sample_rate / static_cast<double>(size));
 }
 
-double cos_basis(int phase, int total, double freq) {
+double dsp::ft::cos_basis(int phase, int total, double freq) {
 
     // Preform operation and return:
 
     return cos((2 * std::numbers::pi_v<double> * freq * phase) / total);
 }
 
-double sin_basis(int phase, int total, double freq) {
+double dsp::ft::sin_basis(int phase, int total, double freq) {
 
     // Preform operation and return:
 
     return sin((2 * std::numbers::pi_v<double> * freq * phase) / total);
 }
 
-std::size_t length_ft(std::size_t size) {
+std::size_t dsp::ft::length_ft(std::size_t size) {
 
     // Simply calculate and return:
 
     return (size / 2) + 1;
 }
 
-std::size_t length_ift(std::size_t size) {
+std::size_t dsp::ft::length_ift(std::size_t size) {
 
     // Simply calculate and return:
 

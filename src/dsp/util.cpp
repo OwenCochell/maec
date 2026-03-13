@@ -13,7 +13,7 @@
 
 #include <cmath>
 
-double sinc(double x) {
+double dsp::util::sinc(double x) {
 
     // Calculate and return:
 

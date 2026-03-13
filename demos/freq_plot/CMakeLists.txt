@@ -7,7 +7,7 @@ project(freq-plot)
 add_executable( ${PROJECT_NAME} freq_plot.cpp )
 
 # Define C++ standard:
-target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
 # Link maec and gnuplot
 

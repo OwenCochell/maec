@@ -29,6 +29,8 @@
 #include "dsp/util.hpp"
 #include "dsp/window.hpp"
 
+namespace dsp::kern {
+
 using window_functiont = double (*)(int, int);
 
 /**
@@ -103,7 +105,7 @@ void spectral_reversal(I input, int size) {
 
 template <typename O>
 void sinc_kernel(double freq, int size, O output,
-                 window_functiont window = window_blackman) {
+                 window_functiont window = win::window_blackman) {
 
     // Determine some constants:
 
@@ -122,7 +124,7 @@ void sinc_kernel(double freq, int size, O output,
 
         // Calculate value:
 
-        const double value = sinc(inner * half) * window(i, size);
+        const double value = util::sinc(inner * half) * window(i, size);
 
         // Set value on each half:
 
@@ -147,3 +149,5 @@ void sinc_kernel(double freq, int size, O output,
         *(output + i) /= sum;
     }
 }
+
+}  // namespace dsp::kern

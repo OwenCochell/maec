@@ -65,7 +65,7 @@ TEST_CASE("Kernel Test", "[kern]") {
 
         // Call sinc function:
 
-        sinc_kernel(freq / SAMPLE_RATE, size, out.begin());
+        dsp::kern::sinc_kernel(freq / dsp::consts::SAMPLE_RATE, size, out.begin());
 
         // Ensure output values are accurate:
 

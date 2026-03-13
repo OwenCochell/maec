@@ -34,6 +34,8 @@
 
 #pragma once
 
+namespace dsp::win {
+
 /**
  * @brief Generates a rectangular window
  *
@@ -129,3 +131,5 @@ double window_blackmanc(int num, int size, double alpha = 0.16);
  * @return double Computed value
  */
 double window_blackman(int num, int size);
+
+}  // namespace dsp::win

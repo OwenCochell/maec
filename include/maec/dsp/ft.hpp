@@ -24,6 +24,8 @@
 #include <iterator>
 #include <numbers>
 
+namespace dsp::ft {
+
 /**
  * @brief Determines the frequency for a given FT index
  *
@@ -738,3 +740,5 @@ void ifft_r_radix2(I input, int size, O output) {
 
     ifft_c_radix2(input, size - 1, cmp);
 }
+
+}  // namespace dsp::ft

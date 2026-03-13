@@ -14,14 +14,14 @@
 #include <cmath>
 #include <numbers>
 
-double window_rectangle(int, int) {  // NOLINT: Parameters not used in function
+double dsp::win::window_rectangle(int, int) {  // NOLINT: Parameters not used in function
 
     // Just return 1!
 
     return 1.;
 }
 
-double window_hann(int num, int size, double a0) {
+double dsp::win::window_hann(int num, int size, double a0) {
 
     // Calculate and return:
 
@@ -29,14 +29,14 @@ double window_hann(int num, int size, double a0) {
                  std::cos(2 * std::numbers::pi_v<double> * num / (size - 1)));
 }
 
-double window_hamming(int num, int size, double a0) {
+double dsp::win::window_hamming(int num, int size, double a0) {
 
     // Just run through Hann window with new a0 value:
 
     return window_hann(num, size, a0);
 }
 
-double window_blackmanc(int num, int size, double alpha) {
+double dsp::win::window_blackmanc(int num, int size, double alpha) {
 
     // Calculate and return:
 
@@ -46,7 +46,7 @@ double window_blackmanc(int num, int size, double alpha) {
             std::cos(4 * std::numbers::pi_v<double> * num / (size - 1)));
 }
 
-double window_blackman(int num, int size) {
+double dsp::win::window_blackman(int num, int size) {
 
     // Just call function and return:
 

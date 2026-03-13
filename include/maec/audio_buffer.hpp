@@ -21,7 +21,7 @@
 #include "dsp/buffer.hpp"
 
 /// A typedef representing an AudioBuffer
-using AudioBuffer = Buffer<double>;
+using AudioBuffer = dsp::buff::Buffer<double>;
 
 /// Alias for a unique pointer to an AudioBuffer
 using BufferPointer = std::unique_ptr<AudioBuffer>;

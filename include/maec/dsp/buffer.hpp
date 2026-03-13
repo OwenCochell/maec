@@ -27,6 +27,8 @@
 #include "meta.hpp"
 #include "util.hpp"
 
+namespace dsp::buff {
+
 /**
  * @brief A concepts that defines valid container to be used
  *
@@ -96,9 +98,9 @@ public:
     using iterator_category = std::random_access_iterator_tag;
     using difference_type = std::ptrdiff_t;
 
-    using iterator_type = typename ChooseType<IsConst, const I, I>::type;
+    using iterator_type = typename dsp::util::ChooseType<IsConst, const I, I>::type;
 
-    using value_type = typename ChooseType<IsConst, const T, T>::type;
+    using value_type = typename dsp::util::ChooseType<IsConst, const T, T>::type;
     using pointer = value_type*;
     using reference = value_type&;
 
@@ -675,7 +677,7 @@ public:
                                   IsConst> {
 
     public:
-        using BufferType = typename ChooseType<IsConst, const BaseBuffer<B, T>,
+        using BufferType = typename dsp::util::ChooseType<IsConst, const BaseBuffer<B, T>,
                                                BaseBuffer<B, T>>::type;
         using reference =
             typename BaseMAECIterator<BaseBuffer::SeqIterator<IsConst>, T,
@@ -893,7 +895,7 @@ public:
     class InterIterator
         : public BaseMAECIterator<InterIterator<IsConst>, T, IsConst> {
     public:
-        using BufferType = typename ChooseType<IsConst, const BaseBuffer<B, T>,
+        using BufferType = typename dsp::util::ChooseType<IsConst, const BaseBuffer<B, T>,
                                                BaseBuffer<B, T>>::type;
         using reference = typename BaseMAECIterator<InterIterator<IsConst>, T,
                                                     IsConst>::reference;
@@ -1091,7 +1093,7 @@ public:
      * @param channels Number of channels to utilize
      * @param sra Sample rate to utilize
      */
-    constexpr BaseBuffer(int size, int channels = 1, double sra = SAMPLE_RATE)
+    constexpr BaseBuffer(int size, int channels = 1, double sra = dsp::consts::SAMPLE_RATE)
         : buff(size * channels), nchannels(channels), sample_rate(sra) {}
 
     /**
@@ -1105,7 +1107,7 @@ public:
      * @param sra Sample rate to utilize
      */
     constexpr BaseBuffer(std::size_t size, int channels = 1,
-                         double sra = SAMPLE_RATE)
+                         double sra = dsp::consts::SAMPLE_RATE)
         : buff(size * channels), nchannels(channels), sample_rate(sra) {}
 
     /**
@@ -1123,7 +1125,7 @@ public:
      * @param channels Number of channels present
      */
     constexpr explicit BaseBuffer(const B& vect, int channels = 1,
-                                  double sra = SAMPLE_RATE)
+                                  double sra = dsp::consts::SAMPLE_RATE)
         : buff(vect), nchannels(channels), sample_rate(sra) {}
 
     /**
@@ -1145,7 +1147,7 @@ public:
      */
     template <std::input_iterator ITER1, std::input_iterator ITER2>
     constexpr explicit BaseBuffer(const ITER1& begin, const ITER2& end,
-                                  int channels = 1, double sra = SAMPLE_RATE)
+                                  int channels = 1, double sra = dsp::consts::SAMPLE_RATE)
         : buff(begin, end), nchannels(channels), sample_rate(sra) {}
 
     /**
@@ -1160,7 +1162,7 @@ public:
      * @param sra Sample rate to utilize
      */
     constexpr BaseBuffer(const std::initializer_list<T>& list, int channels = 1,
-                         double sra = SAMPLE_RATE)
+                         double sra = dsp::consts::SAMPLE_RATE)
         : buff(list), nchannels(channels), sample_rate(sra) {}
 
     /**
@@ -1564,7 +1566,7 @@ private:
     std::size_t nchannels = 1;
 
     /// Sample rate in Hertz
-    double sample_rate = SAMPLE_RATE;
+    double sample_rate = dsp::consts::SAMPLE_RATE;
 
     /// Various friend defintions
     friend class BaseBuffer::SeqIterator<>;
@@ -1590,7 +1592,7 @@ public:
      * @param sra The sample rate to utilize in this buffer
      */
     constexpr explicit Buffer(int size, int channels = 1,
-                              double sra = SAMPLE_RATE)
+                              double sra = dsp::consts::SAMPLE_RATE)
         : BaseBuffer<std::vector<T>>(size, channels, sra) {}
 
     /**
@@ -1605,7 +1607,7 @@ public:
      * @param sra The sample rate to utilize in this buffer
      */
     constexpr explicit Buffer(std::size_t size, int channels = 1,
-                              double sra = SAMPLE_RATE)
+                              double sra = dsp::consts::SAMPLE_RATE)
         : BaseBuffer<std::vector<T>>(size, channels, sra) {}
 
     /**
@@ -1621,7 +1623,7 @@ public:
      * @param channels Number of channels
      */
     constexpr explicit Buffer(const std::vector<T>& vect, int channels = 1,
-                              double sra = SAMPLE_RATE)
+                              double sra = dsp::consts::SAMPLE_RATE)
         : BaseBuffer<std::vector<T>>(vect, channels, sra) {}
 
     /**
@@ -1643,7 +1645,7 @@ public:
      */
     template <class ITER1, class ITER2>
     constexpr explicit Buffer(const ITER1& begin, const ITER2& end,
-                              int channels = 1, double sra = SAMPLE_RATE)
+                              int channels = 1, double sra = dsp::consts::SAMPLE_RATE)
         : BaseBuffer<std::vector<T>>(begin, end, channels, sra) {}
 
     /**
@@ -1658,7 +1660,7 @@ public:
      * @param sra Sample rate to utilize
      */
     constexpr Buffer(const std::initializer_list<T>& list, int channels = 1,
-                     double sra = SAMPLE_RATE)
+                     double sra = dsp::consts::SAMPLE_RATE)
         : BaseBuffer<std::vector<T>>(list, channels, sra) {}
 
     /**
@@ -1793,7 +1795,7 @@ public:
      * @param sra Sample rate of this buffer, by default the global MAEC default
      * sample rate
      */
-    explicit StaticBuffer(int channels, double sra = SAMPLE_RATE) {
+    explicit StaticBuffer(int channels, double sra = dsp::consts::SAMPLE_RATE) {
 
         // Set the channels and sample rate:
 
@@ -2051,3 +2053,5 @@ private:
     /// Friend definition for iterators
     friend class RingIterator<T>;
 };
+
+}  // namespace dsp::buff

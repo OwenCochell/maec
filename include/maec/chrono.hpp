@@ -23,9 +23,6 @@
  * We measure time values in nanoseconds.
  */
 
-#include <chrono>
-#include <ctime>
-
 #include "const.hpp"
 
 /**
@@ -91,7 +88,7 @@ private:
     int sample = 0;
 
     /// Nanoseconds per frame
-    int64_t nano_frame = NANO / SAMPLE_RATE;
+    int64_t nano_frame = NANO / dsp::consts::SAMPLE_RATE;
 
 public:
     ChainTimer() = default;

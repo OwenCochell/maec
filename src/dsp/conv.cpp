@@ -11,21 +11,21 @@
 
 #include "dsp/conv.hpp"
 
-int length_conv(int size1, int size2) {
+int dsp::conv::length_conv(int size1, int size2) {
 
     // Calculate and return:
 
     return size1 + size2 - 1;
 }
 
-int length_conv(std::size_t size1, std::size_t size2) {
+int dsp::conv::length_conv(std::size_t size1, std::size_t size2) {
 
     // Calculate and return:
 
     return static_cast<int>(size1) + static_cast<int>(size2) - 1;
 }
 
-BufferPointer input_conv(BufferPointer input, BufferPointer kernel) {
+BufferPointer dsp::conv::input_conv(BufferPointer input, BufferPointer kernel) {
 
     // First, create an output buffer:
 
@@ -33,14 +33,14 @@ BufferPointer input_conv(BufferPointer input, BufferPointer kernel) {
 
     // Pass the data along to the other function:
 
-    input_conv(input->ibegin(), input->size(), kernel->ibegin(), kernel->size(), buff->ibegin());
+    dsp::conv::input_conv(input->ibegin(), input->size(), kernel->ibegin(), kernel->size(), buff->ibegin());
 
     // Finally, return the output buffer:
 
     return buff;
 }
 
-BufferPointer output_conv(BufferPointer input, BufferPointer kernel) {
+BufferPointer dsp::conv::output_conv(BufferPointer input, BufferPointer kernel) {
 
     // First, create an output buffer:
 
@@ -48,7 +48,7 @@ BufferPointer output_conv(BufferPointer input, BufferPointer kernel) {
 
     // Pass the data along to other function:
 
-    input_conv(input->ibegin(), input->size(), kernel->ibegin(), kernel->size(), buff->ibegin());
+    dsp::conv::input_conv(input->ibegin(), input->size(), kernel->ibegin(), kernel->size(), buff->ibegin());
 
     // Finally, return the output buffer:
 

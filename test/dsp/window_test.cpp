@@ -117,7 +117,7 @@ TEST_CASE("Window Test", "[win]") {
             // Ensure values are accurate:
 
             REQUIRE_THAT(
-                window_blackman(i, window_test_size),
+                dsp::win::window_blackman(i, window_test_size),
                 Catch::Matchers::WithinAbs(blackman_data.at(i), 0.0000001));
         }
     }
@@ -131,7 +131,7 @@ TEST_CASE("Window Test", "[win]") {
             // Ensure values are accurate:
 
             REQUIRE_THAT(
-                window_hann(i, window_test_size),
+                dsp::win::window_hann(i, window_test_size),
                 Catch::Matchers::WithinAbs(hann_data.at(i), 0.0000001));
         }
     }
@@ -145,7 +145,7 @@ TEST_CASE("Window Test", "[win]") {
             // Ensure values are accurate:
 
             REQUIRE_THAT(
-                window_hamming(i, window_test_size),
+                dsp::win::window_hamming(i, window_test_size),
                 Catch::Matchers::WithinAbs(hamming_data.at(i), 0.0000001));
         }
     }

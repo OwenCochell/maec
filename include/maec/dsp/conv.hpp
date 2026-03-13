@@ -26,10 +26,9 @@
 
 #pragma once
 
-#include <memory>
-
 #include "audio_buffer.hpp"
-#include "dsp/ft.hpp"
+
+namespace dsp::conv {
 
 /**
  * @brief Determines the length of the Convolution output given input sizes
@@ -318,9 +317,11 @@ void conv_fft(I input, int input_size, K kernel, int kernel_size, O output) {
 
     // Multiply signals:
 
-    multiply_signals(output_size, infp.begin(), kernfp.begin(), outf.begin());
+    util::multiply_signals(output_size, infp.begin(), kernfp.begin(), outf.begin());
 
     // Send inputs back through inverse FFT:
 
     ifft_r_radix2(outf.begin(), output_size, output);
 }
+
+}  // namespace dsp::conv

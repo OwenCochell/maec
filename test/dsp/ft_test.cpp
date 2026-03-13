@@ -312,9 +312,9 @@ TEST_CASE("DFT", "[ft][dsp]") {
 
     SECTION("Size", "Ensure size predictions are accurate") {
 
-        REQUIRE(length_ft(10) == (10 / 2) + 1);
+        REQUIRE(dsp::ft::length_ft(10) == (10 / 2) + 1);
 
-        REQUIRE(length_ift(10) == (10 - 1) * 2);
+        REQUIRE(dsp::ft::length_ift(10) == (10 - 1) * 2);
     }
 
     SECTION("Random", "Ensures random data can be transformed and reversed") {
@@ -346,8 +346,8 @@ TEST_CASE("DFT", "[ft][dsp]") {
 
         // Reserve parts:
 
-        nonreal.reserve(length_ft(size));
-        real.reserve(length_ft(size));
+        nonreal.reserve(dsp::ft::length_ft(size));
+        real.reserve(dsp::ft::length_ft(size));
 
         // Create container for output signal:
 
@@ -371,7 +371,7 @@ TEST_CASE("DFT", "[ft][dsp]") {
             output.push_back(0);
         }
 
-        for (int i = 0; i < length_ft(size); ++i) {
+        for (int i = 0; i < dsp::ft::length_ft(size); ++i) {
 
             // Set each value to zero:
 
@@ -381,11 +381,11 @@ TEST_CASE("DFT", "[ft][dsp]") {
 
         // Now, send the data through the FT algorithm:
 
-        dft(nums.begin(), size, real.begin(), nonreal.begin());
+        dsp::ft::dft(nums.begin(), size, real.begin(), nonreal.begin());
 
         // Send parts through inverse algorithm:
 
-        inv_dft(real.begin(), nonreal.begin(), length_ft(size), output.begin());
+        dsp::ft::inv_dft(real.begin(), nonreal.begin(), dsp::ft::length_ft(size), output.begin());
 
         // Ensure data matches:
 
@@ -407,7 +407,7 @@ TEST_CASE("DFT", "[ft][dsp]") {
 
         // Get length of output data:
 
-        int output_length = length_ft(ft_data.size());
+        int output_length = dsp::ft::length_ft(ft_data.size());
 
         // Reserve the vectors:
 
@@ -424,7 +424,7 @@ TEST_CASE("DFT", "[ft][dsp]") {
 
         // Now, send the data through the DFT function:
 
-        dft(ft_data.begin(), static_cast<int>(ft_data.size()), real.begin(),
+        dsp::ft::dft(ft_data.begin(), static_cast<int>(ft_data.size()), real.begin(),
             nonreal.begin());
 
         // Finally, ensure returned data is correct:
@@ -451,7 +451,7 @@ TEST_CASE("DFT", "[ft][dsp]") {
 
         // Determine size of output data:
 
-        int output_size = length_ift(nonreals.size());
+        int output_size = dsp::ft::length_ift(nonreals.size());
 
         // Reserve the output data:
 
@@ -466,7 +466,7 @@ TEST_CASE("DFT", "[ft][dsp]") {
 
         // Send data through function:
 
-        inv_dft(reals.begin(), nonreals.begin(), static_cast<int>(reals.size()),
+        dsp::ft::inv_dft(reals.begin(), nonreals.begin(), static_cast<int>(reals.size()),
                 output.begin());
 
         // Ensure outgoing data is correct:
@@ -501,7 +501,7 @@ TEST_CASE("FFT2", "[ft][dsp]") {
 
             // Send data through FFT function:
 
-            fft_c_radix2(cft_data.begin(), output_length, out.begin());
+            dsp::ft::fft_c_radix2(cft_data.begin(), output_length, out.begin());
 
             // Iterate over output data:
 
@@ -534,7 +534,7 @@ TEST_CASE("FFT2", "[ft][dsp]") {
 
             // Send data through IFFT function:
 
-            ifft_c_radix2(cft_output.begin(), output_length, out.begin());
+            dsp::ft::ifft_c_radix2(cft_output.begin(), output_length, out.begin());
 
             // Iterate over output data:
 
@@ -564,11 +564,11 @@ TEST_CASE("FFT2", "[ft][dsp]") {
 
             // Run through Radix2:
 
-            fft_c_radix2(rdata.begin(), size, output.begin());
+            dsp::ft::fft_c_radix2(rdata.begin(), size, output.begin());
 
             // Run through inverse:
 
-            ifft_c_radix2(output.begin(), size, final_data.begin());
+            dsp::ft::ifft_c_radix2(output.begin(), size, final_data.begin());
 
             // Check final data matches input:
 
@@ -599,11 +599,11 @@ TEST_CASE("FFT2", "[ft][dsp]") {
 
             // Send data through FFT function:
 
-            fft_c_radix2(out.begin(), output_length);
+            dsp::ft::fft_c_radix2(out.begin(), output_length);
 
             // Iterate over output data:
 
-            bit_reverse(output_length, out.begin());
+            dsp::util::bit_reverse(output_length, out.begin());
 
             for (int i = 0; i < output_length; ++i) {
 
@@ -629,11 +629,11 @@ TEST_CASE("FFT2", "[ft][dsp]") {
 
             // Send data through FFT function:
 
-            ifft_c_radix2(out.begin(), output_length);
+            dsp::ft::ifft_c_radix2(out.begin(), output_length);
 
             // Iterate over output data:
 
-            bit_reverse(output_length, out.begin());
+            dsp::util::bit_reverse(output_length, out.begin());
 
             // Iterate over output data:
 
@@ -666,19 +666,19 @@ TEST_CASE("FFT2", "[ft][dsp]") {
 
             // Run through Radix 2:
 
-            fft_c_radix2(output.begin(), size);
+            dsp::ft::fft_c_radix2(output.begin(), size);
 
             // Do bit reversal:
 
-            bit_reverse(size, output.begin());
+            dsp::util::bit_reverse(size, output.begin());
 
             // Run through inverse Radix 2:
 
-            ifft_c_radix2(output.begin(), size);
+            dsp::ft::ifft_c_radix2(output.begin(), size);
 
             // Do bit reversal:
 
-            bit_reverse(size, output.begin());
+            dsp::util::bit_reverse(size, output.begin());
 
             // Check final data matches input:
 
@@ -698,7 +698,7 @@ TEST_CASE("FFT2", "[ft][dsp]") {
             // Determine sizes:
 
             auto size = ft2_data.size();
-            int osize = length_ft(size);
+            int osize = dsp::ft::length_ft(size);
 
             // Create vector to hold real to complex data:
 
@@ -706,7 +706,7 @@ TEST_CASE("FFT2", "[ft][dsp]") {
 
             // Send data through real FFT function:
 
-            fft_r_radix2(ft2_data.begin(), size, out.begin());
+            dsp::ft::fft_r_radix2(ft2_data.begin(), size, out.begin());
 
             // Ensure output matches input:
 
@@ -723,7 +723,7 @@ TEST_CASE("FFT2", "[ft][dsp]") {
             // Determine sizes:
 
             auto size = ft2_output.size();
-            int osize = length_ift(size);
+            int osize = dsp::ft::length_ift(size);
 
             // Create vector to hold complex to real data:
 
@@ -731,7 +731,7 @@ TEST_CASE("FFT2", "[ft][dsp]") {
 
             // Send data through real iFFT function:
 
-            ifft_r_radix2(ft2_output.begin(), size, out.begin());
+            dsp::ft::ifft_r_radix2(ft2_output.begin(), size, out.begin());
 
             // Ensure output matches input:
 

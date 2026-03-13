@@ -139,15 +139,15 @@ bool check_accuracy() {
 
         // Run through Radix2:
 
-        fft_c_radix2(idata.begin(), num, odata.begin());
+        dsp::ft::fft_c_radix2(idata.begin(), num, odata.begin());
 
         // Run through alternate Radix2:
 
-        fft_c_radix2(aodata.begin(), num);
+        dsp::ft::fft_c_radix2(aodata.begin(), num);
 
         // Do bit reversal:
 
-        bit_reverse(num, aodata.begin());
+        dsp::util::bit_reverse(num, aodata.begin());
 
         // Iterate over results:
 
@@ -238,11 +238,11 @@ long double benchmark_radix2_out() {
 
         // Compute the value:
 
-        fft_c_radix2(idata.begin(), num);
+        dsp::ft::fft_c_radix2(idata.begin(), num);
 
         // Do bit reversal:
 
-        bit_reverse(num, idata.begin());
+        dsp::util::bit_reverse(num, idata.begin());
 
         // Stop the clock:
 
@@ -323,7 +323,7 @@ long double benchmark_radix2() {
 
         // Compute the value:
 
-        fft_c_radix2(idata.begin(), num, odata.begin());
+        dsp::ft::fft_c_radix2(idata.begin(), num, odata.begin());
 
         // Stop the clock:
 

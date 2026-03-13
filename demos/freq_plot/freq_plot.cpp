@@ -14,6 +14,7 @@
 #include <matplot/freestanding/plot.h>
 #include <matplot/matplot.h>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <dsp/const.hpp>
@@ -24,21 +25,25 @@
 
 int main() {
 
+    namespace mp = matplot;
+
     // Define the signal to transform
 
-    std::array<double, 251> sig{};
+    constexpr std::size_t signal_size = 251;
+    std::array<double, signal_size> sig{};
 
     // Create a sinc kernel (frequency must be normalized to [0, 0.5])
 
-    sinc_kernel(5000.0 / SAMPLE_RATE, sig.size(), sig.begin());
+    constexpr double cutoff_hz = 5000.0;
+    dsp::kern::sinc_kernel(cutoff_hz / dsp::consts::SAMPLE_RATE, sig.size(), sig.begin());
 
     // Signal parameters
 
-    const double sra = SAMPLE_RATE;
+    const double sra = dsp::consts::SAMPLE_RATE;
 
     // Determine the size of the resulting transform
 
-    std::size_t size = length_ft(sig.size());
+    std::size_t size = dsp::ft::length_ft(sig.size());
 
     std::cout << "Output Size: " << size << "\n";
 
@@ -49,24 +54,55 @@ int main() {
 
     // Compute the DFT
 
-    dft(sig.begin(), sig.size(), real.begin(), imag.begin());
+    dsp::ft::dft(sig.begin(), sig.size(), real.begin(), imag.begin());
 
-    // Determine the dependent variable and compute magnitude
+    // Build a one-sided magnitude spectrum in dB.
+    // Skip bin 0 so we can use a logarithmic x-axis (log(0) is undefined).
 
-    std::vector<double> x_vals(size);
-    std::vector<double> magnitude(size);
+    std::vector<double> x_vals;
+    std::vector<double> magnitude_db;
 
-    for (std::size_t i = 0; i < size; ++i) {
-        // Use input signal size (sig.size()), not DFT output size,
-        // so that bin spacing = sample_rate / N (correct)
-        x_vals[i] = index_freq(i, sig.size(), sra);
-        magnitude[i] = std::sqrt((real[i] * real[i]) + (imag[i] * imag[i]));
+    x_vals.reserve(size > 0 ? size - 1 : 0);
+    magnitude_db.reserve(size > 0 ? size - 1 : 0);
+
+    constexpr double eps = 1e-12;
+    constexpr double one_sided_scale = 2.0;
+    constexpr double amplitude_to_db = 20.0;
+
+    for (std::size_t i = 1; i < size; ++i) {
+        x_vals.push_back(dsp::ft::index_freq(i, sig.size(), sra));
+
+        double mag = std::hypot(real[i], imag[i]) / static_cast<double>(sig.size());
+
+        // One-sided correction for real-valued input.
+        // Keep DC (i=0, skipped above) and Nyquist (when present) unscaled.
+        const bool is_nyquist = (sig.size() % 2 == 0) && (i == size - 1);
+        if (!is_nyquist) {
+            mag *= one_sided_scale;
+        }
+
+        mag = std::max(mag, eps);
+        magnitude_db.push_back(amplitude_to_db * std::log10(mag));
     }
 
-    // Plot the magnitude response
+    // Plot using conventions commonly used for frequency-response visualization.
 
-    matplot::plot(x_vals, magnitude);
-    matplot::show();
+    constexpr std::size_t figure_width = 1000;
+    constexpr std::size_t figure_height = 650;
+    constexpr double line_width = 2.0;
+
+    auto fig = mp::figure(true);
+    fig->size(figure_width, figure_height);
+    fig->name("Frequency Response");
+    fig->color("w");
+
+    auto line = mp::semilogx(x_vals, magnitude_db);
+    line->line_width(line_width);
+    mp::grid(mp::on);
+    mp::title("One-Sided Magnitude Spectrum");
+    mp::xlabel("Frequency (Hz)");
+    mp::ylabel("Magnitude (dB)");
+    mp::show();
 
     return 0;
 }

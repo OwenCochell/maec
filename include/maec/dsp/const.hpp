@@ -13,9 +13,17 @@
 #pragma once
 
 #include <cstdint>
+#include <numbers>
+
+namespace dsp::consts {
 
 /// Default sample rate
 const int SAMPLE_RATE = 44100;
 
+/// PI constant multiplied by 2
+const double pi_2 = std::numbers::pi_v<double> * 2;
+
 /// Filter types:
 enum class FilterType : uint8_t { LowPass, HighPass, BandPass, BandReject };
+
+}  // namespace dsp::consts

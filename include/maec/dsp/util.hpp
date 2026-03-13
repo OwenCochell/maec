@@ -16,6 +16,8 @@
 #include <iterator>
 #include <utility>
 
+namespace dsp::util {
+
 /**
  * @brief A component that chooses between types based upon a flag
  *
@@ -125,3 +127,5 @@ void real_eop_complex(I input, int size, O output) {
             std::complex<double>(*(input + (2 * i)), *(input + (2 * i + 1)));
     }
 }
+
+}  // namespace dsp::util

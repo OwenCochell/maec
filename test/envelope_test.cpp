@@ -196,7 +196,7 @@ TEST_CASE("ConstantEnvelope Test", "[env]") {
 
         // Jump to an arbitrary time:
 
-        cnst.get_timer()->set_sample(SAMPLE_RATE * 2);
+        cnst.get_timer()->set_sample(dsp::consts::SAMPLE_RATE * 2);
 
         // Process:
 
@@ -920,7 +920,7 @@ TEST_CASE("ChainEnvelope", "[env]") {
 
         // Set the configuration values:
 
-        const int sample_rate = SAMPLE_RATE;
+        const int sample_rate = dsp::consts::SAMPLE_RATE;
 
         const int64_t time1_start = 0;
         const int64_t time1_stop = 0;

@@ -161,11 +161,11 @@ TEST_CASE("Convolution Test", "[conv][dsp]") {
 
         // Size with smallest first:
 
-        REQUIRE(length_conv(3, 4) == 6);
+        REQUIRE(dsp::conv::length_conv(3, 4) == 6);
 
         // Size with largest first:
 
-        REQUIRE(length_conv(8, 2) == 9);
+        REQUIRE(dsp::conv::length_conv(8, 2) == 9);
     }
 
     // Create buffers:
@@ -175,7 +175,7 @@ TEST_CASE("Convolution Test", "[conv][dsp]") {
 
     // Create buffer of results:
 
-    AudioBuffer buff(length_conv(input.size(), kernel.size()));
+    AudioBuffer buff(dsp::conv::length_conv(input.size(), kernel.size()));
 
     SECTION("Input Side", "Tests for the input side algorithm") {
 
@@ -183,7 +183,7 @@ TEST_CASE("Convolution Test", "[conv][dsp]") {
 
             // Do operation:
 
-            input_conv(input.begin(), input.size(), kernel.begin(),
+            dsp::conv::input_conv(input.begin(), input.size(), kernel.begin(),
                        kernel.size(), buff.ibegin());
 
             // Check that output matches expected:
@@ -199,7 +199,7 @@ TEST_CASE("Convolution Test", "[conv][dsp]") {
 
             // Do operation:
 
-            input_conv(input.begin(), input.end(), kernel.begin(), kernel.end(),
+            dsp::conv::input_conv(input.begin(), input.end(), kernel.begin(), kernel.end(),
                        buff.ibegin());
 
             // Check that output matches expected:
@@ -215,7 +215,7 @@ TEST_CASE("Convolution Test", "[conv][dsp]") {
 
             // Do operation:
 
-            auto buff = input_conv(std::move(binput), std::move(bkernel));
+            auto buff = dsp::conv::input_conv(std::move(binput), std::move(bkernel));
 
             // Check that output matches expected:
 
@@ -233,7 +233,7 @@ TEST_CASE("Convolution Test", "[conv][dsp]") {
 
             // Do operation:
 
-            output_conv(input.begin(), input.size(), kernel.begin(),
+            dsp::conv::output_conv(input.begin(), input.size(), kernel.begin(),
                         kernel.size(), buff.ibegin());
 
             // Check that output matches expected:
@@ -249,7 +249,7 @@ TEST_CASE("Convolution Test", "[conv][dsp]") {
 
             // Do operation:
 
-            output_conv(input.begin(), input.end(), kernel.begin(),
+            dsp::conv::output_conv(input.begin(), input.end(), kernel.begin(),
                         kernel.end(), buff.ibegin());
 
             // Check that output matches expected:
@@ -265,7 +265,7 @@ TEST_CASE("Convolution Test", "[conv][dsp]") {
 
             // Do operation:
 
-            auto buff = input_conv(std::move(binput), std::move(bkernel));
+            auto buff = dsp::conv::input_conv(std::move(binput), std::move(bkernel));
 
             // Check that output matches expected:
 
@@ -281,7 +281,7 @@ TEST_CASE("Convolution Test", "[conv][dsp]") {
             "Tests for fast convolution, implemented via frequency domain "
             "multiplication") {
 
-        int size = length_conv(finput.size(), fkernel.size());
+        int size = dsp::conv::length_conv(finput.size(), fkernel.size());
 
         // Create buffer of results:
 

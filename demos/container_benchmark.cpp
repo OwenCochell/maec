@@ -601,7 +601,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     // Create the buffer to utilize
     // (pre-allocated)
 
-    Buffer<double> buffer(num / chans, chans);
+    dsp::buff::Buffer<double> buffer(num / chans, chans);
 
     std::cout << "+====================================+" << '\n';
     std::cout
@@ -762,7 +762,7 @@ int main() {  // NOLINT(*-complexity): Yeah I know this function is complicated
     // Create the buffer to utilize
     // (pre-allocated)
 
-    StaticBuffer<double, num> sbuffer;
+    dsp::buff::StaticBuffer<double, num> sbuffer;
 
     std::cout << "+====================================+" << '\n';
     std::cout << " --== [ testing maec static buffer interleaved write "

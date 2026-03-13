@@ -49,7 +49,7 @@ class BaseFilter : public AudioModule<C, B> {
 
 private:
     /// Current filter type
-    FilterType filter_type = FilterType::LowPass;
+    dsp::consts::FilterType filter_type = dsp::consts::FilterType::LowPass;
 
     /// Start frequency of filter
     double start_freq = 0;
@@ -70,7 +70,7 @@ public:
      * @param startf Start frequency of filter
      * @param stopf Stop frequency of filter
      */
-    BaseFilter(FilterType type, double startf, double stopf)
+    BaseFilter(dsp::consts::FilterType type, double startf, double stopf)
         : filter_type(type), start_freq(startf), stop_freq(stopf) {};
 
     /**
@@ -82,7 +82,7 @@ public:
      *
      * @return FilterType Type of this filter
      */
-    FilterType get_type() const { return this->filter_type; }
+    dsp::consts::FilterType get_type() const { return this->filter_type; }
 
     /**
      * @brief Sets the type of this filter.
@@ -92,7 +92,7 @@ public:
      *
      * @param type Type to set
      */
-    void set_type(FilterType type) { this->filter_type = type; }
+    void set_type(dsp::consts::FilterType type) { this->filter_type = type; }
 
     /**
      * @brief Gets the start frequency
@@ -228,11 +228,11 @@ public:
         // Allocate a full convolution output buffer (N + M - 1 samples)
         // zero-initialised so the overlap-add accumulation is correct:
 
-        std::vector<double> conv_out(length_conv(input_size, kernel_size), 0.0);
+        std::vector<double> conv_out(dsp::conv::length_conv(input_size, kernel_size), 0.0);
 
         // Run the convolution:
 
-        input_conv(ibuff.ibegin(), input_size, this->kernel->ibegin(),
+        dsp::conv::input_conv(ibuff.ibegin(), input_size, this->kernel->ibegin(),
                    kernel_size, conv_out.begin());
 
         // Overlap-add: fold the saved tail from the previous block
@@ -292,19 +292,19 @@ public:
 
         // First off, just create the sinc kernel:
 
-        sinc_kernel(start_ratio, final_size, kern->ibegin());
+        dsp::kern::sinc_kernel(start_ratio, final_size, kern->ibegin());
 
         // Determine if we are making a high pass filter:
 
-        if (type == FilterType::HighPass) {
+        if (type == dsp::consts::FilterType::HighPass) {
 
             // Do a spectral inversion to create high pass:
 
-            spectral_inversion(kern->ibegin(), final_size);
+            dsp::kern::spectral_inversion(kern->ibegin(), final_size);
         }
 
-        else if (type == FilterType::BandPass ||
-                 type == FilterType::BandReject) {
+        else if (type == dsp::consts::FilterType::BandPass ||
+                 type == dsp::consts::FilterType::BandReject) {
 
             // We need to create another kernel:
 
@@ -312,11 +312,11 @@ public:
 
             // Create low pass filter:
 
-            sinc_kernel(stop_ratio, final_size, hkern.ibegin());
+            dsp::kern::sinc_kernel(stop_ratio, final_size, hkern.ibegin());
 
             // Create high pass filter from this kernel:
 
-            spectral_inversion(hkern.ibegin(), final_size);
+            dsp::kern::spectral_inversion(hkern.ibegin(), final_size);
 
             // Add kernels together to create band-reject:
 
@@ -330,11 +330,11 @@ public:
 
             // Determine if we should invert:
 
-            if (type == FilterType::BandPass) {
+            if (type == dsp::consts::FilterType::BandPass) {
 
                 // Invert the filter:
 
-                spectral_inversion(kern->ibegin(), final_size);
+                dsp::kern::spectral_inversion(kern->ibegin(), final_size);
             }
         }
 

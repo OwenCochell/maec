@@ -56,7 +56,7 @@ std::vector<std::vector<double>> data = {chan1, chan2, chan3};
  *
  */
 class GenericIterator
-    : public BaseMAECIterator<GenericIterator, double, false> {
+    : public dsp::buff::BaseMAECIterator<GenericIterator, double, false> {
 
 public:
     explicit GenericIterator(std::vector<double> nbuf)
@@ -83,7 +83,7 @@ private:
  *
  */
 class ConstGenericIterator
-    : public BaseMAECIterator<ConstGenericIterator, double, true> {
+    : public dsp::buff::BaseMAECIterator<ConstGenericIterator, double, true> {
 public:
     explicit ConstGenericIterator(std::vector<double> nbuf)
         : buff(std::move(nbuf)) {}
@@ -315,7 +315,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create the buffer:
 
-        const BaseBuffer<CONT, double> buff;
+        const dsp::buff::BaseBuffer<CONT, double> buff;
 
         // Ensure defaults are correct:
 
@@ -323,14 +323,14 @@ TEST_CASE("Base Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == 0);
         REQUIRE(buff.size() == 0);
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
     }
 
     SECTION("Construct", "Ensures a buffer can be constructed") {
 
         // Create the Buffer:
 
-        const BaseBuffer<CONT, double> buff(1, 1);
+        const dsp::buff::BaseBuffer<CONT, double> buff(1, 1);
 
         // Ensure channel count is valid:
 
@@ -338,7 +338,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == 1);
         REQUIRE(buff.size() == 1);
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
     }
 
     SECTION("Construct Crazy",
@@ -349,7 +349,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create the Buffer:
 
-        const BaseBuffer<CONT, double> buff(csize, channels);
+        const dsp::buff::BaseBuffer<CONT, double> buff(csize, channels);
 
         // Ensure channel count is valid:
 
@@ -357,7 +357,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == csize);
         REQUIRE(buff.size() == csize * channels);
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
     }
 
     SECTION("Construct Sample",
@@ -365,7 +365,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create the buffer:
 
-        const BaseBuffer<CONT, double> buff(1, 1, 1.0);
+        const dsp::buff::BaseBuffer<CONT, double> buff(1, 1, 1.0);
 
         // Ensure channel count is valid:
 
@@ -386,7 +386,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create the buffer:
 
-        const BaseBuffer<CONT, double> buff(csize, chans, samp);
+        const dsp::buff::BaseBuffer<CONT, double> buff(csize, chans, samp);
 
         // Ensure channel count is valid:
 
@@ -402,7 +402,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create a BaseBuffer via copying:
 
-        BaseBuffer<CONT, double> buff(chan1);
+        dsp::buff::BaseBuffer<CONT, double> buff(chan1);
 
         // Ensure channel number is valid:
 
@@ -410,7 +410,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == chan1.size());
         REQUIRE(buff.size() == chan1.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         // Ensure single channel is valid:
 
@@ -424,7 +424,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create a BaseBuffer via copying:
 
-        BaseBuffer<CONT, double> buff(chan1, channels);
+        dsp::buff::BaseBuffer<CONT, double> buff(chan1, channels);
 
         // Ensure channel number is valid:
 
@@ -432,7 +432,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == chan1.size() / channels);
         REQUIRE(buff.size() == chan1.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         // Ensure single channel is valid:
 
@@ -448,7 +448,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create a BaseBuffer via copying:
 
-        BaseBuffer<CONT, double> buff(chan1, channels, samp);
+        dsp::buff::BaseBuffer<CONT, double> buff(chan1, channels, samp);
 
         // Ensure channel number is valid:
 
@@ -469,7 +469,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create a buffer via iterators:
 
-        BaseBuffer<CONT, double> buff(idata.begin(), idata.end());
+        dsp::buff::BaseBuffer<CONT, double> buff(idata.begin(), idata.end());
 
         // Ensure the values are correct:
 
@@ -477,7 +477,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == idata.size());
         REQUIRE(buff.size() == idata.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(idata.begin(), idata.end(), buff.ibegin()));
     }
@@ -490,7 +490,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create a buffer via iterators:
 
-        BaseBuffer<CONT, double> buff(idata.begin(), idata.end(), channels);
+        dsp::buff::BaseBuffer<CONT, double> buff(idata.begin(), idata.end(), channels);
 
         // Ensure the values are correct:
 
@@ -498,7 +498,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == idata.size() / channels);
         REQUIRE(buff.size() == idata.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(idata.begin(), idata.end(), buff.ibegin()));
     }
@@ -512,7 +512,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create a buffer via iterators:
 
-        BaseBuffer<CONT, double> buff(idata.begin(), idata.end(), channels,
+        dsp::buff::BaseBuffer<CONT, double> buff(idata.begin(), idata.end(), channels,
                                       samp);
 
         // Ensure the values are correct:
@@ -533,7 +533,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create a buffer via initializer list:
 
-        BaseBuffer<CONT, double> buff = vals;
+        dsp::buff::BaseBuffer<CONT, double> buff = vals;
 
         // Ensure the values are correct:
 
@@ -541,7 +541,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == 5);
         REQUIRE(buff.size() == 5);
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(vals.begin(), vals.end(), buff.ibegin()));
     }
@@ -555,7 +555,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create a buffer via initializer list:
 
-        BaseBuffer<CONT, double> buff(vals, channels);
+        dsp::buff::BaseBuffer<CONT, double> buff(vals, channels);
 
         // Ensure the values are correct:
 
@@ -563,7 +563,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == 10 / 2);
         REQUIRE(buff.size() == 10);
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(vals.begin(), vals.end(), buff.ibegin()));
     }
@@ -579,7 +579,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create a buffer via initializer list:
 
-        BaseBuffer<CONT, double> buff(vals, channels, samp);
+        dsp::buff::BaseBuffer<CONT, double> buff(vals, channels, samp);
 
         // Ensure the values are correct:
 
@@ -600,7 +600,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create the buffer:
 
-        BaseBuffer<CONT, double> buff(0., 1., 2., 3., 4., 5., 6., 7., 8., 9.);
+        dsp::buff::BaseBuffer<CONT, double> buff(0., 1., 2., 3., 4., 5., 6., 7., 8., 9.);
 
         // Ensure the values are correct:
 
@@ -608,7 +608,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == 10);
         REQUIRE(buff.size() == 10);
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         // Ensure the values are valid:
 
@@ -627,11 +627,11 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create an initial buffer:
 
-        BaseBuffer<CONT, double> buff(chan1, chans, samp);
+        dsp::buff::BaseBuffer<CONT, double> buff(chan1, chans, samp);
 
         // Create a new vector via copy assignment:
 
-        BaseBuffer<CONT, double> buff2(buff);
+        dsp::buff::BaseBuffer<CONT, double> buff2(buff);
 
         // Ensure the vales are the same:
 
@@ -652,11 +652,11 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create an initial buffer:
 
-        BaseBuffer<CONT, double> buff(chan1, chans, samp);
+        dsp::buff::BaseBuffer<CONT, double> buff(chan1, chans, samp);
 
         // Create a new vector via copy assignment:
 
-        BaseBuffer<CONT, double> buff2(std::move(buff));
+        dsp::buff::BaseBuffer<CONT, double> buff2(std::move(buff));
 
         // Ensure the vales are the same:
 
@@ -676,11 +676,11 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create an initial buffer:
 
-        BaseBuffer<CONT, double> buff(chan1, chans, samp);
+        dsp::buff::BaseBuffer<CONT, double> buff(chan1, chans, samp);
 
         // Create destination buffer:
 
-        BaseBuffer<CONT, double> buff2;
+        dsp::buff::BaseBuffer<CONT, double> buff2;
 
         // Preform copy assignment:
 
@@ -705,11 +705,11 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create an initial buffer:
 
-        BaseBuffer<CONT, double> buff(chan1, chans, samp);
+        dsp::buff::BaseBuffer<CONT, double> buff(chan1, chans, samp);
 
         // Create destination buffer:
 
-        BaseBuffer<CONT, double> buff2;
+        dsp::buff::BaseBuffer<CONT, double> buff2;
 
         // Preform copy assignment:
 
@@ -731,7 +731,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create a buffer:
 
-        BaseBuffer<CONT, double> buff;
+        dsp::buff::BaseBuffer<CONT, double> buff;
 
         // Copy some data in:
 
@@ -743,7 +743,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == chan1.size());
         REQUIRE(buff.size() == chan1.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(buff.begin(), buff.end(), chan1.begin()));
     }
@@ -757,7 +757,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create a buffer:
 
-        BaseBuffer<CONT, double> buff;
+        dsp::buff::BaseBuffer<CONT, double> buff;
 
         // Copy some data in:
 
@@ -769,7 +769,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == chan1.size());
         REQUIRE(buff.size() == chan1.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(buff.begin(), buff.end(), chan1.begin()));
     }
@@ -778,11 +778,11 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create the Buffer:
 
-        BaseBuffer<CONT, double> buff(1, 1);
+        dsp::buff::BaseBuffer<CONT, double> buff(1, 1);
 
         // Ensure default sample rate is valid:
 
-        REQUIRE(buff.get_samplerate() == SAMPLE_RATE);
+        REQUIRE(buff.get_samplerate() == dsp::consts::SAMPLE_RATE);
 
         // Set the sample rate:
 
@@ -797,7 +797,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create a buffer with 10 samples and 5 channels:
 
-        BaseBuffer<CONT, double> buff(10, 5);
+        dsp::buff::BaseBuffer<CONT, double> buff(10, 5);
 
         // Ensure constructor works:
 
@@ -818,7 +818,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Construct a multi channel buffer:
 
-        BaseBuffer<CONT, double> buff(idata, 3);
+        dsp::buff::BaseBuffer<CONT, double> buff(idata, 3);
 
         // First, ensure channel / sample retrieval works:
 
@@ -849,7 +849,7 @@ TEST_CASE("Base Buffer Test", "[buff]") {
 
         // Create the Buffer:
 
-        BaseBuffer<CONT, double> buff(idata, 3);
+        dsp::buff::BaseBuffer<CONT, double> buff(idata, 3);
 
         SECTION("Interleaved Iterator Read",
                 "Ensures the interleaved iterator can read correctly") {
@@ -1102,7 +1102,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create the buffer:
 
-        const Buffer<double> buff;
+        const dsp::buff::Buffer<double> buff;
 
         // Ensure defaults are correct:
 
@@ -1110,14 +1110,14 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == 0);
         REQUIRE(buff.size() == 0);
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
     }
 
     SECTION("Construct", "Ensures a buffer can be constructed") {
 
         // Create the Buffer:
 
-        const Buffer<double> buff(1, 1);
+        const dsp::buff::Buffer<double> buff(1, 1);
 
         // Ensure channel count is valid:
 
@@ -1125,7 +1125,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == 1);
         REQUIRE(buff.size() == 1);
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
     }
 
     SECTION("Construct Crazy",
@@ -1136,7 +1136,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create the Buffer:
 
-        const Buffer<double> buff(csize, channels);
+        const dsp::buff::Buffer<double> buff(csize, channels);
 
         // Ensure channel count is valid:
 
@@ -1144,7 +1144,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == csize);
         REQUIRE(buff.size() == csize * channels);
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
     }
 
     SECTION("Construct Sample",
@@ -1152,7 +1152,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create the buffer:
 
-        const Buffer<double> buff(1, 1, 1.0);
+        const dsp::buff::Buffer<double> buff(1, 1, 1.0);
 
         // Ensure channel count is valid:
 
@@ -1173,7 +1173,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create the buffer:
 
-        const Buffer<double> buff(csize, chans, samp);
+        const dsp::buff::Buffer<double> buff(csize, chans, samp);
 
         // Ensure channel count is valid:
 
@@ -1189,7 +1189,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create a BaseBuffer via copying:
 
-        Buffer<double> buff(chan1);
+        dsp::buff::Buffer<double> buff(chan1);
 
         // Ensure channel number is valid:
 
@@ -1197,7 +1197,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == chan1.size());
         REQUIRE(buff.size() == chan1.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         // Ensure single channel is valid:
 
@@ -1211,7 +1211,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create a BaseBuffer via copying:
 
-        Buffer<double> buff(chan1, channels);
+        dsp::buff::Buffer<double> buff(chan1, channels);
 
         // Ensure channel number is valid:
 
@@ -1219,7 +1219,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == chan1.size() / channels);
         REQUIRE(buff.size() == chan1.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         // Ensure single channel is valid:
 
@@ -1235,7 +1235,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create a BaseBuffer via copying:
 
-        Buffer<double> buff(chan1, channels, samp);
+        dsp::buff::Buffer<double> buff(chan1, channels, samp);
 
         // Ensure channel number is valid:
 
@@ -1256,7 +1256,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create a buffer via iterators:
 
-        Buffer<double> buff(idata.begin(), idata.end());
+        dsp::buff::Buffer<double> buff(idata.begin(), idata.end());
 
         // Ensure the values are correct:
 
@@ -1264,7 +1264,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == idata.size());
         REQUIRE(buff.size() == idata.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(idata.begin(), idata.end(), buff.ibegin()));
     }
@@ -1277,7 +1277,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create a buffer via iterators:
 
-        Buffer<double> buff(idata.begin(), idata.end(), channels);
+        dsp::buff::Buffer<double> buff(idata.begin(), idata.end(), channels);
 
         // Ensure the values are correct:
 
@@ -1285,7 +1285,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == idata.size() / channels);
         REQUIRE(buff.size() == idata.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(idata.begin(), idata.end(), buff.ibegin()));
     }
@@ -1299,7 +1299,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create a buffer via iterators:
 
-        Buffer<double> buff(idata.begin(), idata.end(), channels, samp);
+        dsp::buff::Buffer<double> buff(idata.begin(), idata.end(), channels, samp);
 
         // Ensure the values are correct:
 
@@ -1319,7 +1319,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create a buffer via initializer list:
 
-        Buffer<double> buff = vals;
+        dsp::buff::Buffer<double> buff = vals;
 
         // Ensure the values are correct:
 
@@ -1327,7 +1327,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == 5);
         REQUIRE(buff.size() == 5);
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(vals.begin(), vals.end(), buff.ibegin()));
     }
@@ -1341,7 +1341,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create a buffer via initializer list:
 
-        Buffer<double> buff(vals, channels);
+        dsp::buff::Buffer<double> buff(vals, channels);
 
         // Ensure the values are correct:
 
@@ -1349,7 +1349,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == 10 / 2);
         REQUIRE(buff.size() == 10);
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(vals.begin(), vals.end(), buff.ibegin()));
     }
@@ -1365,7 +1365,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create a buffer via initializer list:
 
-        Buffer<double> buff(vals, channels, samp);
+        dsp::buff::Buffer<double> buff(vals, channels, samp);
 
         // Ensure the values are correct:
 
@@ -1386,7 +1386,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create the buffer:
 
-        Buffer<double> buff(0., 1., 2., 3., 4., 5., 6., 7., 8., 9.);
+        dsp::buff::Buffer<double> buff(0., 1., 2., 3., 4., 5., 6., 7., 8., 9.);
 
         // Ensure the values are correct:
 
@@ -1394,7 +1394,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == 10);
         REQUIRE(buff.size() == 10);
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
     }
 
     SECTION("Copy Constructor", "Ensure copy constructor works correctly") {
@@ -1404,11 +1404,11 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create an initial buffer:
 
-        Buffer<double> buff(chan1, chans, samp);
+        dsp::buff::Buffer<double> buff(chan1, chans, samp);
 
         // Create a new vector via copy assignment:
 
-        Buffer<double> buff2(buff);
+        dsp::buff::Buffer<double> buff2(buff);
 
         // Ensure the vales are the same:
 
@@ -1429,11 +1429,11 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create an initial buffer:
 
-        Buffer<double> buff(chan1, chans, samp);
+        dsp::buff::Buffer<double> buff(chan1, chans, samp);
 
         // Create a new vector via copy assignment:
 
-        Buffer<double> buff2(std::move(buff));
+        dsp::buff::Buffer<double> buff2(std::move(buff));
 
         // Ensure the vales are the same:
 
@@ -1453,11 +1453,11 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create an initial buffer:
 
-        Buffer<double> buff(chan1, chans, samp);
+        dsp::buff::Buffer<double> buff(chan1, chans, samp);
 
         // Create destination buffer:
 
-        Buffer<double> buff2;
+        dsp::buff::Buffer<double> buff2;
 
         // Preform copy assignment:
 
@@ -1482,11 +1482,11 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create an initial buffer:
 
-        Buffer<double> buff(chan1, chans, samp);
+        dsp::buff::Buffer<double> buff(chan1, chans, samp);
 
         // Create destination buffer:
 
-        Buffer<double> buff2;
+        dsp::buff::Buffer<double> buff2;
 
         // Preform copy assignment:
 
@@ -1508,7 +1508,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create a buffer:
 
-        Buffer<double> buff;
+        dsp::buff::Buffer<double> buff;
 
         // Copy some data in:
 
@@ -1520,7 +1520,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == chan1.size());
         REQUIRE(buff.size() == chan1.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(buff.begin(), buff.end(), chan1.begin()));
     }
@@ -1534,7 +1534,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create a buffer:
 
-        Buffer<double> buff;
+        dsp::buff::Buffer<double> buff;
 
         // Copy some data in:
 
@@ -1546,7 +1546,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == chan1.size());
         REQUIRE(buff.size() == chan1.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(buff.begin(), buff.end(), chan1.begin()));
     }
@@ -1555,7 +1555,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Construct a multi channel buffer:
 
-        Buffer buff(idata, 3);
+        dsp::buff::Buffer buff(idata, 3);
 
         // First, ensure channel / sample retrieval works:
 
@@ -1586,7 +1586,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create a buffer with 10 samples and 5 channels:
 
-        Buffer<double> buff(10, 5);
+        dsp::buff::Buffer<double> buff(10, 5);
 
         // Ensure constructor works:
 
@@ -1607,7 +1607,7 @@ TEST_CASE("Dynamic Buffer Test", "[buff]") {
 
         // Create the Buffer:
 
-        Buffer<double> buff(idata, 3);
+        dsp::buff::Buffer<double> buff(idata, 3);
 
         SECTION("Interleaved Iterator Read",
                 "Ensures the interleaved iterator can read correctly") {
@@ -1860,14 +1860,14 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create the Buffer:
 
-        const StaticBuffer<double, 1> buff;
+        const dsp::buff::StaticBuffer<double, 1> buff;
 
         // Ensure channel count is valid:
 
         REQUIRE(buff.channels() == 1);
         REQUIRE(buff.channel_capacity() == 1);
         REQUIRE(buff.size() == 1);
-        REQUIRE(buff.get_samplerate() == SAMPLE_RATE);
+        REQUIRE(buff.get_samplerate() == dsp::consts::SAMPLE_RATE);
     }
 
     SECTION("Construct Single Channel",
@@ -1875,14 +1875,14 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create an Buffer with a single channel:
 
-        StaticBuffer<double, 10> buff(1);
+        dsp::buff::StaticBuffer<double, 10> buff(1);
 
         // Ensure channel number is valid:
 
         REQUIRE(buff.channels() == 1);
         REQUIRE(buff.channel_capacity() == 10);
         REQUIRE(buff.size() == 10);
-        REQUIRE(buff.get_samplerate() == SAMPLE_RATE);
+        REQUIRE(buff.get_samplerate() == dsp::consts::SAMPLE_RATE);
     }
 
     SECTION("Construct Multi Channel",
@@ -1892,14 +1892,14 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create an Buffer with a single channel:
 
-        StaticBuffer<double, 10> buff(chan);
+        dsp::buff::StaticBuffer<double, 10> buff(chan);
 
         // Ensure channel number is valid:
 
         REQUIRE(buff.channels() == 5);
         REQUIRE(buff.channel_capacity() == 2);
         REQUIRE(buff.size() == 10);
-        REQUIRE(buff.get_samplerate() == SAMPLE_RATE);
+        REQUIRE(buff.get_samplerate() == dsp::consts::SAMPLE_RATE);
     }
 
     SECTION("Construct Sample Rate",
@@ -1909,7 +1909,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create an Buffer with a single channel:
 
-        StaticBuffer<double, 10> buff(1, samp);
+        dsp::buff::StaticBuffer<double, 10> buff(1, samp);
 
         // Ensure channel number is valid:
 
@@ -1926,7 +1926,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create an initial buffer:
 
-        StaticBuffer<double, 10> buff(chans, samp);
+        dsp::buff::StaticBuffer<double, 10> buff(chans, samp);
 
         // Assign some data in:
 
@@ -1934,7 +1934,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create a new vector via copy assignment:
 
-        StaticBuffer<double, 10> buff2(buff);
+        dsp::buff::StaticBuffer<double, 10> buff2(buff);
 
         // Ensure the vales are the same:
 
@@ -1955,7 +1955,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create an initial buffer:
 
-        StaticBuffer<double, 10> buff(chans, samp);
+        dsp::buff::StaticBuffer<double, 10> buff(chans, samp);
 
         // Assign some data in:
 
@@ -1963,7 +1963,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create a new vector via copy assignment:
 
-        StaticBuffer<double, 10> buff2(std::move(buff));
+        dsp::buff::StaticBuffer<double, 10> buff2(std::move(buff));
 
         // Ensure the vales are the same:
 
@@ -1983,7 +1983,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create an initial buffer:
 
-        StaticBuffer<double, 10> buff(chans, samp);
+        dsp::buff::StaticBuffer<double, 10> buff(chans, samp);
 
         // Assign some data in:
 
@@ -1991,7 +1991,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create destination buffer:
 
-        StaticBuffer<double, 10> buff2;
+        dsp::buff::StaticBuffer<double, 10> buff2;
 
         // Preform copy assignment:
 
@@ -2016,7 +2016,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create an initial buffer:
 
-        StaticBuffer<double, 10> buff(chans, samp);
+        dsp::buff::StaticBuffer<double, 10> buff(chans, samp);
 
         // Assign some data in:
 
@@ -2024,7 +2024,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create destination buffer:
 
-        StaticBuffer<double, 10> buff2;
+        dsp::buff::StaticBuffer<double, 10> buff2;
 
         // Preform copy assignment:
 
@@ -2046,7 +2046,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create a buffer:
 
-        StaticBuffer<double, 10> buff;
+        dsp::buff::StaticBuffer<double, 10> buff;
 
         // Copy some data in:
 
@@ -2058,7 +2058,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == chan1.size());
         REQUIRE(buff.size() == chan1.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(buff.begin(), buff.end(), chan1.begin()));
     }
@@ -2072,7 +2072,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create a buffer:
 
-        StaticBuffer<double, 10> buff;
+        dsp::buff::StaticBuffer<double, 10> buff;
 
         // Copy some data in:
 
@@ -2084,7 +2084,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
         REQUIRE(buff.channel_capacity() == chan1.size());
         REQUIRE(buff.size() == chan1.size());
         REQUIRE_THAT(buff.get_samplerate(),
-                     Catch::Matchers::WithinAbs(SAMPLE_RATE, 0.0001));
+                     Catch::Matchers::WithinAbs(dsp::consts::SAMPLE_RATE, 0.0001));
 
         REQUIRE(std::equal(buff.begin(), buff.end(), chan1.begin()));
     }
@@ -2093,7 +2093,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create the Buffer:
 
-        StaticBuffer<double, 1> buff;
+        dsp::buff::StaticBuffer<double, 1> buff;
 
         // Ensure default sample rate is valid:
 
@@ -2112,7 +2112,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Construct a multi channel buffer:
 
-        StaticBuffer<double, aidata.size()> buff(3);
+        dsp::buff::StaticBuffer<double, aidata.size()> buff(3);
 
         // Move the interleaved ata into the buffer:
 
@@ -2147,7 +2147,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create a buffer with 10 samples and 5 channels:
 
-        Buffer<double> buff(10, 5);
+        dsp::buff::Buffer<double> buff(10, 5);
 
         // Ensure constructor works:
 
@@ -2168,7 +2168,7 @@ TEST_CASE("Static Buffer Test", "[buff]") {
 
         // Create the Buffer:
 
-        StaticBuffer<double, aidata.size()> buff(3);
+        dsp::buff::StaticBuffer<double, aidata.size()> buff(3);
 
         buff.assign(aidata);
 
@@ -2422,7 +2422,7 @@ TEST_CASE("Ring Buffer Test", "[buff][ring]") {
 
         // Create a RinBuffer:
 
-        const RingBuffer<double> ring;
+        const dsp::buff::RingBuffer<double> ring;
 
         // Ensure size is accurate:
 
@@ -2434,7 +2434,7 @@ TEST_CASE("Ring Buffer Test", "[buff][ring]") {
 
         // Create a RingBuffer:
 
-        const RingBuffer<double> ring(10);
+        const dsp::buff::RingBuffer<double> ring(10);
 
         // Ensure size is accurate:
 
@@ -2446,7 +2446,7 @@ TEST_CASE("Ring Buffer Test", "[buff][ring]") {
 
         // Create a RingBuffer:
 
-        const RingBuffer<double> ring(chan1);
+        const dsp::buff::RingBuffer<double> ring(chan1);
 
         // Ensure size is accurate:
 
@@ -2457,7 +2457,7 @@ TEST_CASE("Ring Buffer Test", "[buff][ring]") {
 
         // Create a RingBuffer:
 
-        RingBuffer<double> ring;
+        dsp::buff::RingBuffer<double> ring;
 
         // Reserve some space:
 
@@ -2472,7 +2472,7 @@ TEST_CASE("Ring Buffer Test", "[buff][ring]") {
 
         // Create a RingBuffer:
 
-        RingBuffer<double> ring;
+        dsp::buff::RingBuffer<double> ring;
 
         // Resize it:
 
@@ -2487,7 +2487,7 @@ TEST_CASE("Ring Buffer Test", "[buff][ring]") {
 
         // Create a RingBuffer:
 
-        RingBuffer<double> ring(chan1);
+        dsp::buff::RingBuffer<double> ring(chan1);
 
         // Access some values:
 
@@ -2505,13 +2505,13 @@ TEST_CASE("Ring Buffer Test", "[buff][ring]") {
 
         // Create a RingBuffer:
 
-        RingBuffer<double> ring(chan1);
+        dsp::buff::RingBuffer<double> ring(chan1);
 
         SECTION("Iterator Read", "Ensures the iterator can read data") {
 
             // Create a RingBuffer:
 
-            RingBuffer<double> ring(chan1);
+            dsp::buff::RingBuffer<double> ring(chan1);
 
             // Iterate over the values:
 

@@ -27,7 +27,7 @@
 #include "dsp/buffer.hpp"
 
 /// Vector type
-using Vect = Buffer<double>;
+using Vect = dsp::buff::Buffer<double>;
 
 /// Vector pointer type
 using VecPoint = std::unique_ptr<Vect>;

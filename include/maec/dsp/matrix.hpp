@@ -22,6 +22,8 @@
 
 #include "dsp/buffer.hpp"
 
+namespace dsp::mat {
+
 /**
  * @brief Computes the dot product from two vectors.
  * 
@@ -125,7 +127,7 @@ T dot_product(const A& aiter, const B& biter, int num) {
  * @param out Matrix to store result in
  */
 template <typename T, typename U, typename V>
-void matrix_mult(const Buffer<T>& buf1, const Buffer<U>& buf2, Buffer<V>& out) {
+void matrix_mult(const dsp::buff::Buffer<T>& buf1, const dsp::buff::Buffer<U>& buf2, dsp::buff::Buffer<V>& out) {
 
     // Configure the out buffer to match our size:
 
@@ -160,3 +162,5 @@ void matrix_mult(const Buffer<T>& buf1, const Buffer<U>& buf2, Buffer<V>& out) {
         }
     }
 }
+
+}  // namespace dsp::mat 

@@ -26,13 +26,13 @@
 
 namespace dsp::iir {
 
-double iir_fr_map(double freq, double sra) {
+double freq_map(double freq, double sra) {
 
     return dsp::consts::pi_2 * (freq / sra);
 }
 
 template <typename A, typename B>
-std::complex<double> iir_fr_single(double rad, const A& acoes, const B& bcoes) {
+std::complex<double> fr_rad_single(double rad, const A& acoes, const B& bcoes) {
 
     using namespace std::complex_literals;
 
@@ -117,7 +117,6 @@ T iir_recursive_single(T input, C& input_container, C& output_container, D aco,
     }
 
     // Add final value to container:
-identifier
     output_container.push_front(final_value);
 
     // Pop the backs of the containers:
@@ -146,10 +145,10 @@ template <typename T>
 class IIRFilter {
 private:
     /// Previous input data
-    RingBuffer<T> inputs;
+    dsp::buff::RingBuffer<T> inputs;
 
     /// Previous output data
-    RingBuffer<T> outputs;
+    dsp::buff::RingBuffer<T> outputs;
 
     /// Vector of A coefficients
     std::vector<T> acoes;
@@ -414,7 +413,7 @@ private:
     double freq_low = 0.;
 
     /// Filter type
-    FilterType type;
+    dsp::consts::FilterType type;
 
 public:
     /**
@@ -519,7 +518,7 @@ public:
      *
      * @return FilterType Type of filter we are implementing
      */
-    FilterType get_type() const { return this->type; }
+    dsp::consts::FilterType get_type() const { return this->type; }
 
     /**
      * @brief Sets the filter type of this filter
@@ -529,7 +528,7 @@ public:
      *
      * @param type New filter type
      */
-    void set_type(FilterType type) { this->type = type; }
+    void set_type(dsp::consts::FilterType type) { this->type = type; }
 
     /**
      * @brief Function that generates the coefficients for the filter
@@ -586,7 +585,7 @@ public:
 
         // Determine if we are a low pass filter:
 
-        if (this->get_type() == FilterType::LowPass) {
+        if (this->get_type() == dsp::consts::FilterType::LowPass) {
 
             // Reserve the sizes:
 
@@ -607,7 +606,7 @@ public:
 
         // Determine if we are a high pass filter:
 
-        if (this->get_type() == FilterType::HighPass) {
+        if (this->get_type() == dsp::consts::FilterType::HighPass) {
 
             // Reserve the sizes:
 
