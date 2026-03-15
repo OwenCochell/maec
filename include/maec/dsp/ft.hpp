@@ -342,16 +342,14 @@ std::size_t length_ift(std::size_t size);
  * Include equation?
  * Maybe offer custom basis functions? That could be cool...
  *
- * @tparam R Real iterator type
- * @tparam U Non-real iterator type
+ * @tparam I Input iterator type
  * @tparam O Output iterator type
- * @param real Start iterator for real data
- * @param nonreal Start iterator for unreal data
- * @param size Size of real/non-real data
+ * @param inp Start iterator for input data
+ * @param size Size of input data
  * @param output Start iterator for output buffer
  */
-template <typename R, typename U, typename O>
-void inv_dft(R real, U nonreal, int size, O output) {
+template <typename I, typename O>
+void inv_dft(const I& inp, int size, O output) {
 
     // Determine final output size:
 
@@ -361,24 +359,20 @@ void inv_dft(R real, U nonreal, int size, O output) {
 
     const double div_value = final_size / 2.0;
 
-    // Grab initial values for future reference:
-
-    auto real0 = *(real);
-    auto reale = *(real + (size - 1));
-
-    // Preform edge case normalization operation, divide by final_size:
-
-    *(real) /= 2;
-    *(real + (size - 1)) /= 2;
-
     // Iterate over each sample in components:
 
     for (int k = 0; k < size; ++k) {
 
         // Grab samples for this operation and normalize:
 
-        double real_part = *(real + k) / (div_value);
-        double nonreal_part = *(nonreal + k) / (-div_value);
+        double real_part = (inp + k)->real() / (div_value);
+        double nonreal_part = (inp + k)->imag() / (-div_value);
+
+        // Determine if this value is a special case:
+
+        if (k == 0 || k == (size - 1)) {
+            real_part /= 2;
+        }
 
         // Iterate over output:
 
@@ -390,29 +384,23 @@ void inv_dft(R real, U nonreal, int size, O output) {
                              (nonreal_part * sin_basis(i, final_size, k));
         }
     }
-
-    // Finally, undo edge case normalization:
-
-    *(real) = real0;
-    *(real + (size - 1)) = reale;
 }
 
 /**
  * @brief Preforms a Discreet Fourier Transform
  *
  * We compute the DFT using the given input signal.
- * We store the real and non-real results in the given iterators.
+ * The final result is stored as a complex number,
+ * where the real and imaginary parts represent the cosine and sine components
  *
  * @tparam R Real iterator type
- * @tparam U Non-real iterator type
  * @tparam I Input iterator type
  * @param input Start iterator to input data
  * @param size Size of input data
- * @param real Output iterator to real data
- * @param nonreal Output iterator to non-real data
+ * @param output Output iterator to complex data
  */
-template <typename I, typename R, typename U>
-void dft(I input, int size, R real, U nonreal) {
+template <typename I, typename R>
+void dft(const I& input, int size, R output) {
 
     // Determine size of output buffers:
 
@@ -424,17 +412,16 @@ void dft(I input, int size, R real, U nonreal) {
 
         // Iterate over total size:
 
-        auto real_iter = real + k;
-        auto nonreal_iter = nonreal + k;
+        auto iter = output + k;
 
         for (int i = 0; i < size; ++i) {
 
-            // Determine value for real part:
+            // Determine value at current input:
 
             double val = *(input + i);
 
-            *(real_iter) += val * cos_basis(i, size, k);
-            *(nonreal_iter) += -val * sin_basis(i, size, k);
+            iter->real(iter->real() + (val * cos_basis(i, size, k)));
+            iter->imag(iter->imag() - (val * sin_basis(i, size, k)));
         }
     }
 }

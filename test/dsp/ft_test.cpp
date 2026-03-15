@@ -44,43 +44,34 @@ std::vector<double> ft_data = {
     -105.065209999999517897, 45.9153499999996984778,  -1.05934999999953613926,
     -92.979900000000370891,  -44.7161299999997329906};
 
-/// Real and non-real parts of above data
-std::vector<double> reals = {
-    -689.550949999998468776, -360.761730393757710567, -9.09627805513791995104,
-    -327.622828943792766043, -237.608057949997369562, -56.4823335254953177095,
-    -420.058431365067667523, -405.18109821272589835,  410.473673843006695933,
-    384.975560036773781697,  -493.178524073103451975, 396.298291421185540917,
-    58.616429016356431804,   317.639586912586099038,  -125.923587794969226675,
-    -26.3771664745074108874, -186.769206518632613412, 192.096986502756412657,
-    -396.525639886057485434, 145.43231520399339618,   -187.554675926895537533,
-    -345.553158653373423709, -606.114272127072479468, -44.830973873640273572,
-    821.155170837586112498,  -357.606149999998992051};
-std::vector<double> nonreals = {0,
-                                -56.7987997464239218748,
-                                -88.4598663671056244934,
-                                114.599317038853708184,
-                                59.8147392880928162121,
-                                -318.732530313386465293,
-                                25.4838243897190054234,
-                                298.856932852788386101,
-                                -52.7828546196376580737,
-                                639.085076012777274668,
-                                -725.060920075901687409,
-                                -217.793354878620727413,
-                                -50.8793220693166556787,
-                                -81.2345735657510905209,
-                                -312.27135476011737128,
-                                13.6098176315475818607,
-                                -225.700304988403331885,
-                                267.968070726491263162,
-                                -138.317628623756462919,
-                                724.441385521063360764,
-                                358.256926195155114334,
-                                367.869822138617369595,
-                                -379.416274255358194706,
-                                -378.675193748761023865,
-                                -204.906665100901602239,
-                                4.487825376552348945e-13};
+/// Complex output parts of above data
+std::vector<std::complex<double>> ft_output = {
+    std::complex<double>(-689.550949999998468776, 0),
+    std::complex<double>(-360.761730393757710567, -56.7987997464239218748),
+    std::complex<double>(-9.09627805513791995104, -88.4598663671056244934),
+    std::complex<double>(-327.622828943792766043, 114.599317038853708184),
+    std::complex<double>(-237.608057949997369562, 59.8147392880928162121),
+    std::complex<double>(-56.4823335254953177095, -318.732530313386465293),
+    std::complex<double>(-420.058431365067667523, 25.4838243897190054234),
+    std::complex<double>(-405.18109821272589835, 298.856932852788386101),
+    std::complex<double>(410.473673843006695933, -52.7828546196376580737),
+    std::complex<double>(384.975560036773781697, 639.085076012777274668),
+    std::complex<double>(-493.178524073103451975, -725.060920075901687409),
+    std::complex<double>(396.298291421185540917, -217.793354878620727413),
+    std::complex<double>(58.616429016356431804, -50.8793220693166556787),
+    std::complex<double>(317.639586912586099038, -81.2345735657510905209),
+    std::complex<double>(-125.923587794969226675, -312.27135476011737128),
+    std::complex<double>(-26.3771664745074108874, 13.6098176315475818607),
+    std::complex<double>(-186.769206518632613412, -225.700304988403331885),
+    std::complex<double>(192.096986502756412657, 267.968070726491263162),
+    std::complex<double>(-396.525639886057485434, -138.317628623756462919),
+    std::complex<double>(145.43231520399339618, 724.441385521063360764),
+    std::complex<double>(-187.554675926895537533, 358.256926195155114334),
+    std::complex<double>(-345.553158653373423709, 367.869822138617369595),
+    std::complex<double>(-606.114272127072479468, -379.416274255358194706),
+    std::complex<double>(-44.830973873640273572, -378.675193748761023865),
+    std::complex<double>(821.155170837586112498, -204.906665100901602239),
+    std::complex<double>(-357.606149999998992051, 4.487825376552348945e-13)};
 
 /// Known complex data to compute
 const std::vector<std::complex<double>> cft_data = {
@@ -341,13 +332,11 @@ TEST_CASE("DFT", "[ft][dsp]") {
 
         // Create containers for real and non-real parts
 
-        std::vector<double> nonreal;
-        std::vector<double> real;
+        std::vector<std::complex<double>> input;
 
         // Reserve parts:
 
-        nonreal.reserve(dsp::ft::length_ft(size));
-        real.reserve(dsp::ft::length_ft(size));
+        input.reserve(dsp::ft::length_ft(size));
 
         // Create container for output signal:
 
@@ -368,24 +357,24 @@ TEST_CASE("DFT", "[ft][dsp]") {
 
             // Add a zero to the output signal:
 
-            output.push_back(0);
+            output.emplace_back(0);
         }
 
         for (int i = 0; i < dsp::ft::length_ft(size); ++i) {
 
             // Set each value to zero:
 
-            nonreal.push_back(0);
-            real.push_back(0);
+            input.emplace_back(0, 0);
         }
 
         // Now, send the data through the FT algorithm:
 
-        dsp::ft::dft(nums.begin(), size, real.begin(), nonreal.begin());
+        dsp::ft::dft(nums.begin(), size, input.begin());
 
         // Send parts through inverse algorithm:
 
-        dsp::ft::inv_dft(real.begin(), nonreal.begin(), dsp::ft::length_ft(size), output.begin());
+        dsp::ft::inv_dft(input.begin(), dsp::ft::length_ft(size),
+                         output.begin());
 
         // Ensure data matches:
 
@@ -400,46 +389,26 @@ TEST_CASE("DFT", "[ft][dsp]") {
 
     SECTION("Known", "Ensures DFT on known data is accurate") {
 
-        // Create vectors containing responses:
-
-        std::vector<double> real;
-        std::vector<double> nonreal;
-
         // Get length of output data:
 
         int output_length = dsp::ft::length_ft(ft_data.size());
 
-        // Reserve the vectors:
+        // Create vectors containing responses:
 
-        real.reserve(output_length);
-        nonreal.reserve(output_length);
-
-        // Fill the vectors with zeros:
-
-        for (int i = 0; i < output_length; ++i) {
-
-            real.push_back(0);
-            nonreal.push_back(0);
-        }
+        std::vector<std::complex<double>> output(output_length);
 
         // Now, send the data through the DFT function:
 
-        dsp::ft::dft(ft_data.begin(), static_cast<int>(ft_data.size()), real.begin(),
-            nonreal.begin());
+        dsp::ft::dft(ft_data.begin(), static_cast<int>(ft_data.size()),
+                     output.begin());
 
         // Finally, ensure returned data is correct:
 
         for (int i = 0; i < output_length; ++i) {
 
-            // Check real part:
+            // Compare with known complex output:
 
-            REQUIRE_THAT(reals.at(i),
-                         Catch::Matchers::WithinAbs(real.at(i), 0.0000001));
-
-            // Check non-real part:
-
-            REQUIRE_THAT(nonreals.at(i),
-                         Catch::Matchers::WithinAbs(nonreal.at(i), 0.0000001));
+            compare_complex(output.at(i), ft_output.at(i));
         }
     }
 
@@ -451,7 +420,7 @@ TEST_CASE("DFT", "[ft][dsp]") {
 
         // Determine size of output data:
 
-        int output_size = dsp::ft::length_ift(nonreals.size());
+        int output_size = dsp::ft::length_ift(ft_output.size());
 
         // Reserve the output data:
 
@@ -466,8 +435,8 @@ TEST_CASE("DFT", "[ft][dsp]") {
 
         // Send data through function:
 
-        dsp::ft::inv_dft(reals.begin(), nonreals.begin(), static_cast<int>(reals.size()),
-                output.begin());
+        dsp::ft::inv_dft(ft_output.begin(), static_cast<int>(ft_output.size()),
+                         output.begin());
 
         // Ensure outgoing data is correct:
 
@@ -534,7 +503,8 @@ TEST_CASE("FFT2", "[ft][dsp]") {
 
             // Send data through IFFT function:
 
-            dsp::ft::ifft_c_radix2(cft_output.begin(), output_length, out.begin());
+            dsp::ft::ifft_c_radix2(cft_output.begin(), output_length,
+                                   out.begin());
 
             // Iterate over output data:
 
@@ -595,7 +565,7 @@ TEST_CASE("FFT2", "[ft][dsp]") {
 
             // Fill output buffer with data from input:
 
-            std::copy(cft_data.begin(), cft_data.end(), out.begin());
+            std::ranges::copy(cft_data, out.begin());
 
             // Send data through FFT function:
 
@@ -625,7 +595,7 @@ TEST_CASE("FFT2", "[ft][dsp]") {
 
             // Fill output buffer with data from input:
 
-            std::copy(cft_output.begin(), cft_output.end(), out.begin());
+            std::ranges::copy(cft_output, out.begin());
 
             // Send data through FFT function:
 
