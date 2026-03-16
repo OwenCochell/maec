@@ -38,7 +38,7 @@ namespace dsp::iir {
  * we only consider positions from -pi to pi.
  * You can think of the mapped frequency as the radians per sample,
  * and is the native coordinate system of the filter.
- * 
+ *
  * @param freq Frequency to map in hertz
  * @param sra Sample rate in hertz
  * @return double Mapped frequency in radians from -pi to pi
@@ -48,10 +48,39 @@ double freq_map(double freq, double sra) {
     return dsp::consts::pi_2 * (freq / sra);
 }
 
+/**
+ * @brief Computes the frequency response of a filter at a single radian
+ *
+ * Given the coefficients of an IIR filter and a radian to compute at,
+ * we compute the frequency response.
+ * The result of this can be thought of as the gain and phase applied to a
+ * signal at the given frequency. We return the result as a complex number, in
+ * which the phase and magnitude are represented.
+ * You can use the standard methods to convert complex numbers to polar form to
+ * get the gain and phase.
+ *
+ * We take in radians instead of
+ * frequencies, as this is the native coordinate system of the filter. Checkout
+ * the freq_map() function for mapping frequencies to radians.
+ *
+ * @tparam A Container type for A coefficients
+ * @tparam B Container type for B coefficients
+ * @param rad Radian to compute frequency response at
+ * @param acoes A coefficients
+ * @param bcoes B coefficients
+ * @return std::complex<double> Frequency response at the given radian,
+ * represented as a complex number
+ */
 template <typename A, typename B>
-std::complex<double> fr_rad_single(double rad, const A& acoes, const B& bcoes) {
+std::complex<double> freq_response(double rad, const A& acoes, const B& bcoes) {
 
+    // Some sugar for easily getting imaginary unit
     using namespace std::complex_literals;
+
+    // We preform this operation by mapping the transfer function H(z) to the
+    // unit circle, and then evaluating the result at the given radian.
+    // We do this by substituting z with e^(i*rad), where i is the imaginary
+    // unit.
 
     // First, compute the numerator
 
@@ -64,7 +93,7 @@ std::complex<double> fr_rad_single(double rad, const A& acoes, const B& bcoes) {
 
     // Next compute the denominator
 
-    std::complex<double> denom;
+    std::complex<double> denom = 1;
 
     for (std::size_t j = 0; j < acoes.size(); ++j) {
 
