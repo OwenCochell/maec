@@ -8,6 +8,7 @@ set(CMAKE_FOLDER demos)
 
 add_subdirectory( parallel_plot )
 add_subdirectory( freq_plot )
+add_subdirectory( iir_plot )
 
 # Demo files to be ran
 
