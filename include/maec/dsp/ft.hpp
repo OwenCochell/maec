@@ -23,8 +23,21 @@
 #include <complex>
 #include <iterator>
 #include <numbers>
+#include <type_traits>
 
 namespace dsp::ft {
+
+template <typename T>
+concept complex_iter = std::is_same_v<
+    typename std::iterator_traits<T>::value_type,
+    std::complex<typename std::iterator_traits<T>::value_type::value_type>>;
+
+template <typename T>
+concept input_complex = std::input_iterator<T> && complex_iter<T>;
+
+template <typename T>
+concept output_complex = std::output_iterator<
+    T, std::complex<typename std::iterator_traits<T>::value_type::value_type>>;
 
 /**
  * @brief Determines the frequency for a given FT index
@@ -150,7 +163,7 @@ std::complex<T> compute_a(int k, int size) {
 
     auto res = twiddle<T>(k, size);
 
-    return (static_cast<T>(1.0) - res * 1i) / static_cast<T>(2);
+    return (static_cast<T>(1.0) - (res * 1i)) / static_cast<T>(2);
 }
 
 /**
@@ -185,7 +198,7 @@ std::complex<T> compute_b(int k, int size) {
 
     auto res = twiddle<T>(k, size);
 
-    return (static_cast<T>(1.0) + res * 1i) / static_cast<T>(2);
+    return (static_cast<T>(1.0) + (res * 1i)) / static_cast<T>(2);
 }
 
 /**
@@ -251,8 +264,8 @@ void fft_process_real(T complex, int size, bool invert) {
 
         // Determine right A and B values:
 
-        std::complex<double> a2 = compute_a<double>(size / 2 - k, size);
-        std::complex<double> b2 = compute_b<double>(size / 2 - k, size);
+        std::complex<double> a2 = compute_a<double>((size / 2) - k, size);
+        std::complex<double> b2 = compute_b<double>((size / 2) - k, size);
 
         // Determine if we are doing a backwards operation:
 
@@ -270,7 +283,7 @@ void fft_process_real(T complex, int size, bool invert) {
 
         std::complex<double> left = *(complex + k);  // Grab left value
         std::complex<double> right =
-            *(complex + (size / 2 - k));  // Grab right value
+            *(complex + ((size / 2) - k));  // Grab right value
 
         // Determine value in first half:
         // X[k] * A(K) + X*[N - k] * B(k)
@@ -282,7 +295,7 @@ void fft_process_real(T complex, int size, bool invert) {
         // X[N - k] * A(N - k) + X*[k] * B(N - K)
         // right * A(N - k) + *left * B(N - k)
 
-        *(complex + (size / 2 - k)) = right * a2 + std::conj(left) * b2;
+        *(complex + ((size / 2) - k)) = right * a2 + std::conj(left) * b2;
     }
 }
 
@@ -342,26 +355,28 @@ std::size_t length_ift(std::size_t size);
  * Include equation?
  * Maybe offer custom basis functions? That could be cool...
  *
- * @tparam I Input iterator type
+ * @tparam I Complex input iterator type
  * @tparam O Output iterator type
  * @param inp Start iterator for input data
  * @param size Size of input data
  * @param output Start iterator for output buffer
  */
-template <typename I, typename O>
-void inv_dft(const I& inp, int size, O output) {
+template <input_complex I, typename O>
+    requires std::output_iterator<O,
+                                  typename std::iterator_traits<O>::value_type>
+void inv_dft(const I& inp, std::size_t size, O output) {
 
     // Determine final output size:
 
-    int final_size = length_ift(size);
+    std::size_t final_size = length_ift(size);
 
     // Determine division value:
 
-    const double div_value = final_size / 2.0;
+    const double div_value = static_cast<double>(final_size) / 2.0;
 
     // Iterate over each sample in components:
 
-    for (int k = 0; k < size; ++k) {
+    for (std::size_t k = 0; k < size; ++k) {
 
         // Grab samples for this operation and normalize:
 
@@ -399,8 +414,8 @@ void inv_dft(const I& inp, int size, O output) {
  * @param size Size of input data
  * @param output Output iterator to complex data
  */
-template <typename I, typename R>
-void dft(const I& input, int size, R output) {
+template <typename I, output_complex R>
+void dft(const I& input, std::size_t size, R output) {
 
     // Determine size of output buffers:
 
@@ -414,7 +429,7 @@ void dft(const I& input, int size, R output) {
 
         auto iter = output + k;
 
-        for (int i = 0; i < size; ++i) {
+        for (std::size_t i = 0; i < size; ++i) {
 
             // Determine value at current input:
 
@@ -689,7 +704,7 @@ void fft_r_radix2(I input, int size, O output) {
 
     // First, determine iterator type:
 
-    typedef typename std::iterator_traits<I>::value_type iter_type;
+    using iter_type = typename std::iterator_traits<I>::value_type;
 
     // Cast input data into complex array:
 
@@ -709,7 +724,7 @@ void ifft_r_radix2(I input, int size, O output) {
 
     // First, determine iterator type:
 
-    typedef typename std::iterator_traits<O>::value_type iter_type;
+    using iter_type = typename std::iterator_traits<O>::value_type;
 
     // Determine output size:
 

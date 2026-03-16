@@ -16,6 +16,7 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <complex>
+#include <cstddef>
 #include <ctime>
 #include <random>
 #include <vector>
@@ -420,7 +421,7 @@ TEST_CASE("DFT", "[ft][dsp]") {
 
         // Determine size of output data:
 
-        int output_size = dsp::ft::length_ift(ft_output.size());
+        std::size_t output_size = dsp::ft::length_ift(ft_output.size());
 
         // Reserve the output data:
 
