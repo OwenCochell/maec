@@ -17,6 +17,7 @@
 #pragma once
 
 #include <array>
+#include <cmath>
 #include <concepts>
 #include <cstddef>
 #include <initializer_list>
@@ -25,7 +26,6 @@
 
 #include "const.hpp"
 #include "meta.hpp"
-#include "util.hpp"
 
 namespace dsp::buff {
 
@@ -43,7 +43,7 @@ concept BufferContainer = requires(T typ) {
     typ[0];
 
     // Has a size function
-    { typ.size() } -> is_numerical;
+    { typ.size() } -> dsp::meta::is_numerical;
 
     // Can start iteration
     typ.begin();
@@ -98,9 +98,11 @@ public:
     using iterator_category = std::random_access_iterator_tag;
     using difference_type = std::ptrdiff_t;
 
-    using iterator_type = typename dsp::util::ChooseType<IsConst, const I, I>::type;
+    using iterator_type =
+        typename dsp::meta::choose_type<IsConst, const I, I>::type;
 
-    using value_type = typename dsp::util::ChooseType<IsConst, const T, T>::type;
+    using value_type =
+        typename dsp::meta::choose_type<IsConst, const T, T>::type;
     using pointer = value_type*;
     using reference = value_type&;
 
@@ -677,8 +679,9 @@ public:
                                   IsConst> {
 
     public:
-        using BufferType = typename dsp::util::ChooseType<IsConst, const BaseBuffer<B, T>,
-                                               BaseBuffer<B, T>>::type;
+        using BufferType =
+            typename dsp::meta::choose_type<IsConst, const BaseBuffer<B, T>,
+                                            BaseBuffer<B, T>>::type;
         using reference =
             typename BaseMAECIterator<BaseBuffer::SeqIterator<IsConst>, T,
                                       IsConst>::reference;
@@ -895,8 +898,9 @@ public:
     class InterIterator
         : public BaseMAECIterator<InterIterator<IsConst>, T, IsConst> {
     public:
-        using BufferType = typename dsp::util::ChooseType<IsConst, const BaseBuffer<B, T>,
-                                               BaseBuffer<B, T>>::type;
+        using BufferType =
+            typename dsp::meta::choose_type<IsConst, const BaseBuffer<B, T>,
+                                            BaseBuffer<B, T>>::type;
         using reference = typename BaseMAECIterator<InterIterator<IsConst>, T,
                                                     IsConst>::reference;
         using pointer = typename BaseMAECIterator<InterIterator<IsConst>, T,
@@ -1093,7 +1097,8 @@ public:
      * @param channels Number of channels to utilize
      * @param sra Sample rate to utilize
      */
-    constexpr BaseBuffer(int size, int channels = 1, double sra = dsp::consts::SAMPLE_RATE)
+    constexpr BaseBuffer(int size, int channels = 1,
+                         double sra = dsp::consts::SAMPLE_RATE)
         : buff(size * channels), nchannels(channels), sample_rate(sra) {}
 
     /**
@@ -1147,7 +1152,8 @@ public:
      */
     template <std::input_iterator ITER1, std::input_iterator ITER2>
     constexpr explicit BaseBuffer(const ITER1& begin, const ITER2& end,
-                                  int channels = 1, double sra = dsp::consts::SAMPLE_RATE)
+                                  int channels = 1,
+                                  double sra = dsp::consts::SAMPLE_RATE)
         : buff(begin, end), nchannels(channels), sample_rate(sra) {}
 
     /**
@@ -1645,7 +1651,8 @@ public:
      */
     template <class ITER1, class ITER2>
     constexpr explicit Buffer(const ITER1& begin, const ITER2& end,
-                              int channels = 1, double sra = dsp::consts::SAMPLE_RATE)
+                              int channels = 1,
+                              double sra = dsp::consts::SAMPLE_RATE)
         : BaseBuffer<std::vector<T>>(begin, end, channels, sra) {}
 
     /**

@@ -27,6 +27,7 @@
 #pragma once
 
 #include "audio_buffer.hpp"
+#include "util.hpp"
 
 namespace dsp::conv {
 
@@ -317,7 +318,8 @@ void conv_fft(I input, int input_size, K kernel, int kernel_size, O output) {
 
     // Multiply signals:
 
-    util::multiply_signals(output_size, infp.begin(), kernfp.begin(), outf.begin());
+    util::multiply_signals(output_size, infp.begin(), kernfp.begin(),
+                           outf.begin());
 
     // Send inputs back through inverse FFT:
 
