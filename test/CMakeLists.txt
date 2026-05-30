@@ -23,6 +23,7 @@ set(TEST_FILES
     dsp/kernel_test.cpp
     dsp/conv_test.cpp
     dsp/ft_test.cpp
+    dsp/util_test.cpp
 )
 
 # Enable testing for the project
