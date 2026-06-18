@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <cmath>
+#include <complex>
 #include <numbers>
 
 #include "dsp/util.hpp"
@@ -101,6 +103,68 @@ void spectral_reversal(I input, int size) {
 
         *(input + i) *= -1;
     }
+}
+
+/**
+ * @brief Computes the group delay of a FIR filter at a radian
+ *
+ * Group delay is a measurement of how much a filter delays a specific
+ * frequency.
+ * This can be used to determine if a filter is linear (constant group delay)
+ * or has phase distortion (varying group delay).
+ *
+ * @tparam T Kernel type (must support .size() and operator[])
+ * @param freq Radian to compute in radians per sample
+ * @param kernel Filter kernel to compute group delay of
+ * @return constexpr double Group delay at the given frequency in samples
+ */
+template <typename T>
+constexpr double group_delay(double rad, const T& kernel) {
+
+    // Final sums to be used in the division
+
+    double denom = 0;
+    double num = 0;
+
+    for (std::size_t i = 0; i < kernel.size(); ++i) {
+
+        // We need to compute the complex exponential of -i
+
+        auto z_val = std::exp(std::complex<double>(0, -rad * i));
+
+        denom += kernel[i] * z_val;
+        num += i * kernel[i] * z_val;
+    }
+
+    // Final result is the real part of fraction
+
+    return std::real(num / denom);
+}
+
+/**
+ * @brief Creates a delay kernel
+ *
+ * A delay kernel will delay a signal by a specified number of samples.
+ * This is done by creating a kernel that has a value of 1 at the index of the
+ * delay, and 0 before it.
+ *
+ * @tparam O Output iterator type
+ * @param delay Number of samples to delay, must be greater than or equal to 0
+ * @param output Iterator to output kernel data, must have at least delay + 1
+ * space available
+ */
+template <typename O>
+void delay_kernel(std::size_t delay, O output) {
+
+    // Add zeros for the delay,
+    // it should ne delay count of zeros followed by 1:
+
+    for (std::size_t i = 0; i < delay; ++i) {
+
+        *(output + i) = 0;
+    }
+
+    *(output + delay) = 1;
 }
 
 template <typename O>
