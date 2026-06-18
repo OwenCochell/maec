@@ -23,6 +23,8 @@
 
 #include "dsp/buffer.hpp"
 #include "dsp/const.hpp"
+#include "dsp/kernel.hpp"
+#include "dsp/util.hpp"
 
 namespace dsp::iir {
 
@@ -43,9 +45,9 @@ namespace dsp::iir {
  * @param sra Sample rate in hertz
  * @return double Mapped frequency in radians from -pi to pi
  */
-double freq_map(double freq, double sra) {
+constexpr double freq_map(double freq, double sra) {
 
-    return dsp::consts::pi_2 * (freq / sra);
+    return dsp::util::rads_sample(freq, sra);
 }
 
 /**
@@ -103,6 +105,30 @@ std::complex<double> freq_response(double rad, const A& acoes, const B& bcoes) {
     // The result will be the division between the two
 
     return num / denom;
+}
+
+/**
+ * @brief Computes the group delay of an IIR at a radian
+ *
+ * Group delay is a measurement of how much a filter delays a specific
+ * frequency.
+ * This can be used to determine if a filter is linear (constant group delay)
+ * or has phase distortion (varying group delay).
+ *
+ * @tparam T A coefficient container type (must support .size() and operator[])
+ * @tparam U B coefficient container type (must support .size() and operator[])
+ * @param rad Radian to compute group delay at
+ * @param a_coes A coefficients of IIR filter
+ * @param b_coes B coefficients of IIR filter
+ * @return double Group delay at the given radian in samples
+ */
+template <typename T, typename U>
+double group_delay(double rad, const T& a_coes, const U& b_coes) {
+
+    // Compute the group delay for A and B coefficients separately:
+
+    return dsp::kern::group_delay(rad, b_coes) -
+           dsp::kern::group_delay(rad, a_coes);
 }
 
 /**
@@ -190,6 +216,9 @@ T iir_recursive_single(T input, C& input_container, C& output_container, D aco,
 template <typename T>
 class IIRFilter {
 private:
+    /// Type alias for coefficient buffers
+    using CoeffBuff = std::vector<T>;
+
     /// Previous input data
     dsp::buff::RingBuffer<T> inputs;
 
@@ -273,104 +302,46 @@ public:
     }
 
     /**
+     * @brief Gets the A coefficients
+     *
+     * @return const CoeffBuff& A coefficient vector
+     */
+    const CoeffBuff& get_a() const { return this->acoes; }
+
+    /**
+     * @brief Gets the B coefficients
+     *
+     * @return const CoeffBuff& B coefficient vector
+     */
+    const CoeffBuff& get_b() const { return this->bcoes; }
+
+    /**
+     * @brief Gets the A coefficients (non-const)
+     *
+     * @return CoeffBuff& A coefficient vector
+     */
+    CoeffBuff& get_a() { return this->acoes; }
+
+    /**
+     * @brief Gets the B coefficients (non-const)
+     *
+     * @return CoeffBuff& B coefficient vector
+     */
+    CoeffBuff& get_b() { return this->bcoes; }
+
+    /**
      * @brief Gets the number of A coefficients
      *
      * @return Number of A coefficients
      */
-    int get_asize() const { return acoes.size(); }
-
-    /**
-     * @brief Sets the number of A coefficients
-     *
-     * @param size New number of A coefficients
-     */
-    void set_asize(int size) { this->acoes.resize(size); }
+    int asize() const { return acoes.size(); }
 
     /**
      * @brief Gets the number of B coefficients
      *
      * @return Number of B coefficients
      */
-    int get_bsize() const { return bcoes.size(); }
-
-    /**
-     * @brief Sets the number of B coefficients
-     *
-     * @param size New number of B coefficients
-     */
-    void set_bsize(int size) { this->bcoes.resize(size); }
-
-    /**
-     * @brief Retrieves a start iterator for the A coefficient vector
-     *
-     * You can use this iterator to populate the A coefficient
-     * vector with your values.
-     *
-     * @return Start iterator for A coefficient vector
-     */
-    auto abegin() { return this->acoes.begin(); }
-
-    /**
-     * @brief Retrieves a end iterator for the A coefficient vector
-     *
-     * You can use this iterator to determine when you have
-     * traversed the entire A coefficient vector.
-     *
-     * @return auto End iterator for A coefficient vector
-     */
-    auto aend() { return this->acoes.end(); }
-
-    /**
-     * @brief Retrieves an iterator for the B coefficient vector
-     *
-     * You can use this iterator to populate the B coefficient
-     * vector with your values.
-     *
-     * @return Start iterator for B coefficient vector
-     */
-    auto bbegin() { return this->bcoes.begin(); }
-
-    /**
-     * @brief Retrieves an end iterator for the B coefficient vector
-     *
-     * You can use this iterator to determine when you have traversed
-     * the entire A coefficient vector.
-     *
-     * @return auto End iterator for B coefficient vector
-     */
-    auto bend() { return this->bcoes.end(); }
-
-    /**
-     * @brief Sets the A coefficient at the given index
-     *
-     * @param index A coefficient index
-     * @param value Value to set
-     */
-    void set_a(int index, T value) { this->acoes[index] = value; }
-
-    /**
-     * @brief Gets the A coefficient at the given index
-     *
-     * @param index A coefficient index
-     * @return T Coefficient at the given index
-     */
-    T get_a(int index) const { return this->acoes[index]; }
-
-    /**
-     * @brief Sets the B coefficient at the given index
-     *
-     * @param index B coefficient index
-     * @param value Value to set
-     */
-    void set_b(int index, T value) { this->bcoes[index] = value; }
-
-    /**
-     * @brief gets the B coefficient at the given index
-     *
-     * @param index B coefficient index
-     * @return T Coefficient at the given index
-     */
-    T get_b(int index) const { return this->bcoes[index]; }
+    int bsize() const { return bcoes.size(); }
 
     /**
      * @brief Filters the given signal in place.
@@ -447,7 +418,6 @@ public:
  */
 template <typename T>
 class BaseIIRImplementation : public IIRFilter<T> {
-
 private:
     /// Sample rate
     int sample_rate = 0;
@@ -459,7 +429,7 @@ private:
     double freq_low = 0.;
 
     /// Filter type
-    dsp::consts::FilterType type;
+    dsp::consts::FilterType type = dsp::consts::FilterType::LowPass;
 
 public:
     /**
@@ -606,8 +576,7 @@ public:
  */
 template <typename T>
 class SinglePole : public BaseIIRImplementation<T> {
-
-public:
+private:
     /**
      * @brief Converts a frequency fraction to a value
      *
@@ -623,6 +592,7 @@ public:
         return std::exp(-2 * std::numbers::pi_v<double> * freq);
     }
 
+public:
     /**
      * @brief Generates the coefficients for this filter
      *
