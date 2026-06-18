@@ -17,6 +17,7 @@
 #include <iterator>
 #include <utility>
 
+#include "dsp/const.hpp"
 #include "dsp/meta.hpp"
 
 namespace dsp::util {
@@ -173,6 +174,23 @@ constexpr T hertz_period(T hertz) {
         std::chrono::duration_cast<
             std::chrono::duration<double, typename D::period>>(secs)
             .count());
+}
+
+/**
+ * @brief Converts frequency in hertz to radians per sample
+ *
+ * The frequency should be greater than 0, and the sample rate should be greater
+ * than 0 as well. The result will be in radians per sample, which is a
+ * dimensionless quantity that represents the angular frequency of a signal in
+ * terms of the number of samples taken per second.
+ *
+ * @param freq Frequency in hertz
+ * @param sample_rate Sample rate in samples per second
+ * @return constexpr double Angular frequency in radians per sample
+ */
+constexpr double rads_sample(double freq, double sample_rate) {
+
+    return (dsp::consts::pi_2 * freq) / sample_rate;
 }
 
 /**
